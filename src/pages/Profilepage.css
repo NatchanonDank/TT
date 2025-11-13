@@ -1,8 +1,4 @@
 /* src/pages/ProfilePage.css */
-
-/* ===============================
-   Reset & Global
-=============================== */
 * {
   margin: 0;
   padding: 0;
@@ -16,7 +12,7 @@ body {
 }
 
 .head {
-  min-height: 100vh;
+  height: 100vh;
   padding-bottom: 40px;
 }
 
@@ -24,7 +20,7 @@ body {
    Hero Section (รูปปก)
 =============================== */
 .hero-section {
-  height: 350px; 
+  height: 30vh; 
   width: 100%;
   background-size: cover;
   background-position: center;
@@ -458,6 +454,191 @@ body {
 
 .primary-btn:hover {
   background: #166fe5;
+}
+
+/* ===============================
+   Edit Profile Modal (เพิ่มเติม)
+=============================== */
+
+.modal-header button {
+  background: transparent;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: #65676b;
+}
+
+.modal-header button:hover {
+  background: #f0f2f5;
+}
+
+/* File Input Styling */
+.form-group input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  border: 2px dashed #dddfe2;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #f9fafb;
+}
+
+.form-group input[type="file"]:hover {
+  border-color: #1877f2;
+  background: #f0f2f5;
+}
+
+.form-group input[type="file"]::file-selector-button {
+  padding: 8px 16px;
+  background: #1877f2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-right: 10px;
+}
+
+.form-group input[type="file"]::file-selector-button:hover {
+  background: #166fe5;
+}
+
+/* Label Styling */
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  color: #050505;
+}
+
+/* Textarea Specific */
+.textarea-input {
+  min-height: 100px;
+  resize: vertical;
+  font-family: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Cover Color Grid Improvements */
+.cover-color-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.color-option-btn {
+  height: 60px;
+  border: 3px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.color-option-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.color-option-btn.selected {
+  border-color: #1877f2;
+  transform: scale(0.98);
+  box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.2);
+}
+
+/* Modal Actions Improvements */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #e4e6eb;
+}
+
+.modal-actions button {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.modal-actions button:first-child {
+  background: transparent;
+  color: #65676b;
+}
+
+.modal-actions button:first-child:hover {
+  background: #f0f2f5;
+}
+
+.modal-actions button:last-child,
+.modal-actions button.save-btn {
+  background: #1877f2;
+  color: white;
+}
+
+.modal-actions button:last-child:hover,
+.modal-actions button.save-btn:hover {
+  background: #166fe5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
+}
+
+/* Modal Scrollbar */
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: #f0f2f5;
+  border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: #d0d2d6;
+  border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: #b8babf;
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    max-width: none;
+    padding: 16px;
+  }
+
+  .cover-color-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .color-option-btn {
+    height: 50px;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
 }
 /* ===============================
    Responsive 

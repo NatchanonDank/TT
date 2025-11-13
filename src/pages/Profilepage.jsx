@@ -156,7 +156,7 @@ const ProfilePage = () => {
             className="logout-btn-absolute"
             style={{
                position: 'absolute',
-               top: '100px', // 👈 ปรับให้พ้น Navbar
+               top: '100px',
                right: '30px',
                background: 'rgba(0,0,0,0.6)',
                color: 'white',

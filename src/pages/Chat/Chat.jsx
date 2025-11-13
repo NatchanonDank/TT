@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from "../../components/Navbar";
 import GroupList from './components/GroupList';
 import ChatWindow from './components/ChatWindow';
-// import CreateGroupModal from './components/CreateGroupModal'; // ❌ ไม่ต้อง import แล้ว
 import LocationModal from './components/LocationModal';
 import './Chat.css';
 
@@ -39,7 +38,6 @@ const Chat = () => {
   
   // Modal States (เหลือแค่ Location Modal)
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false); 
-  // ❌ ลบ state เกี่ยวกับการสร้างกลุ่มออก
 
   // Input State
   const [messageInput, setMessageInput] = useState('');
@@ -198,7 +196,6 @@ const Chat = () => {
     navigate('/chat'); 
   };
   
-  // ❌ ลบ handleCreateGroup ออก
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !activeChat?.id || isTripEnded) return;
@@ -298,7 +295,6 @@ const Chat = () => {
             searchTerm={groupSearch}
             onSearchChange={setGroupSearch}
             onChatClick={handleChatClick}
-            // ✅ ไม่ส่ง onCreateGroup ไป
             currentUser={currentUser}
           />
         ) : (

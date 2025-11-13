@@ -23,15 +23,12 @@ const GroupList = ({
             onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
-        <button onClick={onCreateGroup} className="create-group-btn">
-          <Plus size={20} />
-        </button>
       </div>
 
       {/* รายการกลุ่ม */}
       <div className="groups-scroll-area">
         {groups.length === 0 ? (
-          <div className="no-groups"><p>ไม่พบกลุ่ม</p></div>
+          <div className="no-groups"><p>ยังไม่มีกลุ่ม</p></div>
         ) : (
           groups.map((group) => (
             // เรียกใช้ GroupCard และส่ง props ไปให้ครบ
