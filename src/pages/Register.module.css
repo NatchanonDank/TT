@@ -1,0 +1,62 @@
+body, html {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  justify-content: center; 
+  align-items: center;    
+ 
+}
+
+.registerBox {
+    width: 350px;
+    margin: 100px auto;
+    padding: 40px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+  }
+  
+.registerBox h2 {
+    margin-bottom: 30px;
+    color: #333;
+  }
+  
+.registerBox input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  
+.registerBox button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 6px;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+.registerBox button:hover {
+    background-color: #45a049;
+  }
+  
+  .authFooter {
+    margin: 10px 0;
+    font-size: 13px;
+  }
+  
+  .registerBox p {
+    text-align: right;
+    margin-top: 15px;
+    font-size: 14px;
+  }
+  

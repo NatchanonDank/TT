@@ -1,0 +1,54 @@
+.loginBox {
+  width: 350px;
+  margin: 100px auto;
+  padding: 40px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  font-family: 'Arial', sans-serif;
+}
+
+.loginBox h2 {
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.loginBox input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.loginBox button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  border: none;
+  border-radius: 6px;
+  background-color: #4CAF50;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.loginBox button:hover {
+  background-color: #45a049;
+}
+
+.authFooter {
+  text-align: right;
+  margin: 10px 0;
+  font-size: 13px;
+}
+
+.loginBox p {
+  color: black;
+  text-align: right;
+  margin-top: 15px;
+  font-size: 14px;
+}

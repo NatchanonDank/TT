@@ -1,0 +1,467 @@
+/* Reset และ Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+/* Container */
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Layout แบบ 2 คอลัมน์ */
+.homepage-layout {
+  display: flex;
+  gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  padding-top: 90px;
+  align-items: flex-start; /* ✅ เพิ่มบรรทัดนี้ */
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  min-width: 0;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  
+}
+
+.main-content::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* Welcome Banner - ✅ ปรับความสูงให้เท่ากับ Search Box */
+.welcome-banner {
+  background: linear-gradient(135deg, #7B68EE 0%, #9B7FED 100%);
+  color: white;
+  padding: 2rem 3rem;
+  border-radius: 20px;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 15px rgba(123, 104, 238, 0.3);
+  min-height: 160px; /* ✅ เพิ่มบรรทัดนี้ */
+  display: flex; /* ✅ เพิ่มบรรทัดนี้ */
+  flex-direction: column; /* ✅ เพิ่มบรรทัดนี้ */
+  justify-content: center; /* ✅ เพิ่มบรรทัดนี้ */
+}
+
+.banner-title {
+  font-size: 1.75rem;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.banner-subtitle {
+  font-size: 1rem;
+  margin: 0;
+  opacity: 0.95;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  color: #999;
+  padding: 60px 20px;
+  font-size: 16px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Search Sidebar (ขวา) */
+.search-sidebar {
+  width: 340px;
+  flex-shrink: 0;
+}
+
+.search-box-sticky {
+  position: sticky;
+  top: 90px;
+}
+
+/* Search Box หลัก - ✅ ปรับความสูงให้เท่ากับ Banner */
+.search-box {
+  position: relative;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+  border-radius: 20px;
+  padding: 1.75rem;
+  box-shadow: 
+    0 4px 20px rgba(102, 126, 234, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1.25rem;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  transition: all 0.3s ease;
+  min-height: 160px; /* ✅ เพิ่มบรรทัดนี้ - ให้เท่ากับ banner */
+  display: flex; /* ✅ เพิ่มบรรทัดนี้ */
+  flex-direction: column; /* ✅ เพิ่มบรรทัดนี้ */
+  justify-content: space-between; /* ✅ เพิ่มบรรทัดนี้ */
+}
+
+.search-box:hover {
+  box-shadow: 
+    0 6px 25px rgba(102, 126, 234, 0.18),
+    0 2px 5px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Search Header */
+.search-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: #667eea;
+}
+
+.search-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.search-header .sparkle-icon {
+  font-size: 1.25rem;
+  animation: sparkle-rotate 3s linear infinite;
+}
+
+@keyframes sparkle-rotate {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-15deg) scale(1.1); }
+  50% { transform: rotate(0deg) scale(1); }
+  75% { transform: rotate(15deg) scale(1.1); }
+}
+
+/* Search Input Container */
+.search-input-wrapper {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #667eea;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.search-input {
+  width: 100%;
+  padding: 1rem 3rem 1rem 3.25rem;
+  border: 2px solid #e8ecff;
+  border-radius: 14px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: white;
+  color: #333;
+  font-weight: 500;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+}
+
+.search-input:focus ~ .search-clear-btn {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.search-input::placeholder {
+  color: #aaa;
+  font-weight: 400;
+}
+
+/* Clear Button */
+.search-clear-btn {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #f0f0f0;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.search-clear-btn:hover {
+  background: #e0e0e0;
+}
+
+/* Quick Filters */
+.quick-filters {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-chip {
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1.5px solid #e8ecff;
+  border-radius: 20px;
+  font-size: 13px;
+  color: #667eea;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.filter-chip:hover {
+  background: #f0f3ff;
+  border-color: #667eea;
+  transform: translateY(-1px);
+}
+
+.filter-chip.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+
+
+/* Trending Section */
+.trending-section {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  margin-top: 1.25rem;
+}
+
+.trending-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: #ff6b6b;
+}
+
+.trending-header h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.trending-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.trending-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #fafafa;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trending-item:hover {
+  background: #f0f3ff;
+  transform: translateX(4px);
+}
+
+.trending-rank {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.trending-info {
+  flex: 1;
+}
+
+.trending-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.15rem;
+}
+
+.trending-count {
+  font-size: 11px;
+  color: #999;
+}
+
+/* Suggestions Section */
+.suggestions-section {
+  background: linear-gradient(145deg, #fff5f5 0%, #fff 100%);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 107, 107, 0.1);
+  margin-top: 1.25rem;
+}
+
+.suggestions-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: #ff6b6b;
+}
+
+.suggestions-header h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.suggestion-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.suggestion-tag {
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1.5px solid #ffe0e0;
+  border-radius: 20px;
+  font-size: 12px;
+  color: #ff6b6b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.suggestion-tag:hover {
+  background: #fff0f0;
+  border-color: #ff6b6b;
+  transform: translateY(-2px);
+}
+
+/* Loading Animation */
+.search-loading {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  background: #667eea;
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .homepage-layout {
+    flex-direction: column;
+  }
+  
+  .search-sidebar {
+    width: 100%;
+    order: -1;
+  }
+  
+  .search-box-sticky {
+    position: static;
+  }
+  
+  .main-content {
+    max-height: none;
+    overflow-y: visible;
+  }
+  
+  /* ✅ ในมือถือไม่ต้องมีความสูงเท่ากัน */
+  .welcome-banner,
+  .search-box {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .homepage-layout {
+    padding: 1rem;
+    padding-top: 80px;
+  }
+  
+  .welcome-banner {
+    padding: 1.5rem;
+  }
+  
+  .banner-title {
+    font-size: 1.5rem;
+  }
+  
+  .banner-subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .search-box {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-banner {
+    padding: 1.25rem;
+  }
+  
+  .banner-title {
+    font-size: 1.25rem;
+    flex-direction: column;
+    gap: 5px;
+  }
+}
