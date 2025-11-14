@@ -6,22 +6,16 @@ const LocationModal = ({ isOpen, onClose, onSendLocation }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Debounce search
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      if (searchTerm.trim()) {
-        handleSearch(searchTerm);
-      } else {
-        setSearchResults([]);
-      }
+      if (searchTerm.trim()) handleSearch(searchTerm);
+      else setSearchResults([]);
     }, 800);
-
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm]);
 
   if (!isOpen) return null;
 
-  // 1. ฟังก์ชันค้นหาจาก OpenStreetMap (อันนี้ยังต้อง fetch เพื่อหาที่อื่น)
   const handleSearch = async (query) => {
     setIsLoading(true);
     try {
@@ -29,14 +23,12 @@ const LocationModal = ({ isOpen, onClose, onSendLocation }) => {
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=10&countrycodes=th&accept-language=th`
       );
       const data = await response.json();
-
       const formattedResults = data.map((item) => ({
-        name: item.name || item.display_name.split(',')[0], 
+        name: item.name || item.display_name.split(',')[0],
         address: item.display_name,
         lat: parseFloat(item.lat),
         lng: parseFloat(item.lon)
       }));
-
       setSearchResults(formattedResults);
     } catch (error) {
       console.error("Error searching location:", error);
@@ -45,38 +37,28 @@ const LocationModal = ({ isOpen, onClose, onSendLocation }) => {
     }
   };
 
-  // ✅ 2. แก้ไข: หาตำแหน่งปัจจุบัน (ลบการ fetch ชื่อออก ส่งชื่อตายตัวเลย)
   const handleCurrentLocation = () => {
     setIsLoading(true);
-    
     if (!navigator.geolocation) {
       alert("ไม่รองรับ GPS");
       setIsLoading(false);
       return;
     }
-
     navigator.geolocation.getCurrentPosition((position) => {
       const { latitude, longitude } = position.coords;
-      
-      // ❌ ลบโค้ด fetch(...) ที่เคยอยู่ตรงนี้ออกให้หมด
-      
-      // ✅ กำหนดชื่อเองเลย
       const loc = {
-         name: "ตำแหน่งปัจจุบันของฉัน", 
-         address: `พิกัด: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`, // แสดงพิกัดแทนชื่อตำบล
-         lat: latitude,
-         lng: longitude
+        name: "ตำแหน่งปัจจุบันของฉัน",
+        address: `พิกัด: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`,
+        lat: latitude,
+        lng: longitude
       };
-      
       onSendLocation(loc);
       setIsLoading(false);
-      
     }, (err) => {
       alert("ดึงตำแหน่งไม่สำเร็จ: " + err.message);
       setIsLoading(false);
     });
   };
-
   // 3. รายการสถานที่แนะนำ
   const suggestedLocations = [
     // --- 🏢 ห้างสรรพสินค้า & แหล่งช้อปปิ้ง ---
@@ -226,105 +208,51 @@ const LocationModal = ({ isOpen, onClose, onSendLocation }) => {
     { name: "รพ.สงขลานครินทร์", lat: 7.0080, lng: 100.4975, address: "หาดใหญ่, สงขลา" }
   ];
 
-  const filteredSuggested = suggestedLocations.filter(l => 
-      l.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      l.address.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredSuggested = suggestedLocations.filter(l =>
+    l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    l.address.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const displayLocations = searchResults.length > 0 ? searchResults : (searchTerm ? filteredSuggested : suggestedLocations);
 
   return (
-    <div className="modal-overlay" style={{zIndex: 2000}}>
-      <div className="modal-content" style={{maxWidth: '450px', padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '80vh'}}>
-        
-        <div style={{padding: '15px', borderBottom: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-          <h3 style={{margin:0, fontSize: '1.1rem'}}>📍 ส่งตำแหน่งที่ตั้ง</h3>
-          <button onClick={onClose} style={{background:'none', border:'none', cursor:'pointer'}}>
-             <X size={24} color="#666" />
-          </button>
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h3>📍 ส่งตำแหน่งที่ตั้ง</h3>
+          <button className="modal-close" onClick={onClose}><X size={24} /></button>
         </div>
 
-        <div className="modal-body" style={{padding: '15px', overflowY: 'auto'}}>
-          
-          <div style={{position: 'relative', marginBottom: '15px'}}>
-             <Search size={18} style={{position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#888'}} />
-             <input 
-               type="text" 
-               placeholder="ค้นหา เช่น บางแสน, เขาใหญ่, เชียงใหม่..." 
-               value={searchTerm}
-               onChange={(e) => setSearchTerm(e.target.value)}
-               style={{
-                 width: '100%', 
-                 padding: '12px 12px 12px 40px', 
-                 borderRadius: '8px', 
-                 border: '1px solid #ddd', 
-                 outline: 'none',
-                 fontSize: '1rem',
-                 backgroundColor: '#f9fafb'
-               }}
-             />
-             {isLoading && (
-                 <div style={{position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)'}}>
-                    <Loader className="animate-spin" size={16} color="#666"/>
-                 </div>
-             )}
+        <div className="modal-body">
+          <div className="search-box">
+            <Search size={18} className="search-icon" />
+            <input
+              type="text"
+              placeholder="ค้นหา เช่น บางแสน, เขาใหญ่, เชียงใหม่..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {isLoading && <Loader size={16} className="loader-icon animate-spin" />}
           </div>
 
-          <button 
-            onClick={handleCurrentLocation} 
-            disabled={isLoading}
-            style={{
-                width: '100%', 
-                padding: '12px', 
-                background: '#e3f2fd', 
-                color: '#1976d2', 
-                border: 'none', 
-                borderRadius: '8px', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                gap: '8px', 
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                marginBottom: '20px',
-                transition: 'background 0.2s'
-            }}
-          >
-             <Navigation size={18} /> แชร์ตำแหน่งปัจจุบันของฉัน
+          <button className="current-location-btn" onClick={handleCurrentLocation} disabled={isLoading}>
+            <Navigation size={18} /> แชร์ตำแหน่งปัจจุบันของฉัน
           </button>
 
-          <div style={{fontSize: '0.9rem', color: '#666', marginBottom: '10px', fontWeight: 'bold'}}>
-             {searchResults.length > 0 ? 'ผลการค้นหา' : (searchTerm ? 'ผลการค้นหา (แนะนำ)' : 'สถานที่ยอดฮิตทั่วไทย')}
+          <div className="location-title">
+            {searchResults.length > 0 ? 'ผลการค้นหา' : (searchTerm ? 'ผลการค้นหา (แนะนำ)' : 'สถานที่ยอดฮิตทั่วไทย')}
           </div>
 
           <div className="location-list">
-             {displayLocations.map((loc, index) => (
-               <div 
-                 key={index} 
-                 onClick={() => onSendLocation(loc)}
-                 style={{
-                    padding: '12px 0', 
-                    borderBottom: '1px solid #f0f0f0', 
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '12px'
-                 }}
-               >
-                 <div style={{
-                    width: '35px', height: '35px', 
-                    background: '#f0f2f5', borderRadius: '50%', 
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0, marginTop: '2px'
-                 }}>
-                    <MapPin size={18} color="#555" />
-                 </div>
-                 <div>
-                   <div style={{fontWeight: 'bold', fontSize: '0.95rem', color: '#333'}}>{loc.name}</div>
-                   <div style={{fontSize: '0.8rem', color: '#888', lineHeight: '1.3'}}>{loc.address}</div>
-                 </div>
-               </div>
-             ))}
+            {displayLocations.map((loc, index) => (
+              <div key={index} className="location-item" onClick={() => onSendLocation(loc)}>
+                <div className="location-icon"><MapPin size={18} color="#555"/></div>
+                <div className="location-text">
+                  <div className="location-name">{loc.name}</div>
+                  <div className="location-address">{loc.address}</div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
