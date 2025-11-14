@@ -13,7 +13,8 @@ import {
   query, 
   where, 
   getDocs, 
-  orderBy 
+  orderBy,
+  writeBatch // ✅ เพิ่ม import writeBatch
 } from 'firebase/firestore';
 
 import Navbar from '../components/Navbar';
@@ -96,9 +97,6 @@ const ProfilePage = () => {
 
         } catch (error) {
           console.error("Error fetching reviews:", error);
-          if (error.code === 'failed-precondition') {
-             alert("⚠️ กรุณาสร้าง Index ใน Firebase Console (ดูลิงก์ใน F12)");
-          }
         }
 
         setIsLoading(false);
@@ -110,6 +108,7 @@ const ProfilePage = () => {
     return () => unsubscribe();
   }, [navigate]);
 
+  // Handlers (Edit, Cancel, Change)
   const handleEdit = () => { setIsEditing(true); setEditForm({ ...profileData }); };
   const handleCancel = () => { setIsEditing(false); setEditForm({ ...profileData }); };
   const handleChange = (field, value) => setEditForm(prev => ({ ...prev, [field]: value }));
@@ -121,24 +120,61 @@ const ProfilePage = () => {
       reader.readAsDataURL(file);
     }
   };
+  
   const handleLogout = async () => {
     if (window.confirm("ต้องการออกจากระบบใช่หรือไม่?")) {
       await signOut(auth);
       navigate('/login');
     }
   };
+
+  // ✅ 2. ฟังก์ชันบันทึกโปรไฟล์พร้อมซิงค์ข้อมูลโพสต์
   const handleSave = async () => {
     if (!auth.currentUser) return;
+    const userUID = auth.currentUser.uid;
+    
     try {
+      // 2.1 อัปเดต Auth และ User Document
       await updateProfile(auth.currentUser, { displayName: editForm.name });
-      await setDoc(doc(db, "users", auth.currentUser.uid), {
-        name: editForm.name, bio: editForm.bio, coverColor: editForm.coverColor, avatar: editForm.avatar, email: auth.currentUser.email
+      await setDoc(doc(db, "users", userUID), {
+        name: editForm.name, 
+        bio: editForm.bio, 
+        coverColor: editForm.coverColor, 
+        avatar: editForm.avatar, 
+        email: auth.currentUser.email
       }, { merge: true });
+
+      // 2.2 ซิงค์ข้อมูล: อัปเดตชื่อและรูปในโพสต์เก่าทั้งหมด
+      const postsQuery = query(
+          collection(db, 'posts'),
+          where('uid', '==', userUID)
+      );
+      const postsSnapshot = await getDocs(postsQuery);
+      
+      const batch = writeBatch(db); // เริ่ม Batch Write
+
+      postsSnapshot.forEach((docSnap) => {
+          const postRef = doc(db, 'posts', docSnap.id);
+          batch.update(postRef, {
+              // อัปเดต Field ที่ซ้ำซ้อน
+              'author.name': editForm.name,
+              'author.avatar': editForm.avatar 
+          });
+      });
+
+      await batch.commit(); // ✅ ยิงการอัปเดตทั้งหมดพร้อมกัน
+      // ---------------------------------------------
+      
       setProfileData({ ...editForm });
       setIsEditing(false);
-      alert("บันทึกข้อมูลสำเร็จ!");
-    } catch (error) { alert("Error: " + error.message); }
+      alert("บันทึกข้อมูลสำเร็จ! โพสต์ทั้งหมดของคุณได้รับการอัปเดตแล้ว");
+      
+    } catch (error) { 
+      console.error("Error saving profile:", error);
+      alert("Error: บันทึกข้อมูลไม่สำเร็จ"); 
+    }
   };
+
 
   const renderStars = (count) => '⭐'.repeat(count) + '☆'.repeat(5 - count);
   const coverOptions = ['linear-gradient(135deg, #a8d5e2 0%, #f9d5a5 100%)', 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'];
@@ -150,26 +186,14 @@ const ProfilePage = () => {
       <Navbar brand="TripTogether" />
       
       <div className="hero-section" style={{ background: profileData.coverColor }}>
-         {/* ✅ ปุ่ม Logout มุมขวาบน (ปรับ Style ให้ชัดเจน) */}
          <button 
             onClick={handleLogout} 
             className="logout-btn-absolute"
-            style={{
-               position: 'absolute',
-               top: '100px',
-               right: '30px',
-               background: 'rgba(0,0,0,0.6)',
-               color: 'white',
-               border: 'none',
-               padding: '10px 20px',
-               borderRadius: '30px',
-               cursor: 'pointer',
-               display: 'flex',
-               alignItems: 'center',
-               gap: '8px',
-               zIndex: 999,
-               fontWeight: 'bold',
-               boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
+            style={{ 
+              position: 'absolute', top: '100px', right: '30px', background: 'rgba(0,0,0,0.6)', 
+              color: 'white', border: 'none', padding: '10px 20px', borderRadius: '30px', 
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 999,
+              fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
             }}
          >
             <LogOut size={18} /> ออกจากระบบ
@@ -234,7 +258,7 @@ const ProfilePage = () => {
                       <div key={index} className="review-bar-row">
                         <div className="review-stars">{renderStars(5 - index)}</div>
                         <div className="review-bar-container">
-                          <div className="review-bar-fill" style={{ width: `${reviewStats.total > 0 ? (count / reviewStats.total) * 100 : 0}%`, backgroundColor: count > 0 ? '#4caf50' : '#f0f0f0' }} />
+                          <div className="review-bar-fill" style={{ width: `${reviewStats.total > 0 ? (count / reviewsList.length) * 100 : 0}%`, backgroundColor: count > 0 ? '#4caf50' : '#f0f0f0' }} />
                         </div>
                         <div className="review-count">{count}</div>
                       </div>

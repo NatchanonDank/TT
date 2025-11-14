@@ -773,3 +773,139 @@
     font-size: 15px;
   }
 }
+
+.message-avatar {
+ 
+  width: 40px;       
+  height: 40px;      
+  min-width: 40px;   
+  border-radius: 50%;
+  object-fit: cover; 
+  flex-shrink: 0;
+  border: 1px solid #e0e0e0;
+  align-self: flex-start; 
+}
+
+/* ---------------------------------- */
+/*       Message List Layout          */
+/* ---------------------------------- */
+.messages-area {
+
+  display: flex;
+  flex-direction: column;
+ 
+}
+
+.message-wrapper {
+  display: flex; 
+  gap: 8px;
+  align-items: flex-end; 
+}
+
+.message-wrapper.own {
+  justify-content: flex-end;
+}
+
+.message-bubble {
+  max-width: 70%;
+}
+
+
+/* ---------- Message Bubble (กรอบข้อความ) ---------- */
+
+.message-bubble {
+  background: #fff;
+  border-radius: 16px;
+  padding: 10px 14px;
+  
+  max-width: 70%; 
+  min-width: 120px; 
+  
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  
+  word-wrap: break-word; 
+  overflow-wrap: break-word;
+}
+
+.message-bubble p {
+    margin: 0;
+    line-height: 1.4;
+    font-size: 1rem;
+    white-space: pre-wrap; 
+}
+
+.message-bubble.own {
+  background: #1976d2;
+  color: white;
+}
+
+.messages-area {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+
+/* ---------------------------------- */
+/* 1. Message Wrapper                 */
+/* ---------------------------------- */
+.message-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end; 
+  max-width: 80%; 
+  align-self: flex-start;
+}
+
+.message-wrapper.own {
+  justify-content: flex-end;
+  align-self: flex-end; 
+}
+
+
+/* ---------- 2. Message Bubble  ---------- */
+
+.message-bubble {
+  background: #fff;
+  border-radius: 16px;
+  padding: 10px 14px;
+
+  min-width: 80px; 
+  max-width: 100%; 
+  
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  word-wrap: break-word; 
+  overflow-wrap: break-word;
+}
+
+.message-bubble.own {
+  background: #1976d2;
+  color: white;
+
+}
+
+.message-bubble p {
+    margin: 0;
+    line-height: 1.4;
+    font-size: 1rem;
+    white-space: pre-wrap; 
+    min-width: 0; 
+}
+
+
+.message-avatar {
+  width: 40px;       
+  height: 40px;      
+  min-width: 40px; 
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover; 
+  border: 1px solid #e0e0e0;
+  align-self: flex-start; 
+}
