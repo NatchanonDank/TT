@@ -1,13 +1,10 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
 
-// ----------------------------------------------------
-// Helper: Linkify Function (แปลงข้อความเป็นลิงก์)
-// ----------------------------------------------------
+// Helper: Linkify Function
 const linkify = (text) => {
     if (typeof text !== 'string') return text;
     
-    // RegEx สำหรับตรวจจับลิงก์ที่ขึ้นต้นด้วย http/https หรือ www.
     const urlRegex = /(\b(https?:\/\/|www\.)[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
     const parts = text.split(urlRegex);
 
@@ -23,7 +20,6 @@ const linkify = (text) => {
                     href={href} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    // Style สำหรับลิงก์ใน Bubble (กำหนดสีให้ต่างจากพื้นหลัง)
                     style={{color: 'inherit', textDecoration: 'underline'}} 
                 >
                     {part}
@@ -34,46 +30,66 @@ const linkify = (text) => {
     });
 };
 
-
-// ----------------------------------------------------
-// Component: MessageBubble (แสดงผลข้อความเดี่ยว)
-// ----------------------------------------------------
 function MessageBubble({ message, currentUser }) {
   const { text, uid, photoURL, sender, time, type, location } = message;
   
-  // กำหนดคลาสสำหรับจัดวางซ้าย/ขวา
-  const messageClass = uid === currentUser?.uid ? 'own' : 'other';
-  
-  // ตรวจสอบว่าเป็น Location
+  // ตรวจสอบว่าเป็นข้อความเราหรือไม่
+  const isOwn = currentUser && uid === currentUser.uid;
+  const messageClass = isOwn ? 'own' : 'other';
   const isLocation = type === 'location' && location;
 
   return (
     <div className={`message-wrapper ${messageClass}`}>
       
-      {/* Avatar (แสดงเฉพาะฝั่งคนอื่น) */}
-      {messageClass === 'other' && (
-        <img src={photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} alt={sender} className="message-avatar" />
+      {!isOwn && (
+        <img 
+            src={photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
+            alt={sender} 
+            className="message-avatar" 
+        />
       )}
 
       <div className={`message-bubble ${messageClass}`}>
         
-        {/* ชื่อคนส่ง (แสดงเฉพาะฝั่งคนอื่น) */}
-        {messageClass === 'other' && <span className="message-sender-name">{sender}</span>}
+        {!isOwn && <span className="message-sender-name">{sender}</span>}
 
-        {/* เนื้อหาข้อความ / ตำแหน่งที่อยู่ */}
         {isLocation ? (
              <a 
-                 href={`http://maps.google.com/?q=${location.lat},${location.lng}`} 
+                 // ✅ แก้ไข: ใช้ลิงก์มาตรฐานของ Google Maps
+                 href={`https://www.google.com/maps?q=${location.lat},${location.lng}`}
                  target="_blank" 
                  rel="noopener noreferrer"
                  className="location-link"
+                 style={{
+                    color: 'inherit', 
+                    textDecoration: 'none', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                 }}
              >
-                <MapPin size={16} /> 
-                <span style={{fontWeight: 'bold'}}>พิกัด: {location.name || 'ตำแหน่งที่แชร์'}</span>
+                <div style={{
+                    background: isOwn ? 'rgba(255,255,255,0.2)' : '#f0f0f0',
+                    borderRadius: '50%',
+                    padding: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <MapPin size={20} color={isOwn ? '#fff' : '#f5533d'} />
+                </div>
+                <div style={{display:'flex', flexDirection:'column'}}>
+                    <span>{location.name}</span>
+                    <span style={{fontSize: '0.75rem', fontWeight: 'normal', opacity: 0.8}}>
+                        กดเพื่อดูแผนที่
+                    </span>
+                </div>
              </a>
         ) : (
             <p className="message-text">
-                {linkify(text)} {/* ✅ ใช้ Linkify ที่สร้างไว้ */}
+                {linkify(text)}
             </p>
         )}
         

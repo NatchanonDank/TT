@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import MessageBubble from './MessageBubble';
 
-const MessageList = ({ messages }) => {
+const MessageList = ({ messages, currentUser }) => { // ✅ 3. ต้องรับ currentUser
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -13,9 +13,13 @@ const MessageList = ({ messages }) => {
   }, [messages]);
 
   return (
-    <div className="messages-container">
-      {messages.map(msg => (
-        <MessageBubble key={msg.id} message={msg} />
+    <div className="messages-area">
+      {messages && messages.map(msg => (
+        <MessageBubble 
+          key={msg.id} 
+          message={msg} 
+          currentUser={currentUser} // ✅ 4. ส่งต่อให้ MessageBubble
+        />
       ))}
       <div ref={messagesEndRef} />
     </div>

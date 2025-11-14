@@ -19,7 +19,6 @@ import {
   serverTimestamp, 
   doc,
   updateDoc,
-  arrayUnion,
   getDoc
 } from 'firebase/firestore';
 
@@ -27,30 +26,20 @@ const Chat = () => {
   const { groupId } = useParams();
   const navigate = useNavigate();
   
-  // User State
   const [currentUser, setCurrentUser] = useState(null);
-  
-  // UI State
   const [groupSearch, setGroupSearch] = useState('');
   const [activeChat, setActiveChat] = useState(null);
   const [isTripEnded, setIsTripEnded] = useState(false);
-  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   
-  // Modal States (เหลือแค่ Location Modal)
+  // ✅ State สำหรับเปิด/ปิด Modal เลือกสถานที่
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false); 
 
-  // Input State
   const [messageInput, setMessageInput] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  const [searchLocation, setSearchLocation] = useState('');
-  
-  // Data State
   const [groups, setGroups] = useState([]); 
   const [messages, setMessages] = useState([]); 
 
-  // ----------------------------------------------------------------
-  // 1. Auth Check & Load User
-  // ----------------------------------------------------------------
+  // ... (useEffect 1-4 เหมือนเดิม ไม่ต้องแก้) ...
+  // 1. Auth Check
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -66,17 +55,13 @@ const Chat = () => {
     return () => unsubscribe();
   }, [navigate]);
 
-  // ----------------------------------------------------------------
-  // 2. Fetch "My Groups" (Real-time)
-  // ----------------------------------------------------------------
+  // 2. Fetch Groups
   useEffect(() => {
     if (!currentUser?.uid) return; 
-
     const q = query(
       collection(db, 'groups'),
       where('memberUids', 'array-contains', currentUser.uid)
     );
-
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const loadedGroups = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -84,24 +69,19 @@ const Chat = () => {
       }));
       setGroups(loadedGroups);
     });
-
     return () => unsubscribe();
   }, [currentUser]);
 
-  // ----------------------------------------------------------------
-  // 3. Handle URL groupId & Select Chat (รวม Logic ตรวจสอบทริปจบ)
-  // ----------------------------------------------------------------
+  // 3. Handle URL
   useEffect(() => {
     if (!groupId) {
       setActiveChat(null);
       return;
     }
-
     if (!currentUser) return;
 
     const selectGroupFromUrl = async () => {
       const existingGroup = groups.find(g => g.id === groupId);
-      
       if (existingGroup) {
         if (activeChat?.id !== existingGroup.id) {
            if (existingGroup.status === 'ended') {
@@ -114,11 +94,8 @@ const Chat = () => {
         try {
           const groupRef = doc(db, 'groups', groupId);
           const groupSnap = await getDoc(groupRef);
-          
           if (groupSnap.exists()) {
              const groupData = groupSnap.data();
-             
-             // ถ้าเป็นสมาชิกแล้ว ให้เข้าห้อง
              if (groupData.memberUids?.includes(currentUser.uid)) {
                  if (groupData.status === 'ended') {
                     navigate(`/end-trip/${groupId}`);
@@ -126,31 +103,24 @@ const Chat = () => {
                     setActiveChat({ id: groupId, ...groupData });
                  }
              }
-             // ถ้าไม่ได้เป็นสมาชิก อาจต้องแสดงปุ่ม Join ในหน้า Chat (แต่เราใช้ Post/Approve แทน)
           }
         } catch (error) {
           console.error("Error fetching group:", error);
         }
       }
     };
-
     selectGroupFromUrl();
-  }, [groupId, currentUser, groups]); 
+  }, [groupId, currentUser, groups]);
 
-  // ----------------------------------------------------------------
-  // 4. Fetch Messages for Active Chat (Real-time)
-  // ----------------------------------------------------------------
+  // 4. Fetch Messages
   useEffect(() => {
     if (!activeChat?.id) return;
-
     setIsTripEnded(activeChat.status === 'ended');
-
     const q = query(
       collection(db, 'messages'),
       where('room', '==', activeChat.id),
       orderBy('createdAt', 'asc')
     );
-
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const msgs = snapshot.docs.map(doc => {
         const data = doc.data();
@@ -165,27 +135,17 @@ const Chat = () => {
       });
       setMessages(msgs);
     });
-
     return () => unsubscribe();
   }, [activeChat, currentUser]);
 
-
-  // ----------------------------------------------------------------
-  // Actions & Handlers
-  // ----------------------------------------------------------------
-
-  // Logic การ Join ถูกย้ายไป Post.jsx
-  // const joinGroup = async ... 
+  // --- Handlers ---
 
   const handleChatClick = (group) => {
     if (!group?.id) return;
-    
-    // ถ้าจบแล้ว ไปหน้า Endtrip
     if (group.status === 'ended') {
        navigate(`/end-trip/${group.id}`);
        return;
     }
-
     setActiveChat(group);
     navigate(`/chat/${group.id}`);
   };
@@ -195,11 +155,9 @@ const Chat = () => {
     setMessages([]); 
     navigate('/chat'); 
   };
-  
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !activeChat?.id || isTripEnded) return;
-
     try {
       await addDoc(collection(db, 'messages'), {
         text: messageInput,
@@ -216,69 +174,63 @@ const Chat = () => {
         description: `${currentUser.name}: ${messageInput}`,
         lastMessageTime: serverTimestamp()
       });
-
       setMessageInput('');
     } catch (error) {
       console.error("Send message error:", error);
     }
   };
 
-  const handleSendLocation = async () => {
-    if (!selectedLocation || !activeChat?.id || isTripEnded) return;
-
-    const locationText = selectedLocation.name
-      ? '📍 ' + selectedLocation.name
-      : '📍 พิกัด: ' + selectedLocation.lat.toFixed(6) + ', ' + selectedLocation.lng.toFixed(6);
+  // ✅ ฟังก์ชันรับค่า Location จาก Modal แล้วส่ง
+  const handleSendLocation = async (locationData) => {
+    if (!activeChat?.id || !locationData) return;
 
     try {
       await addDoc(collection(db, 'messages'), {
-        text: locationText,
+        text: `📍 ${locationData.name}`,
         createdAt: serverTimestamp(),
         uid: currentUser.uid,
         sender: currentUser.name,
         photoURL: currentUser.avatar,
         room: activeChat.id,
         type: 'location',
-        location: selectedLocation
+        location: {
+          lat: locationData.lat,
+          lng: locationData.lng,
+          name: locationData.name,
+          address: locationData.address || ''
+        }
+      });
+      
+      const groupRef = doc(db, 'groups', activeChat.id);
+      updateDoc(groupRef, {
+          description: `${currentUser.name}: 📍 แชร์ตำแหน่ง`,
+          lastMessageTime: serverTimestamp()
       });
 
+      // ปิด Modal
       setIsLocationModalOpen(false);
-      setSelectedLocation(null);
-      setSearchLocation('');
+
     } catch (error) {
-      console.error("Send location error:", error);
+      console.error("Error sending location:", error);
+      alert("เกิดข้อผิดพลาดในการส่งตำแหน่ง");
     }
   };
 
   const handleEndTrip = async () => {
     if (!activeChat?.id) return;
-    if (window.confirm("ยืนยันที่จะจบขบวนทริปนี้? สมาชิกจะไม่สามารถพิมพ์ข้อความได้อีก")) {
+    if (window.confirm("ยืนยันที่จะจบขบวนทริปนี้?")) {
       try {
         const groupRef = doc(db, 'groups', activeChat.id);
         await updateDoc(groupRef, {
           status: 'ended',
           description: 'ทริปนี้จบแล้ว'
         });
-        
         setIsTripEnded(true);
-        setIsOptionsOpen(false);
-        navigate(`/end-trip/${activeChat.id}`);
-      } catch (error) {
-        console.error("End trip error:", error);
-      }
+        // navigate(`/end-trip/${activeChat.id}`); 
+      } catch (error) { console.error(error); }
     }
   };
 
-  const handleAvatarUpload = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (ev) => setAvatarPreview(ev.target.result); 
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // กรองเฉพาะกลุ่มที่ status !== 'ended' (กลุ่มแชทปัจจุบันเท่านั้น)
   const filteredGroups = groups.filter(g => 
     g.name?.toLowerCase().includes(groupSearch.toLowerCase()) && 
     g.status !== 'ended'
@@ -302,30 +254,26 @@ const Chat = () => {
             chat={{...activeChat, messages: messages}}
             messageInput={messageInput}
             isTripEnded={isTripEnded}
-            isOptionsOpen={isOptionsOpen}
+            
             onBack={handleBackToList}
-            onToggleOptions={() => setIsOptionsOpen(prev => !prev)}
             onEndTrip={handleEndTrip}
+            
             onInputChange={setMessageInput}
             onSendMessage={handleSendMessage}
-            onOpenLocationModal={() => !isTripEnded && setIsLocationModalOpen(true)}
+            
+            // ✅ เปลี่ยนกลับมาเปิด Modal
+            onOpenLocationModal={() => setIsLocationModalOpen(true)}
+            
             currentUser={currentUser}
           />
         )}
       </div>
 
+      {/* ✅ Modal เลือกสถานที่ */}
       <LocationModal
         isOpen={isLocationModalOpen}
-        selectedLocation={selectedLocation}
-        searchLocation={searchLocation}
-        onClose={() => {
-          setIsLocationModalOpen(false);
-          setSelectedLocation(null);
-          setSearchLocation('');
-        }}
-        onSearchChange={setSearchLocation}
+        onClose={() => setIsLocationModalOpen(false)}
         onSendLocation={handleSendLocation}
-        onLocationChange={setSelectedLocation}
       />
     </div>
   );
