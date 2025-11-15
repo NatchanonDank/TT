@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, MapPin, Navigation, Search, Loader } from 'lucide-react';
 
+
 const LocationModal = ({ isOpen, onClose, onSendLocation }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -224,16 +225,16 @@ const LocationModal = ({ isOpen, onClose, onSendLocation }) => {
         </div>
 
         <div className="modal-body">
-          <div className="search-box">
-            <Search size={18} className="search-icon" />
-            <input
-              type="text"
-              placeholder="ค้นหา เช่น บางแสน, เขาใหญ่, เชียงใหม่..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            {isLoading && <Loader size={16} className="loader-icon animate-spin" />}
-          </div>
+            <div className="search-row">
+              <Search className="search-icon" size={18} />
+                <input
+                  type="text"
+                  placeholder="ค้นหา เช่น บางแสน..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {isLoading && <Loader className="loader-icon" size={16} />}
+        </div>
 
           <button className="current-location-btn" onClick={handleCurrentLocation} disabled={isLoading}>
             <Navigation size={18} /> แชร์ตำแหน่งปัจจุบันของฉัน
