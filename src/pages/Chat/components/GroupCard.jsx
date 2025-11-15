@@ -13,7 +13,7 @@ const GroupCard = ({ group, onChatClick }) => {
           src={group.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
           alt={group.name} 
         />
-        {group.unread > 0 && <span className="unread-dot" />}
+        {group.unread > 0 && <span className="unread-badge" />}
       </div>
       
       {/* Info */}
