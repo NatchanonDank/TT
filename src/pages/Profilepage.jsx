@@ -19,7 +19,7 @@ import {
 
 import Navbar from '../components/Navbar';
 import Post from '../components/Post';
-import './ProfilePage.css';
+import './Profilepage.css';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
