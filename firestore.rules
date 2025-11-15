@@ -1,0 +1,39 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. อนุญาตให้ User ที่ Login แล้ว อ่าน/เขียน ข้อมูล User
+    match /users/{userId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // 2. ✅ (สำคัญ) เพิ่มกฎสำหรับ Posts (แก้ Error ของคุณตรงนี้)
+    match /posts/{postId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // 3. กฎสำหรับ Chat (Groups & Messages)
+    match /groups/{groupId} {
+      allow read, write: if request.auth != null;
+    }
+    match /messages/{messageId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // 4. กฎสำหรับ Reviews (Endtrip)
+    match /reviews/{reviewId} {
+      allow read, write: if request.auth != null;
+    }
+    match /friend_reviews/{reviewId} {
+      allow read, write: if request.auth != null;
+    }
+    // กฎสำหรับ Notifications
+    match /notifications/{notificationId} {
+      // เจ้าของแจ้งเตือนอ่านและลบได้
+      allow read, update, delete: if request.auth != null && resource.data.toUid == request.auth.uid;
+      // ใครก็ได้ (ที่ล็อกอิน) สร้างแจ้งเตือนส่งให้คนอื่นได้
+      allow create: if request.auth != null;
+    }
+  }
+}
