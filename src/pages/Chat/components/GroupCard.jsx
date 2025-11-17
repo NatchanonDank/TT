@@ -4,7 +4,7 @@ import { Users } from 'lucide-react';
 const GroupCard = ({ group, onChatClick }) => {
   return (
     <div 
-      className={`group-card ${group.unread > 0 ? 'group-unread-card' : ''}`} 
+      className={`group-card ${group.unread > 0 ? 'group-unread-card' : ''} ${group.status === 'ended' ? 'ended' : ''}`} 
       onClick={() => onChatClick(group)}
     >
       {/* Avatar */}

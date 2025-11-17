@@ -4,7 +4,8 @@ import { ArrowLeft } from 'lucide-react';
 const ChatHeader = ({ 
   chat, 
   onBack, 
-  onEndTrip 
+  onEndTrip,
+  isTripEnded
 }) => {
 
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
@@ -35,7 +36,13 @@ const ChatHeader = ({
             <button 
               onClick={() => {
                 setIsOptionsOpen(false);
-                onEndTrip();
+                
+                if (isTripEnded) {
+                  alert('ทริปนี้ได้สิ้นสุดไปแล้ว');
+                } else {
+                  onEndTrip();
+                }
+                
               }} 
               className="end-trip-btn"
             >

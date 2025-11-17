@@ -1,33 +1,29 @@
-// Feb.jsx
+
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Users } from 'lucide-react';
+import { X, Plus, Users, Loader } from 'lucide-react'; 
 import './Feb.css';
 
 const Feb = ({ isOpen, onClose, onSubmit, post }) => {
   const [tripTitle, setTripTitle] = useState('');
   const [postText, setPostText] = useState('');
-  const [images, setImages] = useState([]);
-  const [maxMembers, setMaxMembers] = useState(10); // เพิ่ม state สำหรับจำนวนคนสูงสุด
+  const [images, setImages] = useState([]); 
+  const [maxMembers, setMaxMembers] = useState(10);
   const [isPosting, setIsPosting] = useState(false);
 
-  // Effect นี้จะทำงานเมื่อ modal เปิดขึ้นมา
   useEffect(() => {
     if (isOpen) {
-      // ถ้าเป็นการ "แก้ไข" และมีข้อมูล post
-      if (post) {
+      if (post) { 
         setTripTitle(post.title || '');
         setPostText(post.content || '');
-        setMaxMembers(post.maxMembers || 10); // โหลดจำนวนคนสูงสุด
-        // แปลง array ของ image URLs กลับเป็น object ที่ state จัดการได้
+        setMaxMembers(post.maxMembers || 10);
         if (post.images) {
-          setImages(post.images.map(url => ({ id: url, preview: url })));
+          setImages(post.images.map(url => ({ id: url, preview: url, file: null })));
         }
-      } else {
-        // ถ้าเป็นการ "สร้างใหม่" ให้ล้างค่าทั้งหมด
+      } else { 
         setTripTitle('');
         setPostText('');
         setImages([]);
-        setMaxMembers(10); // ค่าเริ่มต้น 10 คน
+        setMaxMembers(10);
       }
     }
   }, [post, isOpen]);
@@ -35,11 +31,18 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
-      const newImages = files.map(file => ({
-        id: URL.createObjectURL(file),
-        preview: URL.createObjectURL(file),
-      }));
-      // รวมรูปเก่ากับรูปใหม่ และจำกัดจำนวนรูปไม่ให้เกิน 4 รูป
+      const newImages = files.map(file => {
+        if (file.size > 700 * 1024) {
+          alert(`รูป ${file.name} มีขนาดใหญ่เกิน 700KB! \nกรุณาเลือกรูปที่เล็กกว่านี้ครับ`);
+          return null;
+        }
+        return {
+          id: URL.createObjectURL(file),
+          preview: URL.createObjectURL(file), 
+          file: file 
+        };
+      }).filter(img => img !== null); 
+      
       setImages(prev => [...prev, ...newImages].slice(0, 10));
     }
   };
@@ -50,10 +53,20 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
 
   const handleMaxMembersChange = (e) => {
     const value = parseInt(e.target.value);
-    // จำกัดค่าระหว่าง 1-10 คน
     if (value >= 3 && value <= 10) {
       setMaxMembers(value);
     }
+  };
+
+  const readFileAsBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(reader.result); 
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleSubmit = async () => {
@@ -63,12 +76,34 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
     }
 
     setIsPosting(true);
+    
+    const imageUrls = [];
+    try {
+      const base64Promises = images.map(img => {
+        if (img.file) {
+          return readFileAsBase64(img.file);
+        } else {
+          return Promise.resolve(img.preview);
+        }
+      });
+      
+      const resolvedImageUrls = await Promise.all(base64Promises);
+      imageUrls.push(...resolvedImageUrls);
+
+    } catch (error) {
+      console.error("Error converting images to Base64: ", error);
+      alert("เกิดข้อผิดพลาดในการแปลงรูปภาพ");
+      setIsPosting(false);
+      return;
+    }
+
     await onSubmit({
       title: tripTitle,
       content: postText,
-      images: images.map(img => img.preview),
-      maxMembers: maxMembers, // ส่งจำนวนคนสูงสุดไปด้วย
+      images: imageUrls, 
+      maxMembers: maxMembers,
     });
+    
     setIsPosting(false);
     onClose();
   };
@@ -95,7 +130,6 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
           onChange={(e) => setPostText(e.target.value)}
         />
 
-        {/* ✨ ส่วนกำหนดจำนวนคนร่วมทริป */}
         <div className="max-members-section">
           <label className="max-members-label">
             <Users size={20} />
@@ -162,12 +196,20 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
             <button
               className="post-submit-btn"
               onClick={handleSubmit}
-              disabled={isPosting || images.length > 4}
+              disabled={isPosting || images.length > 10}
             >
               {isPosting ? 'กำลังบันทึก...' : (post ? 'บันทึก' : 'โพสต์')}
             </button>
           </div>
         </div>
+        
+        {
+        isPosting && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '10px', color: '#555' }}>
+            <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />
+            <span style={{ marginLeft: '8px' }}>กำลังบันทึกข้อมูล...</span>
+          </div>
+        )}
       </div>
     </div>
   );

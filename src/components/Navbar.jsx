@@ -17,7 +17,7 @@ const Navbar = ({ brand = "TripTogether", currentUser }) => {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [sparkles, setSparkles] = useState([]);
-  const { unreadCount } = useNotifications();
+  const { unreadCount, unreadChatCount } = useNotifications();
 
   useEffect(() => {
     const mainContent = document.querySelector('.main-content');
@@ -81,6 +81,7 @@ const Navbar = ({ brand = "TripTogether", currentUser }) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
             const isNotification = item.id === 'notifications'; 
+            const isChat = item.id === 'chat';
 
             return (
               <Link
@@ -92,6 +93,9 @@ const Navbar = ({ brand = "TripTogether", currentUser }) => {
                   <Icon size={20} />
                   {isNotification && unreadCount > 0 && (
                     <span className="notification-dot">{unreadCount}</span>
+                  )}
+                  {isChat && unreadChatCount > 0 && (
+                    <span className="notification-dot">{unreadChatCount}</span>
                   )}
                 </span>
                 <span className="nav-label">{item.label}</span>

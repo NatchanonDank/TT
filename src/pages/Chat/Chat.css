@@ -257,7 +257,7 @@
   color: #1976d2;
 }
 
-.group-description {
+.group-desc {
   color: #64748b;
   font-size: 14px;
   margin: 0 0 4px 0;
@@ -266,6 +266,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 
 .group-description.unread {
   color: #1565c0;
@@ -394,8 +395,8 @@
   box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
   position: sticky;
   top: 0;
-  z-index: 9999;  /* แก้ตรงนี้ */
-  overflow: visible; /* แก้ตรงนี้ */
+  z-index: 9999;  
+  overflow: visible; 
   flex-shrink: 0;
 }
 
@@ -473,15 +474,15 @@
   box-shadow: 0 4px 12px rgba(25, 118, 210, 0.2);
 }
 .options-dropdown {
-  position: fixed; /* ลอยหลุดจาก parent 100% */
-  top: 72px;       /* ปรับให้ตรงตำแหน่ง header */
-  right: 20px;     /* ชิดมุมขวา */
+  position: fixed; 
+  top: 72px;       
+  right: 20px;     
   min-width: 180px;
   background: white;
   border: 2px solid #e3f2fd;
   border-radius: 16px;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
-  z-index: 999999999; /* ลอยสูงสุดในจักรวาล */
+  z-index: 999999999; 
   overflow: hidden;
   animation: dropdownSlide 0.25s ease-out;
 }
@@ -760,7 +761,7 @@
 }
 
 /* ---------------------------------- */
-/*       Message List Layout          */
+/* Message List Layout          */
 /* ---------------------------------- */
 .messages-area {
   flex: 1;
@@ -871,6 +872,7 @@
     font-size: 1rem;
     white-space: pre-wrap; 
     min-width: 0; 
+    word-break: break-all;
 }
 
 .message-avatar {
@@ -1226,4 +1228,13 @@
   .location-address {
     font-size: 0.75rem;
   }
+}
+
+.group-card.ended {
+  opacity: 0.6;
+  background-color: #f8f9fa; 
+}
+
+.group-card.ended:hover {
+  opacity: 0.8; 
 }

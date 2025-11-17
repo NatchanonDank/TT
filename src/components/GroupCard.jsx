@@ -30,7 +30,7 @@ const GroupCard = ({ group, onChatClick }) => {
         </div>
         
         <div className="group-card-bottom">
-          <p className="group-desc">
+          <p className="group-description">
             {group.description || 'ยังไม่มีข้อความ'}
           </p>
           

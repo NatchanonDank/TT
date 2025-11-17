@@ -19,8 +19,13 @@ import {
   serverTimestamp, 
   doc,
   updateDoc,
-  getDoc
+  getDoc,
+  writeBatch,
+  getDocs
 } from 'firebase/firestore';
+
+// ✅ 1. Import Context ที่เราต้องการใช้
+import { useNotifications } from '../../components/NotificationContext';
 
 const Chat = () => {
   const { groupId } = useParams();
@@ -31,14 +36,15 @@ const Chat = () => {
   const [activeChat, setActiveChat] = useState(null);
   const [isTripEnded, setIsTripEnded] = useState(false);
   
-  // ✅ State สำหรับเปิด/ปิด Modal เลือกสถานที่
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false); 
 
   const [messageInput, setMessageInput] = useState('');
   const [groups, setGroups] = useState([]); 
   const [messages, setMessages] = useState([]); 
 
-  // ... (useEffect 1-4 เหมือนเดิม ไม่ต้องแก้) ...
+  // ✅ 2. ดึงข้อมูลการแจ้งเตือนทั้งหมดจาก Context
+  const { notifications } = useNotifications();
+
   // 1. Auth Check
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -72,7 +78,7 @@ const Chat = () => {
     return () => unsubscribe();
   }, [currentUser]);
 
-  // 3. Handle URL
+  // 3. Handle URL (ปรับปรุงเล็กน้อย)
   useEffect(() => {
     if (!groupId) {
       setActiveChat(null);
@@ -84,44 +90,80 @@ const Chat = () => {
       const existingGroup = groups.find(g => g.id === groupId);
       if (existingGroup) {
         if (activeChat?.id !== existingGroup.id) {
-           if (existingGroup.status === 'ended') {
-              navigate(`/end-trip/${groupId}`);
-              return;
-           }
-           setActiveChat(existingGroup);
+          setActiveChat(existingGroup);
         }
       } else {
         try {
           const groupRef = doc(db, 'groups', groupId);
           const groupSnap = await getDoc(groupRef);
           if (groupSnap.exists()) {
-             const groupData = groupSnap.data();
-             if (groupData.memberUids?.includes(currentUser.uid)) {
-                 if (groupData.status === 'ended') {
-                    navigate(`/end-trip/${groupId}`);
-                 } else {
-                    setActiveChat({ id: groupId, ...groupData });
-                 }
-             }
+            const groupData = groupSnap.data();
+            if (groupData.memberUids?.includes(currentUser.uid)) {
+              if (activeChat?.id !== groupId) {
+                 setActiveChat({ id: groupId, ...groupData }); 
+              }
+            }
           }
         } catch (error) {
           console.error("Error fetching group:", error);
         }
       }
     };
-    selectGroupFromUrl();
-  }, [groupId, currentUser, groups]);
+    
+    // รอให้ groups โหลดเสร็จก่อน
+    if (groups.length > 0) {
+        selectGroupFromUrl();
+    }
+    
+  }, [groupId, currentUser, groups, activeChat]);
 
-  // 4. Fetch Messages
+  // ✅ 4. แก้ไข Effect นี้ (Fetch Messages & Mark Notifications as Read)
   useEffect(() => {
-    if (!activeChat?.id) return;
+    // รอให้ข้อมูลทั้งหมดพร้อม
+    if (!activeChat?.id || !currentUser?.uid || !notifications) return;
+
+    // --- 1. Mark Notifications as Read (โดยใช้ข้อมูลจาก Context) ---
+    const markChatNotificationsAsRead = async () => {
+      
+      // กรองหา Notif ที่ยังไม่อ่าน ที่ตรงกับแชทนี้ (กรองจาก Array ใน JS)
+      const unreadNotifsForThisChat = notifications.filter(n =>
+        n.groupId === activeChat.id &&
+        n.type === 'chat_message' &&
+        n.read === false &&
+        n.toUid === currentUser.uid // กันเหนียว
+      );
+
+      // ถ้าไม่มี ก็ไม่ต้องทำอะไร
+      if (unreadNotifsForThisChat.length === 0) return; 
+
+      try {
+        // อัปเดต Notif ที่ค้างทั้งหมดเป็น "อ่านแล้ว"
+        const batch = writeBatch(db);
+        unreadNotifsForThisChat.forEach(notif => {
+          const notifRef = doc(db, 'notifications', notif.id);
+          batch.update(notifRef, { read: true });
+        });
+        await batch.commit();
+        // console.log(`Marked ${unreadNotifsForThisChat.length} chat notifs as read.`);
+      } catch (error) {
+        console.error("Error marking chat notifications as read:", error);
+      }
+    };
+
+    // เรียกใช้งานทันที
+    markChatNotificationsAsRead();
+    // --------------------------------------------------------
+    
     setIsTripEnded(activeChat.status === 'ended');
-    const q = query(
+    
+    // --- 2. Fetch Messages (ส่วนนี้เหมือนเดิม) ---
+    const qMessages = query(
       collection(db, 'messages'),
       where('room', '==', activeChat.id),
       orderBy('createdAt', 'asc')
     );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+
+    const unsubscribe = onSnapshot(qMessages, (snapshot) => {
       const msgs = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
@@ -136,16 +178,13 @@ const Chat = () => {
       setMessages(msgs);
     });
     return () => unsubscribe();
-  }, [activeChat, currentUser]);
+    
+  // ✅ 5. เพิ่ม 'notifications' เข้าไปใน dependency array
+  }, [activeChat, currentUser, notifications]); 
 
-  // --- Handlers ---
+  // --- Handlers (ส่วนนี้เหมือนเดิมทั้งหมด) ---
 
   const handleChatClick = (group) => {
-    if (!group?.id) return;
-    if (group.status === 'ended') {
-       navigate(`/end-trip/${group.id}`);
-       return;
-    }
     setActiveChat(group);
     navigate(`/chat/${group.id}`);
   };
@@ -154,6 +193,35 @@ const Chat = () => {
     setActiveChat(null);
     setMessages([]); 
     navigate('/chat'); 
+  };
+
+  const sendChatNotification = async (messageText) => {
+    if (!activeChat || !currentUser) return;
+
+    try {
+      const otherMembers = activeChat.members.filter(m => m.uid !== currentUser.uid);
+      if (otherMembers.length === 0) return;
+
+      const batch = writeBatch(db);
+
+      for (const member of otherMembers) {
+        const notifRef = doc(collection(db, 'notifications'));
+        batch.set(notifRef, {
+          toUid: member.uid,
+          fromName: currentUser.name,
+          fromAvatar: currentUser.avatar,
+          message: `ส่งข้อความในกลุ่ม "${activeChat.name}": ${messageText.substring(0, 30)}...`,
+          type: 'chat_message',
+          read: false,
+          createdAt: serverTimestamp(),
+          groupId: activeChat.id
+        });
+      }
+      await batch.commit();
+
+    } catch (error) {
+      console.error("Error sending chat notification:", error);
+    }
   };
 
   const handleSendMessage = async () => {
@@ -175,12 +243,13 @@ const Chat = () => {
         lastMessageTime: serverTimestamp()
       });
       setMessageInput('');
+      await sendChatNotification(messageInput);
+      
     } catch (error) {
       console.error("Send message error:", error);
     }
   };
 
-  // ✅ ฟังก์ชันรับค่า Location จาก Modal แล้วส่ง
   const handleSendLocation = async (locationData) => {
     if (!activeChat?.id || !locationData) return;
 
@@ -207,8 +276,8 @@ const Chat = () => {
           lastMessageTime: serverTimestamp()
       });
 
-      // ปิด Modal
       setIsLocationModalOpen(false);
+      await sendChatNotification(`📍 ${locationData.name}`);
 
     } catch (error) {
       console.error("Error sending location:", error);
@@ -218,6 +287,13 @@ const Chat = () => {
 
   const handleEndTrip = async () => {
     if (!activeChat?.id) return;
+    
+    // ✅ ย้ายเงื่อนไขการเช็ค isTripEnded มาไว้ตรงนี้
+    if (isTripEnded) {
+      alert('ทริปนี้ได้สิ้นสุดไปแล้ว');
+      return;
+    }
+
     if (window.confirm("ยืนยันที่จะจบขบวนทริปนี้?")) {
       try {
         const groupRef = doc(db, 'groups', activeChat.id);
@@ -226,15 +302,29 @@ const Chat = () => {
           description: 'ทริปนี้จบแล้ว'
         });
         setIsTripEnded(true);
-        // navigate(`/end-trip/${activeChat.id}`); 
       } catch (error) { console.error(error); }
     }
   };
 
+  // (filteredGroups - ส่วนนี้เหมือนเดิม)
   const filteredGroups = groups.filter(g => 
-    g.name?.toLowerCase().includes(groupSearch.toLowerCase()) && 
-    g.status !== 'ended'
-  );
+    g.name?.toLowerCase().includes(groupSearch.toLowerCase())
+  )
+  .sort((a, b) => {
+    const isAEnded = a.status === 'ended';
+    const isBEnded = b.status === 'ended';
+
+    if (isAEnded && !isBEnded) {
+      return 1; 
+    }
+    if (!isAEnded && isBEnded) {
+      return -1; 
+    }
+
+    const timeA = a.lastMessageTime?.seconds || 0;
+    const timeB = b.lastMessageTime?.seconds || 0;
+    return timeB - timeA; 
+  });
 
   return (
     <div className="chat">
@@ -261,7 +351,6 @@ const Chat = () => {
             onInputChange={setMessageInput}
             onSendMessage={handleSendMessage}
             
-            // ✅ เปลี่ยนกลับมาเปิด Modal
             onOpenLocationModal={() => setIsLocationModalOpen(true)}
             
             currentUser={currentUser}
@@ -269,7 +358,6 @@ const Chat = () => {
         )}
       </div>
 
-      {/* ✅ Modal เลือกสถานที่ */}
       <LocationModal
         isOpen={isLocationModalOpen}
         onClose={() => setIsLocationModalOpen(false)}

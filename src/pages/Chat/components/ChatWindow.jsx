@@ -25,6 +25,7 @@ const ChatWindow = ({
         isOptionsOpen={isOptionsOpen}
         onToggleOptions={onToggleOptions}
         onEndTrip={onEndTrip}
+        isTripEnded={isTripEnded}
       />
     
       <MessageList 
