@@ -4,17 +4,13 @@ import Navbar from "../components/Navbar";
 import { Heart, MessageCircle, Users, CheckCircle, XCircle, X, Trash2 } from 'lucide-react';
 import './NotificationPage.css';
 
-// --- Firebase Imports ---
-import { db, auth } from '../firebase'; 
-import { useNotifications } from '../components/NotificationContext'; 
-
-
+import { db } from '../firebase';
+import { useNotifications } from '../components/NotificationContext';
 import { 
   collection, 
   query, 
   where, 
   orderBy
-
 } from 'firebase/firestore';
 
 const NotificationPage = () => {
@@ -27,9 +23,10 @@ const NotificationPage = () => {
     markAllAsRead 
   } = useNotifications();
 
+
   const handleNotificationClick = async (notif) => {
     if (!notif.read) {
-      markAsRead(notif.id); 
+      markAsRead(notif.id);
     }
     
     if (notif.type === 'chat_message' && notif.groupId) {
@@ -42,7 +39,7 @@ const NotificationPage = () => {
     switch (type) {
       case 'like': return <Heart size={20} className="notif-icon like" />;
       case 'comment': return <MessageCircle size={20} className="notif-icon comment" />;
-      case 'chat_message': return <MessageCircle size={20} className="notif-icon comment" />; // ✅ เพิ่ม
+      case 'chat_message': return <MessageCircle size={20} className="notif-icon comment" />; 
       case 'join_request': return <Users size={20} className="notif-icon request" />;
       case 'request_approved': return <CheckCircle size={20} className="notif-icon approved" />;
       case 'request_rejected': return <XCircle size={20} className="notif-icon rejected" />;
@@ -74,28 +71,33 @@ const NotificationPage = () => {
           </div>
         ) : (
           <div className="notifications-list">
-
             {notifications.map(notif => (
               <div 
                 key={notif.id} 
                 className={`notification-item ${!notif.read ? 'unread' : ''}`}
-                onClick={() => handleNotificationClick(notif)} 
+                onClick={() => handleNotificationClick(notif)}
               >
                 <div className="notif-icon-wrapper">
                   {getIcon(notif.type)}
                 </div>
                 
-                <img 
-                  src={notif.fromAvatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
-                  alt="Avatar"
-                  className="notif-avatar"
-                />
+              
+                <Link to={notif.fromUid ? `/profile/${notif.fromUid}` : '#'} onClick={(e) => e.stopPropagation()}>
+                  <img 
+                    src={notif.fromAvatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
+                    alt="Avatar"
+                    className="notif-avatar"
+                  />
+                </Link>
                 
                 <div className="notif-content">
                   <p className="notif-message">
-                    <strong>{notif.fromName}</strong> {notif.message}
+               
+                    <Link to={notif.fromUid ? `/profile/${notif.fromUid}` : '#'} onClick={(e) => e.stopPropagation()} style={{color: 'inherit', textDecoration: 'none'}}>
+                      <strong>{notif.fromName}</strong>
+                    </Link>
+                    {notif.message}
                   </p>
-
                   <p className="notif-time">
                     {notif.createdAt?.seconds 
                       ? new Date(notif.createdAt.seconds * 1000).toLocaleString('th-TH')

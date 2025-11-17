@@ -1,7 +1,8 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom'; 
 
-// Helper: Linkify Function
+// Helper: Linkify Function 
 const linkify = (text) => {
     if (typeof text !== 'string') return text;
     
@@ -33,7 +34,6 @@ const linkify = (text) => {
 function MessageBubble({ message, currentUser }) {
   const { text, uid, photoURL, sender, time, type, location } = message;
   
-  // ตรวจสอบว่าเป็นข้อความเราหรือไม่
   const isOwn = currentUser && uid === currentUser.uid;
   const messageClass = isOwn ? 'own' : 'other';
   const isLocation = type === 'location' && location;
@@ -42,21 +42,28 @@ function MessageBubble({ message, currentUser }) {
     <div className={`message-wrapper ${messageClass}`}>
       
       {!isOwn && (
-        <img 
-            src={photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
-            alt={sender} 
-            className="message-avatar" 
-        />
+   
+        <Link to={`/profile/${uid}`}>
+          <img 
+              src={photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
+              alt={sender} 
+              className="message-avatar" 
+          />
+        </Link>
       )}
 
       <div className={`message-bubble ${messageClass}`}>
         
-        {!isOwn && <span className="message-sender-name">{sender}</span>}
+     
+        {!isOwn && (
+          <Link to={`/profile/${uid}`} style={{ textDecoration: 'none' }}>
+            <span className="message-sender-name">{sender}</span>
+          </Link>
+        )}
 
         {isLocation ? (
              <a 
-                 // ✅ แก้ไข: ใช้ลิงก์มาตรฐานของ Google Maps
-                 href={`https://www.google.com/maps?q=${location.lat},${location.lng}`}
+                 href={`https://www.google.com/maps?q=${location.lat},${location.lng}`} 
                  target="_blank" 
                  rel="noopener noreferrer"
                  className="location-link"

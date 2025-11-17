@@ -1,5 +1,4 @@
 import { Link, useNavigate } from "react-router-dom";
-// 1. เพิ่ม sendEmailVerification เข้ามา
 import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "firebase/auth";
 import { auth } from "../firebase";
 import styles from "./Register.module.css";
@@ -13,33 +12,46 @@ export default function Register() {
     const email = e.target.email.value;
     const password = e.target.password.value;
     const confirm = e.target.confirm.value;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    
+    if (!passwordRegex.test(password)) {
+      alert(
+        "Password is not secure!\n\n" +
+        "Your password must be at least 8 characters long and include:\n" +
+        "- At least one lowercase letter (a-z)\n" +
+        "- At least one uppercase letter (A-Z)\n" +
+        "- At least one number (0-9)\n" +
+        "- At least one special character (e.g., @, $, !, %, *, ?, &)"
+      );
+      return; 
+    }
 
     if (password !== confirm) {
-      alert("รหัสผ่านไม่ตรงกัน!");
+      alert("Passwords do not match!");
       return;
     }
 
     try {
-      // สร้าง User
+      // Create User
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // อัปเดตชื่อ
+      // Update profile name
       await updateProfile(user, { displayName: fullname });
 
-      // 2. 🟢 ส่งอีเมลยืนยันตัวตน (Verification Email)
+      // Send Verification Email
       await sendEmailVerification(user);
 
       console.log("User created & Verification sent");
-      alert(`สมัครสมาชิกสำเร็จ! กรุณาตรวจสอบอีเมล ${email} เพื่อยืนยันตัวตนก่อนเข้าใช้งาน`);
+      alert(`Registration successful! Please check your email ${email} to verify your account before logging in.`);
       
-      navigate("/login"); // หรือ "/" ตาม Route ของคุณ
+      navigate("/login");
 
     } catch (error) {
       console.error("Error:", error.code);
       let msg = error.message;
-      if (error.code === 'auth/email-already-in-use') msg = "อีเมลนี้ถูกใช้ไปแล้ว";
-      if (error.code === 'auth/weak-password') msg = "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร";
+      if (error.code === 'auth/email-already-in-use') msg = "This email is already in use.";
+      if (error.code === 'auth/weak-password') msg = "Password must be at least 6 characters long.";
       alert(msg);
     }
   };
@@ -53,7 +65,7 @@ export default function Register() {
         <input type="password" name="password" placeholder="Password" required />
         <input type="password" name="confirm" placeholder="Confirm Password" required />
         <button type="submit">Register</button>
-        <p>มีบัญชีแล้ว? <Link to="/login">Login</Link></p>
+        <p>Already have an account? <Link to="/login">Login</Link></p>
       </form>
     </div>
   );

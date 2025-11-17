@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Edit2, X, Check, LogOut, Star } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Camera, Edit2, X, Check, LogOut, Star, Flag } from 'lucide-react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 
 // --- Firebase Imports ---
 import { auth, db } from '../firebase';
@@ -14,7 +14,9 @@ import {
   where, 
   getDocs, 
   orderBy,
-  writeBatch 
+  writeBatch,
+  addDoc, 
+  serverTimestamp 
 } from 'firebase/firestore';
 
 import Navbar from '../components/Navbar';
@@ -23,20 +25,24 @@ import './Profilepage.css';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const { userId } = useParams(); 
+
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [loggedInUser, setLoggedInUser] = useState(null); 
+  const [profileUserId, setProfileUserId] = useState(null); 
+  const [isOwnProfile, setIsOwnProfile] = useState(false); 
+
   const [profileData, setProfileData] = useState({
-    name: '',
-    email: '',
+    name: '...',
+    email: '...',
     bio: 'กำลังโหลดข้อมูล...',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
+    avatar: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
     coverColor: 'linear-gradient(135deg, #a8d5e2 0%, #f9d5a5 100%)'
   });
 
   const [editForm, setEditForm] = useState({ ...profileData });
-
-  // State เก็บรีวิว
   const [reviewsList, setReviewsList] = useState([]);
   const [reviewStats, setReviewStats] = useState({
     average: 0,
@@ -45,79 +51,105 @@ const ProfilePage = () => {
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        // 1. โหลดข้อมูลส่วนตัว
-        const userDocRef = doc(db, "users", currentUser.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        let firestoreData = {};
-        if (userDocSnap.exists()) firestoreData = userDocSnap.data();
-
-        setProfileData({
-          name: currentUser.displayName || 'User',
-          email: currentUser.email,
-          avatar: firestoreData.avatar || currentUser.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-          bio: firestoreData.bio || 'ยังไม่มีคำอธิบายตัวตน',
-          coverColor: firestoreData.coverColor || 'linear-gradient(135deg, #a8d5e2 0%, #f9d5a5 100%)'
-        });
-
-        // 2. โหลดรีวิวที่มี targetUserId == เรา
-        try {
-          const reviewsQuery = query(
-            collection(db, 'friend_reviews'),
-            where('targetUserId', '==', currentUser.uid), 
-            orderBy('createdAt', 'desc')
-          );
-          
-          const querySnapshot = await getDocs(reviewsQuery);
-          const fetchedReviews = [];
-          let totalRating = 0;
-          const breakdown = [0, 0, 0, 0, 0];
-
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            fetchedReviews.push({ id: doc.id, ...data });
-
-            if (data.rating) {
-              totalRating += data.rating;
-              const index = 5 - Math.floor(data.rating);
-              if (index >= 0 && index < 5) breakdown[index]++;
-            }
-          });
-
-          setReviewsList(fetchedReviews);
-
-          if (fetchedReviews.length > 0) {
-            setReviewStats({
-              total: fetchedReviews.length,
-              average: (totalRating / fetchedReviews.length).toFixed(1),
-              breakdown: breakdown
-            });
-          }
-
-        } catch (error) {
-          console.error("Error fetching reviews:", error);
-        }
-
-        setIsLoading(false);
+        setLoggedInUser(currentUser); 
+        
+        const targetUserId = userId || currentUser.uid; 
+        setProfileUserId(targetUserId);
+        setIsOwnProfile(targetUserId === currentUser.uid); 
       } else {
         navigate('/login');
       }
     });
-
     return () => unsubscribe();
-  }, [navigate]);
+  }, [navigate, userId]);
 
-  // Handlers (Edit, Cancel, Change)
+  useEffect(() => {
+    if (!profileUserId) return; 
+
+    const fetchProfileData = async () => {
+      setIsLoading(true);
+      try {
+   
+        const userDocRef = doc(db, "users", profileUserId);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (userDocSnap.exists()) {
+          const firestoreData = userDocSnap.data();
+          setProfileData({
+            name: firestoreData.name || 'User',
+            email: firestoreData.email || '... (ไม่มีอีเมล)',
+            avatar: firestoreData.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+            bio: firestoreData.bio || 'ยังไม่มีคำอธิบายตัวตน',
+            coverColor: firestoreData.coverColor || 'linear-gradient(135deg, #a8d5e2 0%, #f9d5a5 100%)'
+          });
+        } else {
+
+          setProfileData(prev => ({...prev, name: "ไม่พบผู้ใช้", bio: ""}));
+        }
+
+      
+        const reviewsQuery = query(
+          collection(db, 'friend_reviews'),
+          where('targetUserId', '==', profileUserId), 
+          orderBy('createdAt', 'desc')
+        );
+        
+        const querySnapshot = await getDocs(reviewsQuery);
+        const fetchedReviews = [];
+        let totalRating = 0;
+        const breakdown = [0, 0, 0, 0, 0];
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          fetchedReviews.push({ id: doc.id, ...data });
+
+          if (data.rating) {
+            totalRating += data.rating;
+            const index = 5 - Math.floor(data.rating);
+            if (index >= 0 && index < 5) breakdown[index]++;
+          }
+        });
+
+        setReviewsList(fetchedReviews);
+        if (fetchedReviews.length > 0) {
+          setReviewStats({
+            total: fetchedReviews.length,
+            average: (totalRating / fetchedReviews.length).toFixed(1),
+            breakdown: breakdown
+          });
+        } else {
+     
+           setReviewStats({ average: 0, total: 0, breakdown: [0, 0, 0, 0, 0] });
+        }
+
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProfileData();
+
+  }, [profileUserId]); 
+
+
   const handleEdit = () => { setIsEditing(true); setEditForm({ ...profileData }); };
   const handleCancel = () => { setIsEditing(false); setEditForm({ ...profileData }); };
   const handleChange = (field, value) => setEditForm(prev => ({ ...prev, [field]: value }));
   const handleProfileImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setEditForm(prev => ({ ...prev, avatar: reader.result }));
-      reader.readAsDataURL(file);
+   
+       if (file.size > 700 * 1024) {
+         alert(`รูป ${file.name} มีขนาดใหญ่เกิน 700KB! \nกรุณาเลือกรูปที่เล็กกว่านี้ครับ`);
+         return;
+       }
+       const reader = new FileReader();
+       reader.onloadend = () => setEditForm(prev => ({ ...prev, avatar: reader.result }));
+       reader.readAsDataURL(file);
     }
   };
   
@@ -128,42 +160,35 @@ const ProfilePage = () => {
     }
   };
 
-  // ✅ 2. ฟังก์ชันบันทึกโปรไฟล์พร้อมซิงค์ข้อมูลโพสต์
   const handleSave = async () => {
-    if (!auth.currentUser) return;
-    const userUID = auth.currentUser.uid;
+    if (!loggedInUser || !isOwnProfile) return;
+    const userUID = loggedInUser.uid;
     
     try {
-      // 2.1 อัปเดต Auth และ User Document
-      await updateProfile(auth.currentUser, { displayName: editForm.name });
+      await updateProfile(loggedInUser, { displayName: editForm.name });
       await setDoc(doc(db, "users", userUID), {
         name: editForm.name, 
         bio: editForm.bio, 
         coverColor: editForm.coverColor, 
         avatar: editForm.avatar, 
-        email: auth.currentUser.email
+        email: loggedInUser.email
       }, { merge: true });
 
-      // 2.2 ซิงค์ข้อมูล: อัปเดตชื่อและรูปในโพสต์เก่าทั้งหมด
       const postsQuery = query(
           collection(db, 'posts'),
           where('uid', '==', userUID)
       );
       const postsSnapshot = await getDocs(postsQuery);
       
-      const batch = writeBatch(db); // เริ่ม Batch Write
-
+      const batch = writeBatch(db); 
       postsSnapshot.forEach((docSnap) => {
           const postRef = doc(db, 'posts', docSnap.id);
           batch.update(postRef, {
-              // อัปเดต Field ที่ซ้ำซ้อน
               'author.name': editForm.name,
               'author.avatar': editForm.avatar 
           });
       });
-
-      await batch.commit(); // ✅ ยิงการอัปเดตทั้งหมดพร้อมกัน
-      // ---------------------------------------------
+      await batch.commit();
       
       setProfileData({ ...editForm });
       setIsEditing(false);
@@ -172,6 +197,37 @@ const ProfilePage = () => {
     } catch (error) { 
       console.error("Error saving profile:", error);
       alert("Error: บันทึกข้อมูลไม่สำเร็จ"); 
+    }
+  };
+
+ 
+  const handleReportUser = async () => {
+    if (!loggedInUser || !profileUserId || isOwnProfile) {
+      alert("ไม่สามารถรายงานตัวเองได้");
+      return;
+    }
+
+    const reason = prompt(`กรุณาระบุเหตุผลในการรายงานผู้ใช้ ${profileData.name}:`);
+
+    if (reason && reason.trim().length > 0) {
+      try {
+        await addDoc(collection(db, "reports"), {
+          reporterUid: loggedInUser.uid,
+          reporterName: loggedInUser.displayName || 'User',
+          reportedUid: profileUserId,
+          reportedName: profileData.name,
+          reason: reason,
+          context: `Reported from profile page: /profile/${profileUserId}`,
+          createdAt: serverTimestamp(),
+          status: "pending" 
+        });
+        alert("ส่งรายงานของคุณเรียบร้อยแล้ว ขอบคุณครับ");
+      } catch (error) {
+        console.error("Error submitting report:", error);
+        alert("เกิดข้อผิดพลาดในการส่งรายงาน");
+      }
+    } else if (reason !== null) { 
+      alert("กรุณาระบุเหตุผลในการรายงาน");
     }
   };
 
@@ -186,21 +242,25 @@ const ProfilePage = () => {
       <Navbar brand="TripTogether" />
       
       <div className="hero-section" style={{ background: profileData.coverColor }}>
-         <button 
-            onClick={handleLogout} 
-            className="logout-btn-absolute"
-            style={{ 
-              position: 'absolute', top: '100px', right: '30px', background: 'rgba(0,0,0,0.6)', 
-              color: 'white', border: 'none', padding: '10px 20px', borderRadius: '30px', 
-              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 999,
-              fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
-            }}
-         >
-            <LogOut size={18} /> ออกจากระบบ
-         </button>
+      
+         {isOwnProfile && (
+            <button 
+                onClick={handleLogout} 
+                className="logout-btn-absolute"
+                style={{ 
+                  position: 'absolute', top: '100px', right: '30px', background: 'rgba(0,0,0,0.6)', 
+                  color: 'white', border: 'none', padding: '10px 20px', borderRadius: '30px', 
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 999,
+                  fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
+                }}
+            >
+                <LogOut size={18} /> ออกจากระบบ
+            </button>
+         )}
       </div>
 
-      {isEditing && (
+   
+      {isOwnProfile && isEditing && (
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header"><h2 className="modal-title">แก้ไขโปรไฟล์</h2><button onClick={handleCancel}><X size={24} /></button></div>
@@ -218,12 +278,22 @@ const ProfilePage = () => {
           <div className="profile-card-content">
             <div className="avatar-section">
               <div className="profile-avatar-large"><img src={profileData.avatar} alt="Profile" className="avatar-img" /></div>
-              <button onClick={handleEdit} className="edit-avatar-btn"><Camera size={18} /></button>
+            
+              {isOwnProfile && (
+                <button onClick={handleEdit} className="edit-avatar-btn"><Camera size={18} /></button>
+              )}
             </div>
             <div className="profile-info">
               <div className="profile-header">
                 <h2 className="profile-name">{profileData.name}</h2>
-                <button onClick={handleEdit} className="primary-btn edit-profile-btn"><Edit2 size={16} /> แก้ไข</button>
+               
+                {isOwnProfile ? (
+                  <button onClick={handleEdit} className="primary-btn edit-profile-btn"><Edit2 size={16} /> แก้ไข</button>
+                ) : (
+                  <button onClick={handleReportUser} className="secondary-btn" style={{backgroundColor: '#ffebee', color: '#d32f2f', fontWeight: '600'}}>
+                    <Flag size={16} /> รายงานผู้ใช้
+                  </button>
+                )}
               </div>
               <p style={{ color: '#666', fontSize: '0.9rem' }}>{profileData.email}</p>
               <div className="bio-box"><h3 className="bio-title">ความสนใจ</h3><p className="bio-text">{profileData.bio}</p></div>
@@ -235,12 +305,15 @@ const ProfilePage = () => {
           <div>
             <div className="content-box">
               <h3 className="section-title">Post</h3>
-              <Post 
-                currentUser={{ name: profileData.name, avatar: profileData.avatar, id: auth.currentUser?.uid }}
-                searchTerm=""
-                filterByOwner={true}  
-                ownerId={auth.currentUser?.uid}  
-              />
+           
+              {profileUserId && loggedInUser && (
+                <Post 
+                  currentUser={{ name: loggedInUser.displayName, avatar: loggedInUser.photoURL, uid: loggedInUser.uid, id: loggedInUser.uid }}
+                  searchTerm=""
+                  filterByOwner={true}  
+                  ownerId={profileUserId}  
+                />
+              )}
             </div>
           </div>
 
@@ -276,9 +349,17 @@ const ProfilePage = () => {
                 {reviewsList.length > 0 ? (
                   reviewsList.map((review) => (
                     <div key={review.id} className="comment-item">
-                      <div className="comment-avatar"><img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Reviewer" className="avatar-img" /></div>
+                  
+                      <Link to={`/profile/${review.reviewerId}`}>
+                        <div className="comment-avatar"><img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Reviewer" className="avatar-img" /></div>
+                      </Link>
                       <div style={{flex:1}}>
-                         <p className="comment-text" style={{fontWeight:'bold', fontSize:'0.85rem'}}>เพื่อนร่วมทริป</p>
+                       
+                         <p className="comment-text" style={{fontWeight:'bold', fontSize:'0.85rem'}}>
+                           <Link to={`/profile/${review.reviewerId}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                             เพื่อนร่วมทริป
+                           </Link>
+                         </p>
                          <p className="comment-text">{review.comment || "ไม่มีคำอธิบาย"}</p>
                          <div style={{fontSize:'0.8rem', color:'#FFD700'}}>{renderStars(review.rating || 0)}</div>
                       </div>

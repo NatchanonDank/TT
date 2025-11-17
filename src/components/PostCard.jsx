@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, MessageCircle, MoreVertical, Edit, Trash2, Send, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, MessageCircle, MoreVertical, Edit, Trash2, Send, X, ChevronLeft, ChevronRight, Flag } from 'lucide-react'; 
+import { Link } from 'react-router-dom'; 
 import './PostCard.css';
+
+import { db } from '../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
 
 const PostCard = ({
   post,
@@ -18,10 +23,10 @@ const PostCard = ({
   handleOpenEditModal,
   deletePost,
   approveJoinRequest,
-  rejectJoinRequest
+  rejectJoinRequest,
+  handleReportPost 
 }) => {
   
-  // ✅ เช็คสถานะ (ใช้ uid เพื่อความแม่นยำ)
   const isLeader = post.uid === currentUser?.uid;
   const hasRequested = post.joinRequests?.some(r => r.uid === currentUser?.uid);
   const isMember = post.members?.some(m => m.uid === currentUser?.uid);
@@ -31,15 +36,11 @@ const PostCard = ({
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // --- Handlers (แก้ใหม่ให้ส่ง object ตรงๆ) ---
-  
   const handleApprove = (request) => {
-    // 🟢 แก้ไข: ส่งแค่ object request (เพราะ post.id ถูกผูกไว้ที่ Post.jsx แล้ว)
     approveJoinRequest(request);
   };
 
   const handleReject = (request) => {
-    // 🟢 แก้ไข: ส่งแค่ object request
     rejectJoinRequest(request);
   };
 
@@ -63,38 +64,54 @@ const PostCard = ({
   return (
     <>
       <div className="post-card">
-        {/* Header */}
+   
         <div className="post-header">
           <div className="post-author">
-            <img src={post.author?.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} alt="avatar" className="author-avatar" />
+         
+            <Link to={`/profile/${post.author?.uid}`}>
+              <img src={post.author?.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} alt="avatar" className="author-avatar" />
+            </Link>
             <div className="author-info">
+           
               <h3 className="author-name">
-                {post.author?.name || 'Unknown'}
+                <Link to={`/profile/${post.author?.uid}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                  {post.author?.name || 'Unknown'}
+                </Link>
                 {isLeader && <span className="leader-badge">Leader</span>}
               </h3>
               <p>{post.timestamp}</p>
             </div>
           </div>
-          {isLeader && (
-            <div className="dropdown">
-              <button className="dropdown-btn" onClick={() => setShowDropdown(showDropdown === post.id ? null : post.id)}>
-                <MoreVertical size={20} />
-              </button>
-              {showDropdown === post.id && (
-                <div className="dropdown-menu">
-                  <button className="dropdown-item" onClick={() => handleOpenEditModal(post)}><Edit size={16} /> แก้ไข</button>
-                  <button className="dropdown-item delete" onClick={() => deletePost(post.id)}><Trash2 size={16} /> ลบ</button>
-                </div>
-              )}
-            </div>
-          )}
+          
+        
+          <div className="dropdown">
+            <button className="dropdown-btn" onClick={() => setShowDropdown(showDropdown === post.id ? null : post.id)}>
+              <MoreVertical size={20} />
+            </button>
+            {showDropdown === post.id && (
+              <div className="dropdown-menu">
+                {isLeader ? (
+                  <>
+                    <button className="dropdown-item" onClick={() => handleOpenEditModal(post)}><Edit size={16} /> แก้ไข</button>
+                    <button className="dropdown-item delete" onClick={() => deletePost(post.id)}><Trash2 size={16} /> ลบ</button>
+                  </>
+                ) : (
+                
+                  <button className="dropdown-item delete" onClick={() => handleReportPost(post, currentUser)}>
+                    <Flag size={16} /> รายงานโพสต์
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
         </div>
 
-        {/* Body */}
+      
         <div className="post-body">
           {post.title && <h2 className="post-title">{post.title}</h2>}
-          {post.content && <p className="post-description">{post.content}</p>} {/* ใช้ content ถ้า field ใน db ชื่อ content */}
-          {post.text && <p className="post-description">{post.text}</p>}       {/* ใช้ text ถ้า field ใน db ชื่อ text */}
+          {post.content && <p className="post-description">{post.content}</p>}
+          {post.text && <p className="post-description">{post.text}</p>}
 
           {post.images && post.images.length > 0 && (
             <div className={`post-image-gallery images-${Math.min(post.images.length, 5)}`}>
@@ -106,24 +123,25 @@ const PostCard = ({
               )}
             </div>
           )}
-          {/* Legacy Single Image */}
-          {!post.images && post.image && (
-             <div className="post-image-container">
-                <img src={post.image} alt="Post" className="post-image" onClick={() => openImageViewer(0)}/>
-             </div>
-          )}
         </div>
-
-        {/* 🔔 Pending Requests (แสดงเฉพาะ Leader) */}
+        
+   
         {isLeader && post.joinRequests && post.joinRequests.length > 0 && (
           <div className="pending-requests-section">
             <h4 className="pending-requests-title">🔔 คำขอเข้าร่วม ({post.joinRequests.length})</h4>
             <div className="pending-requests-list">
               {post.joinRequests.map((request, idx) => (
                 <div key={idx} className="request-item">
-                  <img src={request.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} alt={request.name} className="request-avatar" />
+                  <Link to={`/profile/${request.uid}`}>
+                    <img src={request.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} alt={request.name} className="request-avatar" />
+                  </Link>
                   <div className="request-info">
-                    <p className="request-name">{request.name}</p>
+                   
+                    <p className="request-name">
+                      <Link to={`/profile/${request.uid}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                        {request.name}
+                      </Link>
+                    </p>
                     <span className="request-time">ขอเมื่อ: {new Date(request.requestedAt).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</span>
                   </div>
                   <div className="request-actions">
@@ -136,7 +154,7 @@ const PostCard = ({
           </div>
         )}
 
-        {/* Actions */}
+    
         <div className="post-actions">
           <button className={`action-btn ${isLiked ? 'liked' : ''}`} onClick={toggleLike}>
             <Heart size={20} fill={isLiked ? "#f5533d" : "none"} color={isLiked ? "#f5533d" : "currentColor"} />
@@ -148,7 +166,7 @@ const PostCard = ({
           </button>
         </div>
 
-        {/* Join Status / Button */}
+     
         {!isLeader && (
           <div className="post-join-section">
             <div className={`post-member-count ${isFull ? 'full' : ''}`}>
@@ -171,15 +189,19 @@ const PostCard = ({
           </div>
         )}
 
-        {/* Comments */}
+   
         {showComments.has(post.id) && (
           <div className="comments-section">
             <div className="comments-list">
               {post.comments?.map((comment, idx) => (
                 <div key={idx} className="comment-item">
-                   <img src={comment.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} className="comment-avatar" alt="user"/>
+                   <Link to={`/profile/${comment.uid}`}>
+                    <img src={comment.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} className="comment-avatar" alt="user"/>
+                   </Link>
                    <div className="comment-bubble">
-                      <span className="comment-author">{comment.author}</span>
+                      <Link to={`/profile/${comment.uid}`} style={{ color: 'inherit', textDecoration: 'none', fontWeight: 'bold' }}>
+                        <span className="comment-author">{comment.author}</span>
+                      </Link>
                       <p>{comment.text}</p>
                    </div>
                 </div>
@@ -202,7 +224,6 @@ const PostCard = ({
         )}
       </div>
 
-      {/* Image Viewer */}
       {isViewerOpen && (
         <div className="image-viewer-overlay" onClick={closeImageViewer}>
           <button className="viewer-close" onClick={closeImageViewer}><X size={32} /></button>
@@ -213,7 +234,7 @@ const PostCard = ({
             </>
           )}
           <div className="viewer-content" onClick={(e) => e.stopPropagation()}>
-            <img src={post.images ? post.images[currentImageIndex] : post.image} alt="Fullscreen" />
+            <img src={post.images ? post.images[currentImageIndex] : (post.image ? post.image : '')} alt="Fullscreen" />
           </div>
         </div>
       )}

@@ -37,11 +37,13 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
   const [editingPost, setEditingPost] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ----------------------------------------------------------------
   // 1. Real-time Fetch Posts
-  // ----------------------------------------------------------------
   useEffect(() => {
-    if (!currentUser) return;
+   
+    if (filterByOwner && !ownerId) {
+     
+      return; 
+    }
     setLoading(true);
 
     const postsRef = collection(db, 'posts');
@@ -70,14 +72,16 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
     });
 
     return () => unsubscribe();
-  }, [filterByOwner, ownerId, currentUser]);
+  }, [filterByOwner, ownerId, currentUser]); 
 
 
-  // ----------------------------------------------------------------
   // 2. CRUD Operations
-  // ----------------------------------------------------------------
-
   const handleOpenCreateModal = () => {
+    if (!currentUser) { 
+       alert("กรุณาเข้าสู่ระบบก่อนสร้างโพสต์");
+       navigate('/login');
+       return;
+    }
     setEditingPost(null);
     setIsModalOpen(true);
   };
@@ -87,12 +91,14 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
     setIsModalOpen(true);
   };
 
+  
   const createPost = async (postData) => {
     if (!currentUser) return;
 
+  
     try {
       const docRef = await addDoc(collection(db, 'posts'), {
-        ...postData,
+        ...postData, 
         uid: currentUser.uid,
         author: {
            name: currentUser.name,
@@ -112,11 +118,12 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
       
       const postId = docRef.id;
 
+     
       const groupRef = doc(db, 'groups', postId);
       await setDoc(groupRef, {
           id: postId,
           name: postData.title, 
-          avatar: postData.image || currentUser.avatar,
+          avatar: postData.images && postData.images.length > 0 ? postData.images[0] : currentUser.avatar, // ✅ ใช้ Base64 รูปแรก
           description: `กลุ่มแชทสำหรับทริป: ${postData.title}`,
           maxMembers: parseInt(postData.maxMembers) || 10,
           currentMembers: 1,
@@ -136,12 +143,17 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
     }
   };
 
+
   const updatePost = async (updatedData) => {
     if (!editingPost) return;
     try {
       const postRef = doc(db, 'posts', editingPost.id);
+      
+
       await updateDoc(postRef, {
-        ...updatedData,
+        title: updatedData.title,
+        content: updatedData.content,
+        images: updatedData.images,
         maxMembers: Math.max(
            editingPost.currentMembers, 
            Math.min(updatedData.maxMembers || editingPost.maxMembers, 50)
@@ -158,6 +170,7 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
     if (window.confirm("ยืนยันการลบโพสต์?")) {
       try {
         await deleteDoc(doc(db, 'posts', postId));
+     
       } catch (error) {
         console.error("Error deleting post:", error);
       }
@@ -165,12 +178,9 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
   };
 
 
-  // ----------------------------------------------------------------
   // 3. Interactions
-  // ----------------------------------------------------------------
-
   const toggleLike = async (postId) => {
-    if (!currentUser) return;
+    if (!currentUser) { alert("กรุณาเข้าสู่ระบบ"); return; }
     
     const post = posts.find(p => p.id === postId);
     if (!post) return;
@@ -191,6 +201,7 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
               message: `ถูกใจโพสต์ของคุณ "${post.title ? post.title.substring(0, 20) : 'รูปภาพ'}"`,
               fromName: currentUser.name,
               fromAvatar: currentUser.avatar,
+              fromUid: currentUser.uid, 
               postId: postId,
               read: false,
               createdAt: serverTimestamp()
@@ -216,7 +227,7 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
 
   const addComment = async (postId) => {
     const text = commentInputs[postId];
-    if (!text?.trim() || !currentUser) return;
+    if (!text?.trim() || !currentUser) { alert("กรุณาเข้าสู่ระบบ หรือ พิมพ์ข้อความ"); return; }
 
     const post = posts.find(p => p.id === postId); 
 
@@ -224,7 +235,7 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
       const postRef = doc(db, 'posts', postId);
       const newComment = {
         id: Date.now(),
-        uid: currentUser.uid,
+        uid: currentUser.uid, 
         author: currentUser.name,
         avatar: currentUser.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
         text: text,
@@ -242,6 +253,7 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
               message: `แสดงความคิดเห็น: "${text.substring(0, 30)}..."`,
               fromName: currentUser.name,
               fromAvatar: currentUser.avatar,
+              fromUid: currentUser.uid, 
               postId: postId,
               read: false,
               createdAt: serverTimestamp()
@@ -255,7 +267,7 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
   };
 
   const handleJoinChat = async (postId) => {
-    if (!currentUser) return;
+    if (!currentUser) { alert("กรุณาเข้าสู่ระบบ"); return; }
     const post = posts.find(p => p.id === postId);
     if (!post) return;
 
@@ -295,6 +307,7 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
           message: `ขอเข้าร่วมทริป "${post.title || 'ของคุณ'}"`,
           fromName: currentUser.name,
           fromAvatar: currentUser.avatar,
+          fromUid: currentUser.uid, 
           postId: postId,
           read: false,
           createdAt: serverTimestamp()
@@ -306,7 +319,6 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
     }
   };
 
-  // ✅ อนุมัติคำขอ (Fix undefined)
   const approveJoinRequest = async (postId, requestUser) => {
      if (!currentUser || !requestUser?.uid) return;
      
@@ -324,7 +336,6 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
             avatar: requestUser.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
         };
 
-        // Update local array
         const updatedRequests = (postData.joinRequests || []).filter(req => req.uid !== requestUser.uid);
         const currentMembers = postData.members || [];
         let updatedMembers = [...currentMembers];
@@ -350,6 +361,7 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
             message: `อนุมัติคำขอเข้าร่วมทริป "${postData.title || ''}" แล้ว 🎉`,
             fromName: currentUser.name,
             fromAvatar: currentUser.avatar,
+            fromUid: currentUser.uid, 
             postId: postId,
             read: false,
             createdAt: serverTimestamp()
@@ -363,7 +375,6 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
      }
   };
 
-  // ✅ ปฏิเสธคำขอ (Fix undefined)
   const rejectJoinRequest = async (postId, requestUser) => {
      if (!currentUser || !requestUser?.uid) {
         console.error("Invalid request user data");
@@ -373,27 +384,24 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
      try {
         const postRef = doc(db, 'posts', postId);
         
-        // 1. ดึงข้อมูลล่าสุด
         const postSnap = await getDoc(postRef);
         if (!postSnap.exists()) return;
         const postData = postSnap.data();
 
-        // 2. กรองคนนั้นออกจาก Array
         const currentRequests = postData.joinRequests || [];
         const updatedRequests = currentRequests.filter(req => req.uid !== requestUser.uid);
 
-        // 3. อัปเดตกลับเข้าไป
         await updateDoc(postRef, {
            joinRequests: updatedRequests
         });
 
-        // 4. ส่ง Notification (ตอนนี้ toUid มีค่าแน่นอน)
         await addDoc(collection(db, 'notifications'), {
             toUid: requestUser.uid,
             type: 'request_rejected',
             message: `ปฏิเสธคำขอเข้าร่วมทริป "${postData.title || ''}"`,
             fromName: currentUser.name,
             fromAvatar: currentUser.avatar,
+            fromUid: currentUser.uid, 
             postId: postId,
             read: false,
             createdAt: serverTimestamp()
@@ -407,17 +415,43 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
      }
   };
 
+ 
+  const handleReportPost = async (postToReport, reporter) => {
+    if (!reporter || !postToReport) { alert("กรุณาเข้าสู่ระบบ"); return; }
 
-  // ----------------------------------------------------------------
+    const reason = prompt(`กรุณาระบุเหตุผลในการรายงานโพสต์ "${postToReport.title}":`);
+
+    if (reason && reason.trim().length > 0) {
+      try {
+        await addDoc(collection(db, "reports"), {
+          reporterUid: reporter.uid,
+          reporterName: reporter.name,
+          reportedUid: postToReport.author?.uid,
+          reportedName: postToReport.author?.name,
+          postId: postToReport.id,
+          reason: reason,
+          context: `Reported post: ${postToReport.title}`,
+          createdAt: serverTimestamp(),
+          status: "pending"
+        });
+        alert("ส่งรายงานโพสต์เรียบร้อยแล้ว ขอบคุณครับ");
+      } catch (error) {
+        console.error("Error submitting post report:", error);
+        alert("เกิดข้อผิดพลาดในการส่งรายงาน");
+      }
+    } else if (reason !== null) {
+      alert("กรุณาระบุเหตุผลในการรายงาน");
+    }
+  };
+
+
   // 4. Filter & Render
-  // ----------------------------------------------------------------
-
   const filteredPosts = posts.filter(post => {
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       return (
         post.title?.toLowerCase().includes(searchLower) ||
-        post.content?.toLowerCase().includes(searchLower) ||
+        (post.content || post.text)?.toLowerCase().includes(searchLower) || 
         post.author?.name?.toLowerCase().includes(searchLower)
       );
     }
@@ -428,9 +462,12 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
 
   return (
     <div className="post-container">
-      <button className="post-fab" onClick={handleOpenCreateModal}>
-        <Plus size={28} />
-      </button>
+    
+      {!filterByOwner && (
+        <button className="post-fab" onClick={handleOpenCreateModal}>
+          <Plus size={28} />
+        </button>
+      )}
 
       <div className="post-list">
         {filteredPosts.length > 0 ? (
@@ -457,12 +494,13 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
               rejectJoinRequest={(requestUser) => {
                   rejectJoinRequest(post.id, requestUser);
               }}
+              handleReportPost={handleReportPost} 
             />
           ))
         ) : (
           <div className="empty-state">
             {filterByOwner 
-              ? 'คุณยังไม่มีโพสต์ กดปุ่ม + เพื่อสร้างโพสต์แรก'
+              ? 'ผู้ใช้คนนี้ยังไม่มีโพสต์' 
               : (searchTerm 
                   ? `ไม่พบโพสต์ที่ตรงกับการค้นหา "${searchTerm}"`
                   : 'ยังไม่มีโพสต์ในระบบ กดปุ่ม + เพื่อเริ่มสร้างโพสต์แรก!'
