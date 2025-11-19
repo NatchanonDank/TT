@@ -176,12 +176,16 @@
 }
 
 .post-description {
-  font-size: 0.95rem;
-  line-height: 1.7;
-  color: #444;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  margin: 0 0 1rem 0;
+   font-size: 0.95rem;
+   line-height: 1.7;
+   color: #444;
+   white-space: pre-wrap;
+   word-wrap: break-word;
+   overflow-wrap: break-word;  /* 🔧 เพิ่ม: บังคับให้ขึ้นบรรทัดใหม่ */
+   word-break: break-word;     /* 🔧 เพิ่ม: ตัดคำยาวได้ */
+   max-width: 100%;            /* 🔧 เพิ่ม: จำกัดความกว้าง */
+   overflow: hidden;           /* 🔧 เพิ่ม: ซ่อนส่วนที่ล้น */
+   margin: 0 0 1rem 0;
 }
 
 /* Image Gallery*/
@@ -715,111 +719,268 @@
   padding: 0.5rem 1rem;
   border-radius: 20px;
 }
-
 /* ===============================
-   📱 Responsive
+   📱 RESPONSIVE DESIGN - FIXED
+   แก้ไขแล้ว: รองรับ URL ยาวในโทรศัพท์ Post Card
 =============================== */
 
-@media (max-width: 768px) {
+/* Tablet (768px - 1024px) */
+@media (max-width: 1024px) {
   .post-card {
-    border-radius: 12px;
-  }
-
-  .post-body {
-    padding: 1rem;
-  }
-
-  .post-image-gallery.images-2 img,
-  .post-image-gallery.images-3 img,
-  .post-image-gallery.images-4 img,
-  .post-image-gallery.images-5 img {
-    height: 150px;
-  }
-
-  .post-image-gallery.images-3 img:first-child {
-    min-height: 300px;
-  }
-
-  .leader-badge {
-    font-size: 10px;
-    padding: 2px 6px;
-  }
-
-  .pending-requests-section {
-    padding: 0.875rem 1rem;
-  }
-
-  .request-item {
-    flex-wrap: wrap;
-    padding: 0.625rem;
-  }
-
-  .request-actions {
-    width: 100%;
-    margin-top: 0.5rem;
-  }
-
-  .approve-btn,
-  .reject-btn {
-    flex: 1;
-    font-size: 12px;
-    padding: 0.4rem 0.75rem;
+    max-width: 100%;
   }
 }
 
+/* Tablet (481px - 768px) */
+@media (max-width: 768px) {
+  .post-card {
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    max-width: 100%;
+  }
+
+  .post-header { padding: 0.875rem 1rem; }
+  .author-avatar { width: 42px; height: 42px; }
+  .author-info h3 { font-size: 15px; }
+  .author-info p { font-size: 12px; }
+  .author-name { font-size: 0.95rem; }
+  .leader-badge { font-size: 10px; padding: 2px 6px; }
+  
+  .post-body { 
+    padding: 1rem;
+    overflow: hidden;
+    max-width: 100%;
+  }
+  
+  .post-body * {
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  .post-title { font-size: 1.15rem; }
+  
+  .post-description { 
+    font-size: 0.9rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .post-image-gallery { border-radius: 10px; }
+  .post-image-gallery.images-2 img { height: 180px; }
+  .post-image-gallery.images-3 img:first-child { min-height: 300px; }
+  .post-image-gallery.images-3 img:nth-child(2),
+  .post-image-gallery.images-3 img:nth-child(3) { height: 150px; }
+  .post-image-gallery.images-4 img,
+  .post-image-gallery.images-5 img { height: 180px; }
+  .more-images-overlay { font-size: 28px; }
+
+  .pending-requests-section { padding: 0.875rem 1rem; }
+  .pending-requests-title { font-size: 0.9rem; }
+  .request-item { padding: 0.625rem; }
+  .request-avatar { width: 38px; height: 38px; }
+  .request-name { font-size: 13px; }
+  .request-time { font-size: 11px; }
+  .request-actions {
+    display: flex;
+    flex-direction: row; /* 🔧 เปลี่ยนเป็นแนวนอน */
+    gap: 0.5rem;
+    width: auto; /* 🔧 เปลี่ยนจาก 100% */
+  }
+  .approve-btn, .reject-btn { 
+    flex: 1; /* 🔧 แบ่งพื้นที่เท่าๆ กัน */
+    padding: 0.5rem 1rem; /* 🔧 ปรับ padding */
+    font-size: 12px;
+    white-space: nowrap; /* 🔧 ป้องกันตัวอักษรขึ้นบรรทัดใหม่ */
+  }
+
+  .post-actions { padding: 0.625rem 1rem; }
+  .action-btn { font-size: 0.85rem; padding: 0.65rem 0.5rem; }
+
+  .post-join-section { padding: 0.625rem 1rem 0.875rem; }
+  .post-member-count { font-size: 13px; padding: 0.65rem; }
+  .join-now-btn { padding: 0.8rem 1.25rem; font-size: 0.9rem; }
+
+  .comments-section { padding: 0.875rem 1rem; max-height: 250px; }
+  .comment { padding: 0.625rem; }
+  .comment strong { font-size: 13px; }
+  .comment p { font-size: 0.8125rem; }
+  .comment-time { font-size: 11px; }
+  .comment-input { font-size: 13px; padding: 0.65rem 0.875rem; }
+  .send-comment-btn { width: 38px; height: 38px; }
+
+  .image-viewer-overlay { padding: 1rem; }
+  .viewer-close, .viewer-nav { width: 44px; height: 44px; }
+  .viewer-close { top: 0.75rem; right: 0.75rem; }
+  .viewer-prev { left: 0.75rem; }
+  .viewer-next { right: 0.75rem; }
+  .viewer-content img { max-height: 70vh; }
+}
+
+/* Mobile (320px - 480px) */
 @media (max-width: 480px) {
   .post-card {
-    margin-bottom: 1rem;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-  }
-
-  .post-header,
-  .post-body {
-    padding: 0.875rem;
-  }
-
-  .post-actions {
-    padding: 0.625rem 0.875rem;
-  }
-
-  .post-join-section {
-    padding: 0.625rem 0.875rem 0.875rem;
-  }
-
-  .author-name {
-    font-size: 0.9rem;
-  }
-
-  .leader-badge {
-    font-size: 9px;
-    padding: 2px 5px;
-  }
-
-  .request-item {
-    padding: 0.5rem;
-    gap: 0.5rem;
-  }
-
-  .request-avatar {
-    width: 35px;
-    height: 35px;
-  }
-
-  .request-actions {
-    flex-direction: column;
-    gap: 0.375rem;
-  }
-
-  .approve-btn,
-  .reject-btn {
     width: 100%;
-    font-size: 11px;
-    padding: 0.375rem 0.5rem;
+    max-width: 100%;
+    margin: 0 0 0.875rem 0;
+    border-radius: 12px;
+    border-left: 1px solid #e0e0e0;
+    border-right: 1px solid #e0e0e0;
+    overflow: hidden;
   }
 
-  .more-images-overlay {
-    font-size: 24px;
+  .post-header { padding: 0.75rem 0.875rem; }
+  .author-avatar { width: 40px; height: 40px; }
+  .author-info h3 { font-size: 14px; }
+  .author-info p { font-size: 11px; }
+  .author-name { font-size: 0.9rem; }
+  .leader-badge { font-size: 9px; padding: 2px 5px; }
+  .dropdown-btn { padding: 6px; }
+
+  .post-body { 
+    padding: 0.875rem;
+    overflow: hidden;
+    max-width: 100%;
+  }
+  
+  .post-body * {
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  .post-title { font-size: 1.1rem; }
+  
+  .post-description { 
+    font-size: 0.875rem;
+    line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .post-image-gallery { border-radius: 8px; margin: 0.875rem 0 0 0; }
+  .post-image-gallery.images-1 img { max-height: 350px; }
+  .post-image-gallery.images-2 img { height: 150px; }
+  .post-image-gallery.images-3 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+  }
+  .post-image-gallery.images-3 img:first-child {
+    grid-row: 1 / 2;
+    grid-column: 1 / 3;
+    min-height: 200px;
+    height: 200px;
+  }
+  .post-image-gallery.images-3 img:nth-child(2),
+  .post-image-gallery.images-3 img:nth-child(3) { height: 120px; }
+  .post-image-gallery.images-4 img,
+  .post-image-gallery.images-5 img { height: 150px; }
+  .more-images-overlay { font-size: 24px; }
+
+  .pending-requests-section { padding: 0.75rem 0.875rem; }
+  .pending-requests-title { font-size: 0.85rem; margin-bottom: 0.75rem; }
+  .request-item { padding: 0.5rem; gap: 0.5rem; }
+  .request-avatar { width: 36px; height: 36px; }
+  .request-name { font-size: 12px; }
+  .request-time { font-size: 10px; }
+  .request-actions { 
+    display: flex;
+    flex-direction: row; /* 🔧 เปลี่ยนเป็นแนวนอน */
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    width: auto; /* 🔧 เปลี่ยนจาก 100% */
+  }
+  .approve-btn, .reject-btn { 
+    flex: 1; /* 🔧 แบ่งพื้นที่เท่าๆ กัน */
+    padding: 0.5rem 0.875rem; /* 🔧 ปรับ padding */
+    font-size: 12px; /* 🔧 เพิ่มขนาด font */
+    white-space: nowrap; /* 🔧 ป้องกันตัวอักษรขึ้นบรรทัดใหม่ */
+  }
+
+  .post-actions { padding: 0.5rem 0.875rem; gap: 0.375rem; }
+  .action-btn { font-size: 0.8rem; padding: 0.6rem 0.4rem; gap: 0.375rem; }
+  .action-btn svg { width: 18px; height: 18px; }
+
+  .post-join-section { padding: 0.5rem 0.875rem 0.75rem; }
+  .post-member-count { font-size: 12px; padding: 0.6rem; margin-bottom: 0.625rem; }
+  .join-now-btn { padding: 0.75rem 1rem; font-size: 0.875rem; }
+
+  .comments-section { padding: 0.75rem 0.875rem; max-height: 200px; }
+  .comments-list { gap: 0.625rem; }
+  .comment { padding: 0.5rem; }
+  .comment strong { font-size: 12px; }
+  .comment p { font-size: 0.75rem; }
+  .comment-time { font-size: 10px; }
+  .comment-input-wrapper { gap: 0.5rem; margin-top: 0.75rem; }
+  .comment-input { font-size: 12px; padding: 0.6rem 0.75rem; border-radius: 20px; }
+  .send-comment-btn { width: 36px; height: 36px; }
+
+  .image-viewer-overlay { padding: 0.5rem; }
+  .viewer-close, .viewer-nav { width: 40px; height: 40px; }
+  .viewer-close { top: 0.5rem; right: 0.5rem; }
+  .viewer-prev { left: 0.5rem; }
+  .viewer-next { right: 0.5rem; }
+  .viewer-content { max-width: 95%; max-height: 95%; }
+  .viewer-content img { max-height: 75vh; border-radius: 4px; }
+  .viewer-counter { font-size: 12px; padding: 0.375rem 0.75rem; }
+}
+
+/* Extra Small Mobile (< 380px) */
+@media (max-width: 380px) {
+  .post-header { padding: 0.625rem 0.75rem; }
+  .author-avatar { width: 36px; height: 36px; }
+  .author-info h3 { font-size: 13px; }
+  .author-name { font-size: 0.85rem; }
+  
+  .post-body { 
+    padding: 0.75rem;
+    overflow: hidden;
+    max-width: 100%;
+  }
+  
+  .post-title { font-size: 1rem; }
+  
+  .post-description { 
+    font-size: 0.8125rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  
+  .post-image-gallery.images-1 img { max-height: 300px; }
+  .post-image-gallery.images-2 img,
+  .post-image-gallery.images-4 img,
+  .post-image-gallery.images-5 img { height: 130px; }
+  .post-image-gallery.images-3 img:first-child { height: 180px; min-height: 180px; }
+  .post-image-gallery.images-3 img:nth-child(2),
+  .post-image-gallery.images-3 img:nth-child(3) { height: 100px; }
+  .action-btn { font-size: 0.75rem; padding: 0.5rem 0.3rem; }
+  .join-now-btn { font-size: 0.8125rem; }
+}
+
+/* Landscape Mode */
+@media (max-width: 896px) and (orientation: landscape) {
+  .post-image-gallery.images-1 img { max-height: 300px; }
+  .post-image-gallery.images-2 img,
+  .post-image-gallery.images-4 img,
+  .post-image-gallery.images-5 img { height: 200px; }
+  .post-image-gallery.images-3 img:first-child { height: 250px; min-height: 250px; }
+  .viewer-content img { max-height: 85vh; }
+}
+
+/* ป้องกัน tap highlight บน iOS */
+@media (max-width: 768px) {
+  .action-btn, .join-now-btn, .approve-btn, .reject-btn,
+  .dropdown-btn, .send-comment-btn {
+    -webkit-tap-highlight-color: transparent;
   }
 }

@@ -5,7 +5,7 @@
 }
 
 .notifications-container {
-  max-width: 800px;
+  max-width: 900px; /* เพิ่มจาก 800px */
   width: 95%;
   margin: 0 auto;
   padding: 2rem 1rem;
@@ -64,20 +64,24 @@
 .notifications-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem; /* เพิ่มจาก 0.75rem */
 }
 
 .notification-item {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
+  gap: 1.5rem; /* เพิ่มจาก 1rem */
+  padding: 1.5rem 1.75rem; /* เพิ่มจาก 1rem 1.25rem */
   background: white;
-  border-radius: 12px;
+  border-radius: 16px; /* เพิ่มจาก 12px */
   border: 1px solid #e9ecef;
   cursor: pointer;
   transition: all 0.2s;
+  height: 100px; /* เพิ่มจาก 90px */
+  min-height: 100px;
+  max-height: 100px;
+  overflow: hidden;
 }
 
 .notification-item:hover {
@@ -92,14 +96,16 @@
 
 .notif-icon-wrapper {
   flex-shrink: 0;
+  align-self: center; /* จัดกลางแนวตั้ง */
 }
 
 .notif-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 12px; /* เพิ่มจาก 8px */
   border-radius: 50%;
+  font-size: 1.5rem; /* เพิ่มขนาดไอคอน */
 }
 
 .notif-icon.like {
@@ -128,28 +134,45 @@
 }
 
 .notif-avatar {
-  width: 40px;
-  height: 40px;
+  width: 60px; /* เพิ่มจาก 40px */
+  height: 60px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+  align-self: center; /* จัดกลางแนวตั้ง */
+  border: 3px solid #f0f0f0; /* เพิ่มขอบ */
 }
 
 .notif-content {
   flex: 1;
+  min-width: 0; /* ช่วยให้ text ellipsis ทำงาน */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .notif-message {
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   color: #1a1a1a;
-  margin: 0 0 4px 0;
-  line-height: 1.4;
+  margin: 0 0 6px 0;
+  line-height: 1.5;
+  font-weight: 500;
+  /* จำกัดข้อความไม่เกิน 2 บรรทัด */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .notif-time {
-  font-size: 0.85rem;
+  font-size: 1rem; /* เพิ่มจาก 0.85rem */
   color: #999;
   margin: 0;
+  white-space: nowrap; /* ไม่ให้ขึ้นบรรทัดใหม่ */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .delete-notif-btn {
@@ -158,9 +181,11 @@
   border: none;
   color: #999;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 8px; /* เพิ่มจาก 4px */
+  border-radius: 8px; /* เพิ่มจาก 4px */
   transition: all 0.2s;
+  align-self: center; /* จัดกลางแนวตั้ง */
+  font-size: 1.3rem; /* เพิ่มขนาดไอคอน */
 }
 
 .delete-notif-btn:hover {
@@ -173,8 +198,8 @@
   top: 50%;
   right: 1rem;
   transform: translateY(-50%);
-  width: 10px;
-  height: 10px;
+  width: 12px; /* เพิ่มจาก 10px */
+  height: 12px;
   background: #667eea;
   border-radius: 50%;
   animation: pulse 2s infinite;
@@ -202,20 +227,23 @@
   }
 
   .notification-item {
-    padding: 0.875rem 1rem;
+    padding: 1.25rem 1.5rem;
+    height: 110px; /* เพิ่มจาก 85px */
+    min-height: 110px;
+    max-height: 110px;
   }
 
   .notif-avatar {
-    width: 35px;
-    height: 35px;
+    width: 50px; /* เพิ่มจาก 35px */
+    height: 50px;
   }
 
   .notif-message {
-    font-size: 0.9rem;
+    font-size: 1rem; /* เพิ่มจาก 0.9rem */
   }
 
   .notif-time {
-    font-size: 0.75rem;
+    font-size: 0.9rem; /* เพิ่มจาก 0.75rem */
   }
 }
 
@@ -235,25 +263,30 @@
   }
 
   .notification-item {
-    gap: 0.6rem;
-    padding: 0.7rem 0.8rem;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    height: 100px; /* เพิ่มจาก 80px */
+    min-height: 100px;
+    max-height: 100px;
   }
 
   .notif-avatar {
-    width: 30px;
-    height: 30px;
+    width: 45px; /* เพิ่มจาก 30px */
+    height: 45px;
   }
 
   .notif-message {
-    font-size: 0.85rem;
+    font-size: 0.95rem; /* เพิ่มจาก 0.85rem */
+    -webkit-line-clamp: 1; /* จำกัด 1 บรรทัดในมือถือ */
   }
 
   .notif-time {
-    font-size: 0.7rem;
+    font-size: 0.85rem; /* เพิ่มจาก 0.7rem */
   }
 
   .notif-icon {
-    padding: 6px;
+    padding: 8px; /* เพิ่มจาก 6px */
+    font-size: 1.2rem;
   }
 
   .unread-dot {

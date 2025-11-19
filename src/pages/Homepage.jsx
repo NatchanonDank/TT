@@ -13,15 +13,12 @@ const Homepage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   
- 
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-       
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           let userData = {
@@ -42,7 +39,6 @@ const Homepage = () => {
           console.error("Error fetching user data:", error);
         }
       } else {
-
         navigate('/login');
       }
       setLoading(false);
@@ -50,7 +46,6 @@ const Homepage = () => {
 
     return () => unsubscribe();
   }, [navigate]);
-
 
   useEffect(() => {
     const handleWheel = (e) => {
@@ -70,7 +65,7 @@ const Homepage = () => {
   return (
     <div className="container">
       <Navbar brand="TripTogether" />
-      
+
       <div className="homepage-layout">
         <main className="main-content">
           <div className="welcome-banner">
@@ -78,11 +73,10 @@ const Homepage = () => {
               🚗 ยินดีต้อนรับสู่ TripTogether 💨
             </h2>
             <p className="banner-subtitle">
-                เที่ยวงี้มีเพื่อน สนุกกว่าเที่ยวคนเดียวเยอะ
+              เที่ยวงี้มีเพื่อน สนุกกว่าเที่ยวคนเดียวเยอะ
             </p>
           </div>
 
-        
           {currentUser && (
             <Post 
               currentUser={currentUser} 
@@ -91,7 +85,6 @@ const Homepage = () => {
             />
           )}
         </main>
-
 
         <aside className="search-sidebar">
           <div className="search-box-sticky">
@@ -120,7 +113,6 @@ const Homepage = () => {
                 )}
               </div>
             </div>
-
 
             <div className="suggestions-section">
               <div className="suggestions-header">

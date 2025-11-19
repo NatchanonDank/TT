@@ -131,7 +131,7 @@ body {
 /* Profile Info */
 .profile-info {
   flex: 1;
-  padding-top: 10px; /* ดันลงมาให้ตรงกับรูป */
+  padding-top: 10px;
 }
 
 .profile-header {
@@ -184,7 +184,9 @@ body {
   font-size: 0.95rem;
   line-height: 1.5;
   color: #050505;
-  white-space: pre-wrap; 
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* ===============================
@@ -203,6 +205,53 @@ body {
   padding: 20px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+/* 🔧 FIX: URL Overflow - สำหรับโพสต์ใน Profile */
+.content-box {
+  overflow: hidden !important;
+  max-width: 100% !important;
+}
+
+.content-box * {
+  max-width: 100% !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+/* 🔧 FIX: เฉพาะโพสต์ */
+.post-card {
+  overflow: hidden !important;
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+.post-body {
+  overflow: hidden !important;
+  max-width: 100% !important;
+}
+
+.post-description,
+.post-body p,
+.post-body div,
+.post-body a,
+.post-body span {
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  word-break: break-all !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  display: block !important;
+  white-space: normal !important;
+}
+
+.post-title {
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
+  max-width: 100% !important;
 }
 
 .section-title {
@@ -251,7 +300,7 @@ body {
 .review-stars {
   min-width: 70px;
   text-align: left;
-  color: #f7b928; /* สีดาว */
+  color: #f7b928;
 }
 
 .review-bar-container {
@@ -313,6 +362,8 @@ body {
   font-size: 0.95rem;
   line-height: 1.4;
   color: #050505;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* ===============================
@@ -367,6 +418,24 @@ body {
   cursor: pointer;
 }
 
+.modal-header button {
+  background: transparent;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: #65676b;
+}
+
+.modal-header button:hover {
+  background: #f0f2f5;
+}
+
 .form-group {
   margin-bottom: 15px;
 }
@@ -376,6 +445,14 @@ body {
   font-weight: 600;
   margin-bottom: 5px;
   font-size: 0.95rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  color: #050505;
 }
 
 .text-input, .textarea-input {
@@ -393,89 +470,10 @@ body {
   box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
 }
 
-.cover-color-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
-
-.color-option-btn {
-  height: 50px;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  cursor: pointer;
-  position: relative;
-}
-
-.color-option-btn.selected {
-  border-color: #1877f2;
-  transform: scale(0.95);
-}
-
-.color-select-check {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 1px solid #f0f2f5;
-}
-
-.secondary-btn {
-  padding: 8px 16px;
-  background: transparent;
-  color: #1877f2;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  border-radius: 6px;
-}
-
-.secondary-btn:hover {
-  background: #f0f2f5;
-}
-
-.primary-btn {
-  padding: 8px 24px;
-  background: #1877f2;
-  color: white;
-  border: none;
-  font-weight: 600;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.primary-btn:hover {
-  background: #166fe5;
-}
-
-/* ===============================
-   Edit Profile Modal (เพิ่มเติม)
-=============================== */
-
-.modal-header button {
-  background: transparent;
-  border: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.2s;
-  color: #65676b;
-}
-
-.modal-header button:hover {
-  background: #f0f2f5;
+.textarea-input {
+  min-height: 100px;
+  resize: vertical;
+  font-family: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* File Input Styling */
@@ -509,23 +507,6 @@ body {
   background: #166fe5;
 }
 
-/* Label Styling */
-.form-group label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 8px;
-  font-size: 0.95rem;
-  color: #050505;
-}
-
-/* Textarea Specific */
-.textarea-input {
-  min-height: 100px;
-  resize: vertical;
-  font-family: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-/* Cover Color Grid Improvements */
 .cover-color-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -554,7 +535,13 @@ body {
   box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.2);
 }
 
-/* Modal Actions Improvements */
+.color-select-check {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -596,6 +583,34 @@ body {
   box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
 }
 
+.secondary-btn {
+  padding: 8px 16px;
+  background: transparent;
+  color: #1877f2;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.secondary-btn:hover {
+  background: #f0f2f5;
+}
+
+.primary-btn {
+  padding: 8px 24px;
+  background: #1877f2;
+  color: white;
+  border: none;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  background: #166fe5;
+}
+
 /* Modal Scrollbar */
 .modal-content::-webkit-scrollbar {
   width: 8px;
@@ -615,12 +630,214 @@ body {
   background: #b8babf;
 }
 
-/* Responsive Modal */
+/* ===============================
+   📱 RESPONSIVE DESIGN
+=============================== */
+
+/* Tablet (768px - 1024px) */
+@media (max-width: 1024px) {
+  .content-wrapper {
+    max-width: 95%; 
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+}
+
+/* Tablet & Mobile (768px) */
 @media (max-width: 768px) {
+  .head {
+    padding-bottom: 20px;
+  }
+
+  /* Hero Section */
+  .hero-section {
+    height: 200px;
+  }
+
+  .logout-btn-absolute {
+    top: 80px; 
+    right: 15px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    background: rgba(0, 0, 0, 0.75);
+  }
+
+  /* Content Wrapper */
+  .content-wrapper {
+    margin-top: -30px; 
+    padding: 0 15px;
+  }
+
+  /* Profile Card */
+  .profile-card {
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+  }
+
+  .profile-card-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .profile-avatar-large {
+    width: 120px;
+    height: 120px;
+    border-width: 4px;
+  }
+
+  .edit-avatar-btn {
+    width: 32px;
+    height: 32px;
+    bottom: 5px;
+    right: 5px;
+  }
+
+  .profile-info {
+    padding-top: 0;
+    width: 100%;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .profile-name {
+    font-size: 1.5rem;
+  }
+
+  .edit-profile-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+  }
+
+  .bio-box {
+    padding: 12px;
+    margin-top: 12px;
+  }
+
+  .bio-title {
+    font-size: 0.95rem;
+  }
+
+  .bio-text {
+    font-size: 0.9rem;
+  }
+
+  /* Content Grid */
+  .content-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .right-column-container {
+    order: -1;
+  }
+
+  .content-grid > div:first-child {
+    order: 1;
+  }
+
+  .content-box {
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+  }
+
+  /* 🔧 FIX: โพสต์ใน mobile - รองรับ URL ยาว */
+  .content-box {
+    overflow: hidden !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .post-card {
+    overflow: hidden !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .post-body {
+    overflow: hidden !important;
+    max-width: 100% !important;
+  }
+
+  .post-description,
+  .post-body p,
+  .post-body div,
+  .post-body a,
+  .post-body span,
+  .post-body strong {
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-all !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    display: block !important;
+    white-space: normal !important;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+  }
+
+  /* Review Section */
+  .review-average {
+    font-size: 2.5rem;
+  }
+
+  .review-total {
+    font-size: 0.85rem;
+  }
+
+  .review-bar-row {
+    font-size: 0.85rem;
+  }
+
+  .review-stars {
+    min-width: 60px;
+  }
+
+  .review-count {
+    font-size: 0.8rem;
+  }
+
+  /* Comments */
+  .comment-item {
+    gap: 10px;
+    padding-bottom: 10px;
+  }
+
+  .comment-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .comment-text {
+    font-size: 0.9rem;
+  }
+
+  /* Modal */
   .modal-content {
     width: 95%;
     max-width: none;
     padding: 16px;
+  }
+
+  .modal-title {
+    font-size: 1.1rem;
   }
 
   .cover-color-grid {
@@ -640,61 +857,363 @@ body {
     width: 100%;
   }
 }
-/* ===============================
-   Responsive 
-=============================== */
 
-
-@media (max-width: 1024px) {
-  .content-wrapper {
-    max-width: 95%; 
+/* Mobile (480px) */
+@media (max-width: 480px) {
+  .head {
+    padding-bottom: 15px;
   }
-}
 
-@media (max-width: 768px) {
-  .content-grid {
-    grid-template-columns: 1fr; 
-    gap: 15px;
+  /* Hero Section */
+  .hero-section {
+    height: 180px;
+  }
+
+  .logout-btn-absolute {
+    top: 70px;
+    right: 10px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    gap: 4px;
+  }
+
+  /* Content Wrapper */
+  .content-wrapper {
+    margin-top: -20px;
+    padding: 0 10px;
+  }
+
+  /* Profile Card */
+  .profile-card {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
   }
 
   .profile-card-content {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .profile-header {
-    flex-direction: column;
-    gap: 10px;
-    align-items: center; 
-  }
-  
-  .profile-info {
-    padding-top: 0;
-    width: 100%;
-  }
-
-  .content-wrapper {
-    margin-top: -50px; 
-    padding: 0 15px;
+    gap: 12px;
   }
 
   .profile-avatar-large {
-    width: 120px;
-    height: 120px;
-    border-width: 4px;
+    width: 100px;
+    height: 100px;
+    border-width: 3px;
   }
 
-  .hero-section {
-    height: 200px;
+  .edit-avatar-btn {
+    width: 28px;
+    height: 28px;
+    bottom: 3px;
+    right: 3px;
   }
-  
 
-  .logout-btn-absolute {
-    top: 20px; 
-    right: 15px;
-    padding: 6px 12px;
+  .edit-avatar-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .profile-name {
+    font-size: 1.25rem;
+  }
+
+  .edit-profile-btn {
+    font-size: 0.9rem;
+    padding: 8px 14px;
+  }
+
+  .bio-box {
+    padding: 10px;
+    margin-top: 10px;
+  }
+
+  .bio-title {
+    font-size: 0.9rem;
+  }
+
+  .bio-text {
+    font-size: 0.85rem;
+  }
+
+  /* Content Grid */
+  .content-grid {
+    display: flex;
+    flex-direction: column;
+  }
+  .right-column-container {
+    order: -1;
+  }
+
+  .content-grid > div:first-child {
+    order: 1;
+  }
+
+  /* 🔧 FIX: URL Long text */
+  .content-box {
+    overflow: hidden !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .post-card,
+  .post-body {
+    overflow: hidden !important;
+    max-width: 100% !important;
+  }
+
+  .post-description,
+  .post-body p,
+  .post-body div,
+  .post-body a,
+  .post-body span,
+  .post-body strong {
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-all !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+  }
+
+  .section-title {
+    font-size: 1rem;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+  }
+
+  /* Review Section */
+  .review-summary {
+    margin-bottom: 15px;
+  }
+
+  .review-average {
+    font-size: 2rem;
+  }
+
+  .review-total {
     font-size: 0.8rem;
-    background: rgba(0, 0, 0, 0.7); 
+  }
+
+  .review-breakdown {
+    gap: 5px;
+  }
+
+  .review-bar-row {
+    font-size: 0.8rem;
+    gap: 8px;
+  }
+
+  .review-stars {
+    min-width: 55px;
+    font-size: 0.8rem;
+  }
+
+  .review-bar-container {
+    height: 6px;
+  }
+
+  .review-count {
+    font-size: 0.75rem;
+  }
+
+  /* Comments */
+  .comment-item {
+    gap: 8px;
+    padding-bottom: 8px;
+  }
+
+  .comment-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .comment-text {
+    font-size: 0.85rem;
+  }
+
+  /* Modal */
+  .modal-content {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .modal-title {
+    font-size: 1rem;
+  }
+
+  .modal-close-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .form-group {
+    margin-bottom: 12px;
+  }
+
+  .form-label {
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+
+  .text-input, .textarea-input {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .textarea-input {
+    min-height: 80px;
+  }
+
+  .cover-color-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .color-option-btn {
+    height: 45px;
+    border-width: 2px;
+  }
+
+  .modal-actions {
+    margin-top: 15px;
+    padding-top: 12px;
+    gap: 8px;
+  }
+
+  .modal-actions button {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+
+  .form-group input[type="file"]::file-selector-button {
+    padding: 6px 12px;
+    font-size: 0.85rem;
   }
 }
+
+/* Extra Small Mobile (380px) */
+@media (max-width: 380px) {
+  .hero-section {
+    height: 160px;
+  }
+
+  .logout-btn-absolute {
+    top: 60px;
+    right: 8px;
+    padding: 4px 8px;
+    font-size: 0.7rem;
+  }
+
+  /* Content Wrapper */
+  .content-wrapper {
+    margin-top: -15px;
+    padding: 0 8px;
+  }
+
+  .profile-card {
+    padding: 10px;
+  }
+
+  .profile-avatar-large {
+    width: 90px;
+    height: 90px;
+  }
+
+  .profile-name {
+    font-size: 1.1rem;
+  }
+
+  .edit-profile-btn {
+    font-size: 0.85rem;
+    padding: 7px 12px;
+  }
+
+  .bio-title {
+    font-size: 0.85rem;
+  }
+  .content-grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .right-column-container {
+    order: -1;
+  }
+
+  .content-grid > div:first-child {
+    order: 1;
+  }
+  .bio-text {
+    font-size: 0.8rem;
+  }
+
+  .content-box {
+    padding: 10px;
+  }
+
+  .section-title {
+    font-size: 0.95rem;
+  }
+
+  .review-average {
+    font-size: 1.75rem;
+  }
+
+  .review-bar-row {
+    font-size: 0.75rem;
+  }
+
+  .review-stars {
+    min-width: 50px;
+  }
+
+  .comment-avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .comment-text {
+    font-size: 0.8rem;
+  }
+
+  .modal-content {
+    padding: 12px;
+  }
+
+  .modal-title {
+    font-size: 0.95rem;
+  }
+
+  .cover-color-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .color-option-btn {
+    height: 40px;
+  }
+}
+
+/* Landscape Mode */
+@media (max-width: 896px) and (orientation: landscape) {
+  .hero-section {
+    height: 150px;
+  }
+
+  .content-wrapper {
+    margin-top: -40px;
+  }
+
+  .profile-avatar-large {
+    width: 100px;
+    height: 100px;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+
+  .logout-btn-absolute {
+    top: 60px;
+  }
+}
+

@@ -1,12 +1,16 @@
 /* Reset และ Base Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+html {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 100%;
+  position: relative;
+  margin: 0;
+  padding: 0;
 }
 
 /* Container */
@@ -20,29 +24,31 @@ body {
 .homepage-layout {
   display: flex;
   gap: 1.5rem;
-  max-width: 1400px;
+  max-width: 1100px;
+  width: 100%;
   margin: 0 auto;
   padding: 2rem;
   padding-top: 90px;
-  align-items: flex-start; /* ✅ เพิ่มบรรทัดนี้ */
+  align-items: flex-start;
+  flex-wrap: wrap; /* เพิ่มเพื่อให้ wrap ได้ */
 }
 
-/* Main Content */
+/* Main Content - Desktop */
 .main-content {
   flex: 1;
   min-width: 0;
   max-height: calc(100vh - 110px);
   overflow-y: auto;
   padding-right: 0.5rem;
-  
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .main-content::-webkit-scrollbar {
   display: none;
 }
 
-
-/* Welcome Banner - ✅ ปรับความสูงให้เท่ากับ Search Box */
+/* Welcome Banner */
 .welcome-banner {
   background: linear-gradient(135deg, #7B68EE 0%, #9B7FED 100%);
   color: white;
@@ -51,10 +57,11 @@ body {
   text-align: center;
   margin-bottom: 1.5rem;
   box-shadow: 0 4px 15px rgba(123, 104, 238, 0.3);
-  min-height: 160px; /* ✅ เพิ่มบรรทัดนี้ */
-  display: flex; /* ✅ เพิ่มบรรทัดนี้ */
-  flex-direction: column; /* ✅ เพิ่มบรรทัดนี้ */
-  justify-content: center; /* ✅ เพิ่มบรรทัดนี้ */
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%; /* Desktop: full width */
 }
 
 .banner-title {
@@ -95,7 +102,7 @@ body {
   top: 90px;
 }
 
-/* Search Box หลัก - ✅ ปรับความสูงให้เท่ากับ Banner */
+/* Search Box หลัก */
 .search-box {
   position: relative;
   background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
@@ -107,10 +114,10 @@ body {
   margin-bottom: 1.25rem;
   border: 1px solid rgba(102, 126, 234, 0.1);
   transition: all 0.3s ease;
-  min-height: 160px; /* ✅ เพิ่มบรรทัดนี้ - ให้เท่ากับ banner */
-  display: flex; /* ✅ เพิ่มบรรทัดนี้ */
-  flex-direction: column; /* ✅ เพิ่มบรรทัดนี้ */
-  justify-content: space-between; /* ✅ เพิ่มบรรทัดนี้ */
+  min-height: 160px; /* 🔧 แก้ความสูงตรงนี้ (Desktop) - เฉพาะจอใหญ่ */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .search-box:hover {
@@ -249,8 +256,6 @@ body {
   color: white;
   border-color: #667eea;
 }
-
-
 
 /* Trending Section */
 .trending-section {
@@ -404,65 +409,251 @@ body {
   40% { transform: scale(1); }
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .homepage-layout {
-    flex-direction: column;
-  }
-  
-  .search-sidebar {
-    width: 100%;
-    order: -1;
-  }
-  
-  .search-box-sticky {
-    position: static;
-  }
-  
-  .main-content {
-    max-height: none;
-    overflow-y: visible;
-  }
-  
-  /* ✅ ในมือถือไม่ต้องมีความสูงเท่ากัน */
-  .welcome-banner,
-  .search-box {
-    min-height: auto;
-  }
+.loading-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 1.2rem;
+  color: #667eea;
+  font-weight: 600;
 }
 
-@media (max-width: 768px) {
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+/* Tablet (จอพับ) */
+@media (max-width: 1024px) {
   .homepage-layout {
-    padding: 1rem;
-    padding-top: 80px;
-  }
-  
-  .welcome-banner {
+    max-width: 100%;
     padding: 1.5rem;
+    padding-top: 100px;
   }
-  
+
+  .search-sidebar {
+    width: 300px;
+  }
+
+  .welcome-banner {
+    padding: 1.75rem 2rem;
+    min-height: 140px;
+  }
+
   .banner-title {
     font-size: 1.5rem;
   }
-  
+
   .banner-subtitle {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
   }
-  
+
   .search-box {
     padding: 1.5rem;
   }
 }
 
-@media (max-width: 480px) {
-  .welcome-banner {
-    padding: 1.25rem;
+
+/* Mobile (โทรศัพท์) */
+@media (max-width: 768px) {
+  .homepage-layout {
+    flex-direction: column;
+    padding: 1rem;
+    padding-top: 100px;
+    gap: 1rem;
+  }
+
+  /* Main Content ปรับให้เต็มจอ */
+  .main-content {
+    max-height: calc(100vh - 145px);
+    overflow-y: auto;
+    padding-right: 0;
+    padding-bottom: 100px;
+    width: 100%;
+    scroll-behavior: auto; /* 🔧 เพิ่มบรรทัดนี้ - ให้ scroll เร็ว */
+    -webkit-overflow-scrolling: touch;
   }
   
-  .banner-title {
-    font-size: 1.25rem;
-    flex-direction: column;
-    gap: 5px;
+  .main-content::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .main-content::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+  }
+  .main-content::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .main-content::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+  }
+
+  /* Search Sidebar เต็มความกว้าง */
+  .search-sidebar {
+    width: 100%;
+    order: -1; /* ขึ้นไปด้านบน */
+    margin-top: 210px; /* 🔧 เพิ่มระยะห่างจาก navbar */
+  }
+
+  .search-box-sticky {
+    position: relative !important;
+    top: 0;
+  }
+
+  /* Welcome Banner - ซ่อนในมือถือ */
+  .welcome-banner {
+    display: none; 
+  }
+
+  /* Search Box */
+  .search-box {
+    padding: 1rem; 
+    border-radius: 16px;
+    min-height: auto; 
+    margin-bottom: 1rem; 
+  }
+
+  .search-header h3 {
+    font-size: 0.95rem;
+  }
+
+  .search-input {
+    padding: 0.875rem 2.75rem 0.875rem 2.75rem;
+    font-size: 13px;
+  }
+
+  .search-icon {
+    left: 1rem;
+  }
+
+  .search-clear-btn {
+    right: 0.75rem;
+  }
+
+  /* Quick Filters */
+  .quick-filters {
+    margin-top: 0.875rem;
+    gap: 0.4rem;
+  }
+
+  .filter-chip {
+    padding: 0.4rem 0.875rem;
+    font-size: 12px;
+  }
+
+  /* Trending Section */
+  .trending-section {
+    padding: 1.25rem;
+    border-radius: 14px;
+    margin-top: 1rem;
+  }
+
+  .trending-header h3 {
+    font-size: 0.9rem;
+  }
+
+  .trending-item {
+    padding: 0.625rem;
+  }
+
+  .trending-rank {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+
+  .trending-title {
+    font-size: 12px;
+  }
+
+  .trending-count {
+    font-size: 10px;
+  }
+
+  /* Suggestions Section */
+  .suggestions-section {
+    padding: 1.25rem;
+    border-radius: 14px;
+    margin-top: 1rem;
+  }
+
+  .suggestions-header h3 {
+    font-size: 0.9rem;
+  }
+
+  .suggestion-tag {
+    padding: 0.4rem 0.875rem;
+    font-size: 11px;
+  }
+
+  /* Empty State */
+  .empty-state {
+    padding: 40px 15px;
+    font-size: 14px;
+    border-radius: 12px;
   }
 }
 
+/* Mobile เล็ก (จอแคบมาก) */
+@media (max-width: 480px) {
+  .homepage-layout {
+    padding: 0.875rem;
+    padding-top: 110px;
+  }
+
+  .main-content {
+    max-height: calc(100vh - 140px);
+    padding-bottom: 90px;
+    scroll-behavior: auto; /* 🔧 เพิ่มบรรทัดนี้ */
+  }
+  
+  /* แบนเนอร์ซ่อนอยู่แล้วจากโหมด 768px */
+  .welcome-banner {
+    display: none;
+  }
+  
+  .search-box-sticky {
+    position: static; /* 🔧 เพิ่มบรรทัดนี้ */
+  }
+
+  .search-box {
+    padding: 0.875rem; /* ลด padding เพิ่ม */
+  }
+
+  .search-input {
+    padding: 0.75rem 2.5rem 0.75rem 2.5rem;
+    font-size: 12px;
+  }
+
+  .filter-chip {
+    padding: 0.35rem 0.75rem;
+    font-size: 11px;
+  }
+
+  .trending-section,
+  .suggestions-section {
+    padding: 1rem;
+  }
+}
+
+/* Landscape Mode สำหรับมือถือ */
+@media (max-width: 768px) and (orientation: landscape) {
+  .homepage-layout {
+    padding-top: 100px;
+  }
+
+  .main-content {
+    max-height: calc(100vh - 125px);
+    padding-bottom: 80px;
+    scroll-behavior: auto; /* 🔧 เพิ่มบรรทัดนี้ */
+  }
+  /* ซ่อนแบนเนอร์ในโหมด landscape ด้วย */
+  .welcome-banner {
+    display: none;
+  }
+
+  .search-box {
+    padding: 0.875rem; /* ลด padding ในโหมดแนวนอน */
+  }
+}

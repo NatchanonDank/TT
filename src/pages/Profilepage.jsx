@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Camera, Edit2, X, Check, LogOut, Star, Flag } from 'lucide-react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-
+import Navbar from '../components/Navbar';
+import Post from '../components/Post';
+import './Profilepage.css';
+import '../components/PostCard.css'
 // --- Firebase Imports ---
 import { auth, db } from '../firebase';
 import { onAuthStateChanged, updateProfile, signOut } from 'firebase/auth';
@@ -19,9 +22,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 
-import Navbar from '../components/Navbar';
-import Post from '../components/Post';
-import './Profilepage.css';
+
 
 const ProfilePage = () => {
   const navigate = useNavigate();

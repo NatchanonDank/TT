@@ -1,54 +1,169 @@
+/* Main login box */
 .loginBox {
-  width: 350px;
-  margin: 100px auto;
-  padding: 40px;
+  width: 400px;
+  margin: 0 auto;
+  padding: 50px 40px;
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   text-align: center;
+  font-family: 'Arial', sans-serif;
+  animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Login heading */
+.loginBox h2 {
+  margin-bottom: 35px;
+  color: #333;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+/* All input fields */
+.loginBox input {
+  width: 100%;
+  padding: 15px;
+  margin: 12px 0;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 15px;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
   font-family: 'Arial', sans-serif;
 }
 
-.loginBox h2 {
-  margin-bottom: 30px;
-  color: #333;
+.loginBox input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
 
-.loginBox input {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
+.loginBox input::placeholder {
+  color: #aaa;
 }
 
+/* Login button */
 .loginBox button {
   width: 100%;
-  padding: 12px;
-  margin-top: 15px;
+  padding: 15px;
+  margin-top: 20px;
   border: none;
-  border-radius: 6px;
-  background-color: #4CAF50;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  font-family: 'Arial', sans-serif;
 }
 
 .loginBox button:hover {
-  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
+.loginBox button:active {
+  transform: translateY(0);
+}
+
+.loginBox button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Auth footer (Forgot password link) */
 .authFooter {
   text-align: right;
-  margin: 10px 0;
-  font-size: 13px;
+  margin: 15px 0;
+  font-size: 14px;
 }
 
+.authFooter a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.authFooter a:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+/* Register text at bottom */
 .loginBox p {
-  color: black;
-  text-align: right;
-  margin-top: 15px;
+  color: #666;
+  text-align: center;
+  margin-top: 25px;
+  padding-top: 25px;
+  border-top: 1px solid #e0e0e0;
   font-size: 14px;
+}
+
+.loginBox p a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 5px;
+  transition: color 0.3s ease;
+}
+
+.loginBox p a:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+/* Error message */
+.error {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  text-align: center;
+  animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .loginBox {
+    width: 100%;
+    padding: 40px 30px;
+  }
+
+  .loginBox h2 {
+    font-size: 28px;
+  }
+
+  .loginBox input {
+    padding: 13px;
+    font-size: 14px;
+  }
+
+  .loginBox button {
+    padding: 13px;
+    font-size: 15px;
+  }
 }
