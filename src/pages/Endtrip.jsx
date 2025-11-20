@@ -268,7 +268,7 @@ const Endtrip = () => {
         </>
       ) : (
         <div className="content">
-           <h2 className="endtrip-title">ทริปที่จบแล้ว (รอรีวิว)</h2>
+           <h2 className="endtrip-title">ทริปที่จบแล้ว(รอรีวิว)</h2>
            {pendingTrips.length === 0 ? (
               <div className="empty-state">
                  <div className="empty-state-text">ไม่มีทริปที่รอรีวิว</div>

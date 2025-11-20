@@ -22,7 +22,10 @@
 .notifications-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #1a1a1a;
+  background: #0077b6;
+  -webkit-background-clip: text;
+  background-clip: text; /* เพิ่มบรรทัดนี้ */
+  -webkit-text-fill-color: transparent;
   margin: 0;
 }
 
@@ -71,14 +74,14 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 1.5rem; /* เพิ่มจาก 1rem */
-  padding: 1.5rem 1.75rem; /* เพิ่มจาก 1rem 1.25rem */
+  gap: 1.5rem; 
+  padding: 1.5rem 1.75rem; 
   background: white;
-  border-radius: 16px; /* เพิ่มจาก 12px */
+  border-radius: 16px; 
   border: 1px solid #e9ecef;
   cursor: pointer;
   transition: all 0.2s;
-  height: 100px; /* เพิ่มจาก 90px */
+  height: 100px; 
   min-height: 100px;
   max-height: 100px;
   overflow: hidden;

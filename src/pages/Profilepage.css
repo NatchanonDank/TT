@@ -742,16 +742,20 @@ body {
 
   .right-column-container {
     order: -1;
+    width: 100%;
   }
 
   .content-grid > div:first-child {
     order: 1;
+    width: 100%;
   }
 
   .content-box {
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 15px;
+    width: 100%;
+    max-width: 100%;
   }
 
   /* 🔧 FIX: โพสต์ใน mobile - รองรับ URL ยาว */
@@ -938,13 +942,22 @@ body {
   .content-grid {
     display: flex;
     flex-direction: column;
+    width: 100%;
   }
+  
   .right-column-container {
     order: -1;
+    width: 100%;
   }
 
   .content-grid > div:first-child {
     order: 1;
+    width: 100%;
+  }
+
+  .content-box {
+    width: 100%;
+    max-width: 100%;
   }
 
   /* 🔧 FIX: URL Long text */
@@ -1129,30 +1142,38 @@ body {
   .bio-title {
     font-size: 0.85rem;
   }
+  
+  .bio-text {
+    font-size: 0.8rem;
+  }
+  
   .content-grid {
     display: flex;
     flex-direction: column;
+    width: 100%;
   }
 
   .right-column-container {
     order: -1;
+    width: 100%;
   }
 
   .content-grid > div:first-child {
     order: 1;
+    width: 100%;
   }
-  .bio-text {
-    font-size: 0.8rem;
-  }
-
+  
   .content-box {
     padding: 10px;
+    width: 100%;
+    max-width: 100%;
   }
 
   .section-title {
     font-size: 0.95rem;
   }
 
+  /* Review Section */
   .review-average {
     font-size: 1.75rem;
   }
@@ -1165,6 +1186,7 @@ body {
     min-width: 50px;
   }
 
+  /* Comments */
   .comment-avatar {
     width: 28px;
     height: 28px;
@@ -1192,7 +1214,7 @@ body {
   }
 }
 
-/* Landscape Mode */
+/* 🎯 FIX: Landscape Mode (จอพับ) */
 @media (max-width: 896px) and (orientation: landscape) {
   .hero-section {
     height: 150px;
@@ -1215,5 +1237,14 @@ body {
   .logout-btn-absolute {
     top: 60px;
   }
-}
 
+  /* 🎯 FIX: ให้ Review & Comment boxes กว้างเท่ากับ Post card */
+  .right-column-container {
+    width: 100%;
+  }
+  
+  .content-box {
+    width: 100%;
+    max-width: 100%;
+  }
+}

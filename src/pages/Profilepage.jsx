@@ -340,7 +340,7 @@ const ProfilePage = () => {
                   </div>
                 </>
               ) : (
-                <div style={{ textAlign: 'center', padding: '20px', color: '#888' }}><Star size={40} style={{margin:'0 auto 10px', color:'#ddd'}}/>ยังไม่มีการให้คะแนน</div>
+                <div style={{ textAlign: 'center', padding: '20px', color: '#888' }}>ยังไม่มีการให้คะแนน</div>
               )}
             </div>
 

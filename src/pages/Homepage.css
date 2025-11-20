@@ -426,7 +426,7 @@ body {
   .homepage-layout {
     max-width: 100%;
     padding: 1.5rem;
-    padding-top: 100px;
+    padding-top: 80px;
   }
 
   .search-sidebar {
@@ -451,7 +451,6 @@ body {
   }
 }
 
-
 /* Mobile (โทรศัพท์) */
 @media (max-width: 768px) {
   .homepage-layout {
@@ -463,55 +462,36 @@ body {
 
   /* Main Content ปรับให้เต็มจอ */
   .main-content {
-    max-height: calc(100vh - 145px);
-    overflow-y: auto;
+    max-height: none; 
+    overflow-y: visible; 
     padding-right: 0;
-    padding-bottom: 100px;
+    padding-bottom: 100px; 
     width: 100%;
-    scroll-behavior: auto; /* 🔧 เพิ่มบรรทัดนี้ - ให้ scroll เร็ว */
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .main-content::-webkit-scrollbar {
-    width: 4px;
-  }
-  
-  .main-content::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 10px;
-  }
-  .main-content::-webkit-scrollbar {
-    width: 4px;
-  }
-  
-  .main-content::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 10px;
   }
 
   /* Search Sidebar เต็มความกว้าง */
   .search-sidebar {
     width: 100%;
-    order: -1; /* ขึ้นไปด้านบน */
-    margin-top: 210px; /* 🔧 เพิ่มระยะห่างจาก navbar */
+    order: -1;
+    margin-top: 350vh; /* ขึ้นไปด้านบน */
   }
 
   .search-box-sticky {
-    position: relative !important;
+    position: relative; /* ไม่ติด - เลื่อนตามปกติ */
     top: 0;
   }
 
   /* Welcome Banner - ซ่อนในมือถือ */
   .welcome-banner {
-    display: none; 
+    display: none; /* ซ่อนแบนเนอร์เพื่อประหยัดพื้นที่ */
   }
 
   /* Search Box */
   .search-box {
-    padding: 1rem; 
+    padding: 1rem; /* ลด padding */
     border-radius: 16px;
-    min-height: auto; 
-    margin-bottom: 1rem; 
+    min-height: auto; /* ปรับความสูงตามเนื้อหา */
+    margin-bottom: 1rem; /* เว้นระยะกับเนื้อหาด้านล่าง */
   }
 
   .search-header h3 {
@@ -603,18 +583,13 @@ body {
   }
 
   .main-content {
-    max-height: calc(100vh - 140px);
+    max-height: none;
     padding-bottom: 90px;
-    scroll-behavior: auto; /* 🔧 เพิ่มบรรทัดนี้ */
   }
-  
+
   /* แบนเนอร์ซ่อนอยู่แล้วจากโหมด 768px */
   .welcome-banner {
     display: none;
-  }
-  
-  .search-box-sticky {
-    position: static; /* 🔧 เพิ่มบรรทัดนี้ */
   }
 
   .search-box {
@@ -644,10 +619,10 @@ body {
   }
 
   .main-content {
-    max-height: calc(100vh - 125px);
+    max-height: none;
     padding-bottom: 80px;
-    scroll-behavior: auto; /* 🔧 เพิ่มบรรทัดนี้ */
   }
+
   /* ซ่อนแบนเนอร์ในโหมด landscape ด้วย */
   .welcome-banner {
     display: none;

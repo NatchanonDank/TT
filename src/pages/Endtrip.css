@@ -813,8 +813,11 @@
 }
 
 /* ===============================
-   Responsive Adjustments
+   IMPROVED MOBILE RESPONSIVE STYLES
+   สำหรับหน้ารีวิวทริป (Endtrip)
 =============================== */
+
+/* Desktop & Large Tablets */
 @media (max-width: 1400px) {
   .content {
     max-width: 1100px;
@@ -840,6 +843,7 @@
   }
 }
 
+/* Tablets */
 @media (max-width: 900px) {
   .tabs {
     flex-wrap: wrap;
@@ -871,11 +875,13 @@
 
   .popup {
     width: 95%;
+    max-height: 90vh;
     border-radius: 24px;
   }
 
   .popup-footer {
     flex-direction: column;
+    gap: 10px;
   }
 
   .primary-button,
@@ -888,9 +894,523 @@
   }
 }
 
+/* Mobile Phones (ปรับปรุงสำหรับมือถือ) */
 @media (max-width: 600px) {
+  /* Navigation Tabs - Full Width */
+  .tabs {
+    padding: 10px 12px;
+    gap: 8px;
+    border-radius: 16px;
+  }
+  
   .tab {
     flex-basis: 100%;
     max-width: 100%;
+    height: 44px;
+    font-size: 0.95rem;
+  }
+  
+  /* ===== POPUP MODAL - FULL SCREEN ===== */
+  .popup {
+    width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .popup-overlay {
+    padding: 0;
+    align-items: flex-start;
+  }
+  
+  /* Popup Header - Sticky */
+  .popup-header {
+    padding: 16px;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+    border-bottom: 1px solid #e8e8e8;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .popup-title {
+    font-size: 1.1rem;
+    line-height: 1.4;
+    font-weight: 600;
+    padding-right: 8px;
+  }
+  
+  .close-button {
+    width: 36px;
+    height: 36px;
+    font-size: 28px;
+    flex-shrink: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Popup Content - Scrollable Area */
+  .popup-content {
+    padding: 20px 16px;
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .popup-content.scrollable {
+    max-height: none;
+  }
+  
+  /* ===== RATING SECTION ===== */
+  .rating-section {
+    margin-bottom: 28px;
+  }
+  
+  .rating-section h3 {
+    font-size: 1rem;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .star-rating {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 0;
+  }
+  
+  .star {
+    font-size: 40px !important;
+    transition: transform 0.15s ease, filter 0.15s ease;
+    cursor: pointer;
+  }
+  
+  .star:active {
+    transform: scale(1.15);
+    filter: brightness(1.2);
+  }
+  
+  /* ===== COMMENT SECTION ===== */
+  .comment-section {
+    margin-bottom: 24px;
+  }
+  
+  .comment-section textarea {
+    width: 100%;
+    min-height: 140px;
+    font-size: 16px; /* ป้องกัน iOS zoom */
+    padding: 16px;
+    border-radius: 16px;
+    line-height: 1.6;
+    border: 1px solid #ddd;
+    resize: vertical;
+    font-family: inherit;
+  }
+  
+  .comment-section textarea:focus {
+    outline: none;
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  }
+  
+  /* ===== IMAGE UPLOAD SECTION ===== */
+  .image-upload-section {
+    margin-top: 24px;
+  }
+  
+  .upload-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 1rem;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .upload-btn:active {
+    transform: scale(0.98);
+  }
+  
+  .image-previews {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+  }
+  
+  .img-wrap {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f5f5f5;
+  }
+  
+  .img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .img-wrap button {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    font-size: 20px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .img-wrap button:active {
+    background: rgba(0, 0, 0, 0.9);
+  }
+  
+  /* ===== FRIEND REVIEW SECTION ===== */
+  .friend-review-item {
+    margin-bottom: 20px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 16px;
+  }
+  
+  .friend-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  
+  .friend-avatar-small {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  
+  .friend-header span {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 500;
+    min-width: 0;
+  }
+  
+  .mini-stars {
+    width: 100%;
+    margin-top: 4px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .mini-stars .star-rating {
+    gap: 6px;
+    padding: 8px 0;
+  }
+  
+  .mini-stars .star {
+    font-size: 28px !important;
+  }
+  
+  .friend-input {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px; /* ป้องกัน iOS zoom */
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    background: white;
+    font-family: inherit;
+  }
+  
+  .friend-input:focus {
+    outline: none;
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  }
+  
+  /* ===== POPUP FOOTER - STICKY ===== */
+  .popup-footer {
+    padding: 16px;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-top: 1px solid #e8e8e8;
+    z-index: 10;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  .popup-footer button {
+    width: 100%;
+    padding: 16px;
+    font-size: 1rem;
+    border-radius: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .popup-footer button:active {
+    transform: scale(0.98);
+  }
+  
+  .primary-button {
+    background: #4A90E2;
+    color: white;
+  }
+  
+  .primary-button:active {
+    background: #3a7bc8;
+  }
+  
+  .primary-button.success {
+    background: #5CB85C;
+  }
+  
+  .primary-button.success:active {
+    background: #4cae4c;
+  }
+  
+  .secondary-button {
+    background: #f0f0f0;
+    color: #333;
+  }
+  
+  .secondary-button:active {
+    background: #e0e0e0;
+  }
+  
+  /* ===== GROUP CARD (LIST VIEW) ===== */
+  .group-card {
+    padding: 16px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .group-card:active {
+    transform: scale(0.98);
+  }
+  
+  .group-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  
+  .group-info {
+    flex: 1;
+    min-width: 0;
+    margin-right: 8px;
+  }
+  
+  .group-name {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .group-location {
+    font-size: 0.85rem;
+    color: #666;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .review-button {
+    padding: 10px 18px;
+    font-size: 0.9rem;
+    border-radius: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+  
+  /* ===== EMPTY STATE ===== */
+  .empty-state {
+    padding: 60px 20px;
+    text-align: center;
+  }
+  
+  .empty-state-text {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 16px;
+  }
+  
+  /* ===== FEED/POST CARDS ===== */
+  .post-card {
+    border-radius: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .post-header {
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .post-avatar {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+  
+  .post-info {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .post-group-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  
+  .post-date {
+    font-size: 0.8rem;
+    color: #888;
+  }
+  
+  .star-display {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #FFD700;
+    flex-shrink: 0;
+  }
+  
+  .post-content {
+    padding: 0 14px 14px;
+  }
+  
+  .post-content p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  
+  .post-images {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+  
+  .post-image {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 12px;
+  }
+}
+
+/* Extra Small Devices (≤380px) */
+@media (max-width: 380px) {
+  .popup-title {
+    font-size: 1rem;
+  }
+  
+  .star {
+    font-size: 36px !important;
+  }
+  
+  .mini-stars .star {
+    font-size: 24px !important;
+  }
+  
+  .friend-header {
+    gap: 10px;
+  }
+  
+  .friend-avatar-small {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .image-previews {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .group-avatar {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .review-button {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+}
+
+/* ===== ADDITIONAL TOUCH IMPROVEMENTS ===== */
+
+/* Smooth Scrolling */
+.popup-content {
+  scroll-behavior: smooth;
+}
+
+/* Better Touch Targets */
+@media (max-width: 600px) {
+  button,
+  .star,
+  .upload-btn,
+  .group-card {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    touch-action: manipulation;
+  }
+}
+
+/* Loading State */
+.loading-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 1.1rem;
+  color: #666;
+}
+
+@media (max-width: 600px) {
+  .loading-screen {
+    font-size: 1rem;
+    padding: 20px;
   }
 }
