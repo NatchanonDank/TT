@@ -103,14 +103,16 @@ const Homepage = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="search-input"
                 />
-                {searchTerm && (
-                  <button 
-                    className="search-clear-btn"
-                    onClick={() => setSearchTerm('')}
-                  >
-                    <X size={14} />
-                  </button>
-                )}
+                <button 
+                  className="search-clear-btn"
+                  onClick={() => setSearchTerm('')}
+                  style={{ 
+                    opacity: searchTerm ? 1 : 0, 
+                    pointerEvents: searchTerm ? 'all' : 'none' 
+                  }}
+                >
+                  <X size={14} />
+                </button>
               </div>
             </div>
 

@@ -473,25 +473,25 @@ body {
   .search-sidebar {
     width: 100%;
     order: -1;
-    margin-top: 350vh; /* ขึ้นไปด้านบน */
+    margin-top: 350vh; 
   }
 
   .search-box-sticky {
-    position: relative; /* ไม่ติด - เลื่อนตามปกติ */
+    position: relative; 
     top: 0;
   }
 
   /* Welcome Banner - ซ่อนในมือถือ */
   .welcome-banner {
-    display: none; /* ซ่อนแบนเนอร์เพื่อประหยัดพื้นที่ */
+    display: none; 
   }
 
   /* Search Box */
   .search-box {
-    padding: 1rem; /* ลด padding */
+    padding: 1rem; 
     border-radius: 16px;
-    min-height: auto; /* ปรับความสูงตามเนื้อหา */
-    margin-bottom: 1rem; /* เว้นระยะกับเนื้อหาด้านล่าง */
+    min-height: auto; 
+    margin-bottom: 1rem; 
   }
 
   .search-header h3 {
