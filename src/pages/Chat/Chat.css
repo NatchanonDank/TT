@@ -130,12 +130,19 @@
 }
 
 /* ---------- Search Section ---------- */
+.group-list {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* หรือความสูงที่ต้องการ */
+  overflow: hidden;
+}
+
 .group-list-header {
   display: flex;
   justify-content: center;
   width: 100%;
   margin-bottom: 15px;
-  flex-shrink: 0;
+  flex-shrink: 0; /* ⭐ ป้องกันไม่ให้ถูก shrink */
   padding: 15px 20px 0;
 }
 
@@ -145,7 +152,7 @@
   max-width: 600px;  
   display: flex;
   align-items: center;
-  margin: 0 auto; 
+  margin-top: 45px; 
   flex-shrink: 0;
 }
 
@@ -188,21 +195,14 @@
   font-size: 15px;
 }
 
-/* ⭐ แก้ไขตรงนี้ - Container ของรายการกลุ่ม */
-.group-list {
-  display: flex;
-  flex-direction: column;
-  height: 100vh; /* หรือความสูงที่ต้องการ */
-  overflow: hidden;
-}
-
+/* ⭐ Container ของรายการกลุ่ม - แชทใหม่ด้านบน แชทเก่าด้านล่าง */
 .groups-scroll-area {
   display: flex;
-  flex-direction: column-reverse; /* ⭐ สำคัญ! กลับทิศทางให้แชทใหม่อยู่ด้านล่าง */
-  overflow-y: auto;
-  flex: 1;
+  flex-direction: column; /* ⭐ ปกติ - แชทใหม่บน แชทเก่าล่าง */
+  overflow-y: auto; /* ⭐ เลื่อนได้ */
+  flex: 1; /* ⭐ ขยายเต็มพื้นที่ที่เหลือ */
   padding: 0 20px 20px;
-  gap: 12px; /* ระยะห่างระหว่างการ์ด */
+  gap: 12px;
 }
 
 .no-groups {
