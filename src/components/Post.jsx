@@ -170,9 +170,11 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
     if (window.confirm("ยืนยันการลบโพสต์?")) {
       try {
         await deleteDoc(doc(db, 'posts', postId));
+        await deleteDoc(doc(db, 'groups', postId));
      
       } catch (error) {
         console.error("Error deleting post:", error);
+        alert("เกิดข้อผิดพลาดในการลบ: " + error.message);
       }
     }
   };
