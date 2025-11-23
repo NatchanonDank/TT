@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-
 import Navbar from '../components/Navbar';
 import Post from '../components/Post';
 import './Homepage.css';

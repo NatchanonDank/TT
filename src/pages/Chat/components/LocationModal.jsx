@@ -60,7 +60,6 @@ const LocationModal = ({ isOpen, onClose, onSendLocation }) => {
       setIsLoading(false);
     });
   };
-  // 3. รายการสถานที่แนะนำ
   const suggestedLocations = [
     // --- 🏢 ห้างสรรพสินค้า & แหล่งช้อปปิ้ง ---
     // กทม. & ปริมณฑล

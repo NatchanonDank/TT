@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import Navbar from "../components/Navbar";
 import { Heart, MessageCircle, Users, CheckCircle, XCircle, X, Trash2 } from 'lucide-react';
 import './NotificationPage.css';
-
 import { db } from '../firebase';
 import { useNotifications } from '../components/NotificationContext';
 import { 

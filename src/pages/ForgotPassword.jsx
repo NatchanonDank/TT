@@ -1,4 +1,3 @@
-// src/pages/ForgotPassword.jsx
 import { useState } from "react";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../firebase";
@@ -61,7 +60,6 @@ export default function ForgotPassword() {
           width: "100%"
         }}
       >
-        {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "30px" }}>
           <div style={{ fontSize: "50px", marginBottom: "15px" }}>🔐</div>
           <h2
@@ -86,7 +84,6 @@ export default function ForgotPassword() {
           </p>
         </div>
 
-        {/* Success/Error Message */}
         {message.text && (
           <div
             style={{
@@ -106,7 +103,6 @@ export default function ForgotPassword() {
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleReset} style={{ marginBottom: "20px" }}>
           <div style={{ position: "relative", marginBottom: "20px" }}>
             <span
@@ -185,7 +181,6 @@ export default function ForgotPassword() {
           </button>
         </form>
 
-        {/* Footer */}
         <div
           style={{
             textAlign: "center",

@@ -7,7 +7,6 @@ const GroupCard = ({ group, onChatClick }) => {
       className={`group-card ${group.unread > 0 ? 'group-unread-card' : ''} ${group.status === 'ended' ? 'ended' : ''}`} 
       onClick={() => onChatClick(group)}
     >
-      {/* Avatar */}
       <div className="group-card-avatar">
         <img 
           src={group.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
@@ -16,7 +15,6 @@ const GroupCard = ({ group, onChatClick }) => {
         {group.unread > 0 && <span className="unread-badge" />}
       </div>
       
-      {/* Info */}
       <div className="group-card-info">
         <div className="group-card-top">
           <h3 className="group-name">{group.name}</h3>

@@ -14,7 +14,7 @@ const ChatWindow = ({
   onInputChange,
   onSendMessage,
   onOpenLocationModal,
-  currentUser // ✅ 1. ต้องรับ currentUser เข้ามา
+  currentUser
 }) => {
   return (
     <div className="chat-window">
@@ -26,11 +26,12 @@ const ChatWindow = ({
         onToggleOptions={onToggleOptions}
         onEndTrip={onEndTrip}
         isTripEnded={isTripEnded}
+        currentUser={currentUser}
       />
     
       <MessageList 
         messages={chat.messages} 
-        currentUser={currentUser} // ✅ 2. ส่งต่อให้ MessageList
+        currentUser={currentUser} 
       />
       
       <MessageInput

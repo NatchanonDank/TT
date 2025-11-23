@@ -1,15 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-
-// Firebase Imports
 import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
-
-// Contexts
 import { PostProvider } from "./components/PostContext";
 import { NotificationProvider } from "./components/NotificationContext";
-
-// Pages
 import NotificationsPage from "./pages/NotificationPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -18,7 +12,6 @@ import Homepage from "./pages/Homepage";
 import Chat from "./pages/Chat/Chat";
 import Endtrip from "./pages/Endtrip";
 import ProfilePage from "./pages/Profilepage"; 
-
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true); 

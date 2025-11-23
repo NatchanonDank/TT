@@ -5,7 +5,6 @@ import Navbar from '../components/Navbar';
 import Post from '../components/Post';
 import './Profilepage.css';
 import '../components/PostCard.css'
-// --- Firebase Imports ---
 import { auth, db } from '../firebase';
 import { onAuthStateChanged, updateProfile, signOut } from 'firebase/auth';
 import { 

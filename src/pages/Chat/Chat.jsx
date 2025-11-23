@@ -6,7 +6,6 @@ import ChatWindow from './components/ChatWindow';
 import LocationModal from './components/LocationModal';
 import './Chat.css';
 
-// --- Firebase Imports ---
 import { auth, db } from '../../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { 
@@ -24,7 +23,6 @@ import {
   getDocs
 } from 'firebase/firestore';
 
-// ✅ 1. Import Context ที่เราต้องการใช้
 import { useNotifications } from '../../components/NotificationContext';
 
 const Chat = () => {
@@ -42,10 +40,8 @@ const Chat = () => {
   const [groups, setGroups] = useState([]); 
   const [messages, setMessages] = useState([]); 
 
-  // ✅ 2. ดึงข้อมูลการแจ้งเตือนทั้งหมดจาก Context
   const { notifications } = useNotifications();
 
-  // 1. Auth Check
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -61,7 +57,6 @@ const Chat = () => {
     return () => unsubscribe();
   }, [navigate]);
 
-  // 2. Fetch Groups
   useEffect(() => {
     if (!currentUser?.uid) return; 
     const q = query(
@@ -78,7 +73,6 @@ const Chat = () => {
     return () => unsubscribe();
   }, [currentUser]);
 
-  // 3. Handle URL (ปรับปรุงเล็กน้อย)
   useEffect(() => {
     if (!groupId) {
       setActiveChat(null);
@@ -109,54 +103,47 @@ const Chat = () => {
         }
       }
     };
-    
-    // รอให้ groups โหลดเสร็จก่อน
+
     if (groups.length > 0) {
         selectGroupFromUrl();
     }
     
   }, [groupId, currentUser, groups, activeChat]);
 
-  // ✅ 4. แก้ไข Effect นี้ (Fetch Messages & Mark Notifications as Read)
   useEffect(() => {
-    // รอให้ข้อมูลทั้งหมดพร้อม
+
     if (!activeChat?.id || !currentUser?.uid || !notifications) return;
 
-    // --- 1. Mark Notifications as Read (โดยใช้ข้อมูลจาก Context) ---
     const markChatNotificationsAsRead = async () => {
       
-      // กรองหา Notif ที่ยังไม่อ่าน ที่ตรงกับแชทนี้ (กรองจาก Array ใน JS)
       const unreadNotifsForThisChat = notifications.filter(n =>
         n.groupId === activeChat.id &&
         n.type === 'chat_message' &&
         n.read === false &&
-        n.toUid === currentUser.uid // กันเหนียว
+        n.toUid === currentUser.uid 
       );
 
-      // ถ้าไม่มี ก็ไม่ต้องทำอะไร
+
       if (unreadNotifsForThisChat.length === 0) return; 
 
       try {
-        // อัปเดต Notif ที่ค้างทั้งหมดเป็น "อ่านแล้ว"
+
         const batch = writeBatch(db);
         unreadNotifsForThisChat.forEach(notif => {
           const notifRef = doc(db, 'notifications', notif.id);
           batch.update(notifRef, { read: true });
         });
         await batch.commit();
-        // console.log(`Marked ${unreadNotifsForThisChat.length} chat notifs as read.`);
+
       } catch (error) {
         console.error("Error marking chat notifications as read:", error);
       }
     };
 
-    // เรียกใช้งานทันที
     markChatNotificationsAsRead();
-    // --------------------------------------------------------
     
     setIsTripEnded(activeChat.status === 'ended');
     
-    // --- 2. Fetch Messages (ส่วนนี้เหมือนเดิม) ---
     const qMessages = query(
       collection(db, 'messages'),
       where('room', '==', activeChat.id),
@@ -179,10 +166,7 @@ const Chat = () => {
     });
     return () => unsubscribe();
     
-  // ✅ 5. เพิ่ม 'notifications' เข้าไปใน dependency array
   }, [activeChat, currentUser, notifications]); 
-
-  // --- Handlers (ส่วนนี้เหมือนเดิมทั้งหมด) ---
 
   const handleChatClick = (group) => {
     setActiveChat(group);
@@ -287,8 +271,12 @@ const Chat = () => {
 
   const handleEndTrip = async () => {
     if (!activeChat?.id) return;
-    
-    // ✅ ย้ายเงื่อนไขการเช็ค isTripEnded มาไว้ตรงนี้
+
+    if (activeChat.ownerId !== currentUser?.uid) {
+      alert('ขออภัย เฉพาะหัวหน้าทริป (Leader) เท่านั้นที่สามารถจบทริปได้');
+      return;
+    }
+
     if (isTripEnded) {
       alert('ทริปนี้ได้สิ้นสุดไปแล้ว');
       return;
@@ -306,7 +294,6 @@ const Chat = () => {
     }
   };
 
-  // (filteredGroups - ส่วนนี้เหมือนเดิม)
   const filteredGroups = groups.filter(g => 
     g.name?.toLowerCase().includes(groupSearch.toLowerCase())
   )

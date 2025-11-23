@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Heart, MessageCircle, MoreVertical, Edit, Trash2, Send, X, ChevronLeft, ChevronRight, Flag } from 'lucide-react'; 
 import { Link } from 'react-router-dom'; 
 import './PostCard.css';
-
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -44,7 +43,6 @@ const PostCard = ({
     rejectJoinRequest(request);
   };
 
-  // Image Viewer
   const openImageViewer = (index) => { setCurrentImageIndex(index); setIsViewerOpen(true); document.body.style.overflow = 'hidden'; };
   const closeImageViewer = () => { setIsViewerOpen(false); document.body.style.overflow = 'auto'; };
   const nextImage = () => { setCurrentImageIndex((prev) => prev === post.images.length - 1 ? 0 : prev + 1); };

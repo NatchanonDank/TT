@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import MessageBubble from './MessageBubble';
 
-const MessageList = ({ messages, currentUser }) => { // ✅ 3. ต้องรับ currentUser
+const MessageList = ({ messages, currentUser }) => { 
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -18,7 +18,7 @@ const MessageList = ({ messages, currentUser }) => { // ✅ 3. ต้องร�
         <MessageBubble 
           key={msg.id} 
           message={msg} 
-          currentUser={currentUser} // ✅ 4. ส่งต่อให้ MessageBubble
+          currentUser={currentUser}
         />
       ))}
       <div ref={messagesEndRef} />

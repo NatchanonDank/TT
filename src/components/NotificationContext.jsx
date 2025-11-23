@@ -1,5 +1,4 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-// ✅ 1. เพิ่ม Imports
 import { db, auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { 
@@ -21,22 +20,20 @@ export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
 
-  // ✅ 2. เพิ่ม Effect เพื่อเช็คการ Login
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
         setCurrentUser(user);
       } else {
         setCurrentUser(null);
-        setNotifications([]); // ล้างค่าเมื่อ Logout
+        setNotifications([]); 
       }
     });
     return () => unsubscribeAuth();
   }, []);
 
-  // ✅ 3. เพิ่ม Effect เพื่อดึง Notifications (แบบ Real-time)
   useEffect(() => {
-    if (!currentUser) return; // ถ้าไม่ Login ไม่ต้องทำ
+    if (!currentUser) return; 
 
     const q = query(
       collection(db, 'notifications'),
@@ -44,7 +41,6 @@ export const NotificationProvider = ({ children }) => {
       orderBy('createdAt', 'desc')
     );
 
-    // ฟังการเปลี่ยนแปลง
     const unsubscribeNotifs = onSnapshot(q, (snapshot) => {
       const notifs = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -53,10 +49,9 @@ export const NotificationProvider = ({ children }) => {
       setNotifications(notifs);
     });
 
-    return () => unsubscribeNotifs(); // หยุดฟังเมื่อ component ปิด
-  }, [currentUser]); // ทำงานใหม่เมื่อ User เปลี่ยน
+    return () => unsubscribeNotifs(); 
+  }, [currentUser]); 
 
-  // ✅ 4. อัปเดตฟังก์ชันให้ทำงานกับ Firestore
   const markAsRead = async (id) => {
     try {
       const notifRef = doc(db, 'notifications', id);
@@ -90,13 +85,10 @@ export const NotificationProvider = ({ children }) => {
     }
   };
 
-  // ✅ 5. แยกการนับ
-  // นับการแจ้งเตือนทั่วไป (Bell icon)
   const unreadCount = notifications.filter(
     n => !n.read && n.type !== 'chat_message'
   ).length;
 
-  // นับแชทที่ยังไม่อ่าน (Chat icon)
   const unreadChatCount = notifications.filter(
     n => !n.read && n.type === 'chat_message'
   ).length;
@@ -105,12 +97,11 @@ export const NotificationProvider = ({ children }) => {
   return (
     <NotificationContext.Provider value={{ 
       notifications, 
-      // addNotification, // (ฟังก์ชันนี้ไม่จำเป็นแล้ว เพราะเราดึงตรง)
       markAsRead,
       markAllAsRead,
       deleteNotification,
-      unreadCount,      // ✅ สำหรับ Bell
-      unreadChatCount   // ✅ สำหรับ Chat
+      unreadCount,     
+      unreadChatCount  
     }}>
       {children}
     </NotificationContext.Provider>

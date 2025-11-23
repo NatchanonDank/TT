@@ -20,8 +20,8 @@ export const PostProvider = ({ children }) => {
       chatGroupId: '1',
       maxMembers: 10,
       currentMembers: 7,
-      joinRequests: [], // ✅ เพิ่ม
-      members: [], // ✅ เพิ่ม
+      joinRequests: [], 
+      members: [],
     },
     {
       id: 102,
@@ -38,9 +38,9 @@ export const PostProvider = ({ children }) => {
       isOwner: true,
       chatGroupId: '2',
       maxMembers: 10,
-      currentMembers: 1, // ✅ แก้จาก 10 เป็น 1 (เพื่อให้ทดสอบได้)
-      joinRequests: [], // ✅ เพิ่ม
-      members: [], // ✅ เพิ่ม
+      currentMembers: 1, 
+      joinRequests: [], 
+      members: [], 
     },
   ]);
 
@@ -56,7 +56,6 @@ export const PostProvider = ({ children }) => {
     setPosts(prev => prev.filter(p => p.id !== id));
   };
 
-  // ✅ เพิ่มฟังก์ชันส่ง request
   const sendJoinRequest = (postId, user) => {
     setPosts(prev => prev.map(p => {
       if (p.id === postId) {
@@ -85,7 +84,6 @@ export const PostProvider = ({ children }) => {
     }));
   };
 
-  // ✅ เพิ่มฟังก์ชันอนุมัติ
   const approveJoinRequest = (postId, userName) => {
     setPosts(prev => prev.map(p => {
       if (p.id === postId) {
@@ -106,7 +104,6 @@ export const PostProvider = ({ children }) => {
     }));
   };
 
-  // ✅ เพิ่มฟังก์ชันปฏิเสธ
   const rejectJoinRequest = (postId, userName) => {
     setPosts(prev => prev.map(p => {
       if (p.id === postId) {
@@ -125,9 +122,9 @@ export const PostProvider = ({ children }) => {
       addPost, 
       updatePost, 
       deletePost,
-      sendJoinRequest, // ✅ เพิ่ม
-      approveJoinRequest, // ✅ เพิ่ม
-      rejectJoinRequest // ✅ เพิ่ม
+      sendJoinRequest, 
+      approveJoinRequest,
+      rejectJoinRequest 
     }}>
       {children}
     </PostContext.Provider>

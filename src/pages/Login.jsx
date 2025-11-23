@@ -1,41 +1,36 @@
 import { Link, useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth"; // 1. นำเข้าฟังก์ชัน Login ของ Firebase
-import { auth } from "../firebase"; // 2. นำเข้า config ที่เราตั้งค่าไว้ (ตรวจสอบ path ให้ถูก)
+import { signInWithEmailAndPassword } from "firebase/auth";  Firebase
+import { auth } from "../firebase"; 
 import styles from "./Login.module.css";
 
 export default function Login() {
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => { // 3. เพิ่ม async เพื่อรอการทำงานของ Firebase
+  const handleSubmit = async (e) => { 
     e.preventDefault();
     const email = e.target.email.value;
     const password = e.target.password.value;
 
     try {
-      // 4. เรียกใช้ Firebase Login
+
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
       if (!user.emailVerified) {
         alert("กรุณายืนยันตัวตนผ่านอีเมลที่คุณได้รับก่อนเข้าใช้งาน");
-        // อาจจะสั่ง logout ทันทีเพื่อไม่ให้เข้าใช้งาน
-        // await signOut(auth); 
-        // return; 
 }
       
       console.log("Login success:", user);
       alert("Login สำเร็จ! ยินดีต้อนรับ " + user.email);
-      
-      // 5. เด้งไปหน้า Homepage
+
       navigate("/homepage");
 
     } catch (error) {
-      // 6. จัดการ Error (Firebase จะส่ง error code มา)
+
       console.error("Login error:", error.code, error.message);
       
       let errorMessage = "เกิดข้อผิดพลาดในการเข้าสู่ระบบ";
       
-      // แปลง Error Code เป็นข้อความภาษาไทยที่เข้าใจง่าย
       switch (error.code) {
         case "auth/invalid-credential":
           errorMessage = "อีเมลหรือรหัสผ่านไม่ถูกต้อง";

@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
-
 import Feb from './Feb'; 
 import PostCard from './PostCard';
 import './Post.css';
-
-// --- Firebase Imports ---
 import { db } from '../firebase';
 import { 
   collection, 
@@ -37,7 +34,6 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
   const [editingPost, setEditingPost] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 1. Real-time Fetch Posts
   useEffect(() => {
    
     if (filterByOwner && !ownerId) {
@@ -74,8 +70,6 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
     return () => unsubscribe();
   }, [filterByOwner, ownerId, currentUser]); 
 
-
-  // 2. CRUD Operations
   const handleOpenCreateModal = () => {
     if (!currentUser) { 
        alert("กรุณาเข้าสู่ระบบก่อนสร้างโพสต์");
@@ -179,8 +173,6 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
     }
   };
 
-
-  // 3. Interactions
   const toggleLike = async (postId) => {
     if (!currentUser) { alert("กรุณาเข้าสู่ระบบ"); return; }
     
@@ -446,8 +438,6 @@ const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = n
     }
   };
 
-
-  // 4. Filter & Render
   const filteredPosts = posts.filter(post => {
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Users } from 'lucide-react'; // ลบ Plus ออก
+import { Search, Users } from 'lucide-react'; 
 
 const GroupList = ({ 
   groups, 
@@ -21,7 +21,6 @@ const GroupList = ({
           />
         </div>
       </div>
-      {/* รายการกลุ่ม */}
       <div className="groups-scroll-area">
         {groups.length === 0 ? (
           <div className="no-groups">
@@ -34,7 +33,6 @@ const GroupList = ({
               onClick={() => onChatClick(group)} 
               className="group-card"
             >
-              {/* Avatar Section */}
               <div className="group-card-avatar" style={{
                  width: '60px',
                  height: '60px',
@@ -56,8 +54,6 @@ const GroupList = ({
                   }}
                 />
               </div>
-              
-              {/* Info */}
               <div className="group-card-info">
                 <div className="group-card-top">
                   <h3 className="group-name">{group.name}</h3>

@@ -5,7 +5,8 @@ const ChatHeader = ({
   chat, 
   onBack, 
   onEndTrip,
-  isTripEnded
+  isTripEnded,
+  currentUser
 }) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
 
@@ -13,6 +14,8 @@ const ChatHeader = ({
     e.stopPropagation();
     setIsOptionsOpen(prev => !prev);
   };
+
+  const isLeader = currentUser?.uid === chat.ownerId;
 
   return (
     <div className="chat-header">
@@ -25,23 +28,27 @@ const ChatHeader = ({
         <p className="member-info">{chat.currentMembers}/{chat.maxMembers} คน</p>
       </div>
       <div className="chat-options">
-        <button onClick={handleToggleOptions}>⋮</button>
-        {isOptionsOpen && (
-          <div className="options-dropdown">
-            <button 
-              onClick={() => {
-                setIsOptionsOpen(false);
-                if (isTripEnded) {
-                  alert('ทริปนี้ได้สิ้นสุดไปแล้ว');
-                } else {
-                  onEndTrip();
-                }
-              }} 
-              className="end-trip-btn"
-            >
-              สิ้นสุดทริป
-            </button>
-          </div>
+      {isLeader && (
+          <>
+            <button onClick={handleToggleOptions}>⋮</button>
+            {isOptionsOpen && (
+              <div className="options-dropdown">
+                <button 
+                  onClick={() => {
+                    setIsOptionsOpen(false);
+                    if (isTripEnded) {
+                      alert('ทริปนี้ได้สิ้นสุดไปแล้ว');
+                    } else {
+                      onEndTrip();
+                    }
+                  }} 
+                  className="end-trip-btn"
+                >
+                  สิ้นสุดทริป
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

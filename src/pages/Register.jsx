@@ -32,14 +32,10 @@ export default function Register() {
     }
 
     try {
-      // Create User
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      // Update profile name
       await updateProfile(user, { displayName: fullname });
 
-      // Send Verification Email
       await sendEmailVerification(user);
 
       console.log("User created & Verification sent");

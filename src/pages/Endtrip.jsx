@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import './Endtrip.css';
-
-// Firebase Imports (ไม่ต้องมี storage)
 import { db, auth } from '../firebase';
 import { 
   doc, 
@@ -19,23 +17,18 @@ import {
 const Endtrip = () => {
   const { groupId } = useParams(); 
   const navigate = useNavigate();
-  
   const [activeTab, setActiveTab] = useState('review');
   const [tripData, setTripData] = useState(null);
   const [pendingTrips, setPendingTrips] = useState([]);
   const [loading, setLoading] = useState(true);
-  
   const [showTripReviewPopup, setShowTripReviewPopup] = useState(false);
   const [showFriendReviewPopup, setShowFriendReviewPopup] = useState(false);
-  
   const [reviewData, setReviewData] = useState({ rating: 0, comment: '', images: [] });
   const [friendRatings, setFriendRatings] = useState({});
   const [friendComments, setFriendComments] = useState({});
-  
   const [posts, setPosts] = useState([]);
   const [members, setMembers] = useState([]);
 
-  // 1. Logic โหลดข้อมูล
   useEffect(() => {
     const initPage = async () => {
       setLoading(true);
@@ -81,7 +74,6 @@ const Endtrip = () => {
     initPage();
   }, [groupId]);
 
-  // 2. Feed
   useEffect(() => {
       const targetId = groupId || tripData?.id;
       const fetchReviews = async () => {
@@ -96,23 +88,18 @@ const Endtrip = () => {
       if (activeTab === 'feed' && targetId) fetchReviews();
   }, [groupId, tripData, activeTab]);
 
-
-  // Handlers
   const handleSelectTripToReview = (trip) => {
     setTripData(trip);
     if (trip.members && auth.currentUser) {
         const otherMembers = trip.members.filter(m => m.uid !== auth.currentUser.uid);
         setMembers(otherMembers);
     }
-    // ไม่ navigate เพื่อป้องกัน reload loop
     setShowTripReviewPopup(true);
   };
 
   const handleStarClick = (rating) => setReviewData({ ...reviewData, rating });
   const handleFriendRating = (friendId, rating) => setFriendRatings({ ...friendRatings, [friendId]: rating });
   const handleFriendComment = (friendId, comment) => setFriendComments({ ...friendComments, [friendId]: comment });
-
-  // อัปโหลดรูป (แปลงเป็น Base64)
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     files.forEach(file => {
@@ -136,13 +123,11 @@ const Endtrip = () => {
     setReviewData({ ...reviewData, images: newImages });
   };
 
-  // บันทึกรีวิว
   const handleSubmitReview = async () => {
     if (reviewData.rating === 0) { alert('กรุณาให้คะแนนทริป'); return; }
     if (!auth.currentUser) return;
 
     try {
-        // 1. รีวิวทริป
         await addDoc(collection(db, 'reviews'), {
             groupId: tripData.id,
             groupName: tripData.name,
@@ -157,7 +142,6 @@ const Endtrip = () => {
             date: new Date().toLocaleDateString('th-TH')
         });
 
-        // 2. รีวิวเพื่อน
         for (const member of members) {
             if (friendRatings[member.uid]) {
                 await addDoc(collection(db, 'friend_reviews'), {
@@ -172,16 +156,12 @@ const Endtrip = () => {
         }
 
         alert('บันทึกรีวิวเรียบร้อย!');
-        
-        // Reset
         setReviewData({ rating: 0, comment: '', images: [] });
         setFriendRatings({}); setFriendComments({});
         setShowTripReviewPopup(false);
-        setShowFriendReviewPopup(false);
-        
+        setShowFriendReviewPopup(false);    
         setPendingTrips(prev => prev.filter(t => t.id !== tripData.id));
-        
-        // กลับหน้าหลัก
+
         if (groupId) {
            setActiveTab('feed');
         } else {
@@ -288,7 +268,6 @@ const Endtrip = () => {
         </div>
       )}
 
-      {/* Popups... */}
       {showTripReviewPopup && tripData && (
         <div className="popup-overlay">
           <div className="popup">

@@ -7,7 +7,6 @@ const GroupCard = ({ group, onChatClick }) => {
       className="group-card" 
       onClick={() => onChatClick(group)}
     >
-      {/* Avatar Section */}
       <div className="group-card-avatar">
         <img 
           src={group.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
@@ -15,7 +14,6 @@ const GroupCard = ({ group, onChatClick }) => {
         />
       </div>
       
-      {/* Info Section */}
       <div className="group-card-info">
         <div className="group-card-top">
           <h3 className="group-name">{group.name}</h3>
