@@ -349,19 +349,28 @@ const ProfilePage = () => {
                 {reviewsList.length > 0 ? (
                   reviewsList.map((review) => (
                     <div key={review.id} className="comment-item">
-                  
                       <Link to={`/profile/${review.reviewerId}`}>
                         <div className="comment-avatar"><img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Reviewer" className="avatar-img" /></div>
                       </Link>
                       <div style={{flex:1}}>
-                       
-                         <p className="comment-text" style={{fontWeight:'bold', fontSize:'0.85rem'}}>
-                           <Link to={`/profile/${review.reviewerId}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-                             เพื่อนร่วมทริป
-                           </Link>
-                         </p>
-                         <p className="comment-text">{review.comment || "ไม่มีคำอธิบาย"}</p>
-                         <div style={{fontSize:'0.8rem', color:'#FFD700'}}>{renderStars(review.rating || 0)}</div>
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                          <p className="comment-text" style={{fontWeight:'bold', fontSize:'0.85rem', margin: 0}}>
+                            <Link to={`/profile/${review.reviewerId}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                              เพื่อนร่วมทริป
+                            </Link>
+                          </p>
+                          {review.createdAt && (
+                            <span style={{fontSize: '0.75rem', color: '#999'}}>
+                              {new Date(review.createdAt.seconds * 1000).toLocaleDateString('th-TH', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </span>
+                          )}
+                        </div>
+                        <p className="comment-text">{review.comment || "ไม่มีคำอธิบาย"}</p>
+                        <div style={{fontSize:'0.8rem', color:'#FFD700'}}>{renderStars(review.rating || 0)}</div>
                       </div>
                     </div>
                   ))

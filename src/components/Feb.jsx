@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Users, Loader } from 'lucide-react'; 
+import { X, Plus, Users, Loader, Calendar, Tag } from 'lucide-react'; 
 import './Feb.css';
 
 const Feb = ({ isOpen, onClose, onSubmit, post }) => {
@@ -8,7 +7,55 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
   const [postText, setPostText] = useState('');
   const [images, setImages] = useState([]); 
   const [maxMembers, setMaxMembers] = useState(10);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [category, setCategory] = useState(''); // ✨ เพิ่ม state สำหรับหมวดหมู่
   const [isPosting, setIsPosting] = useState(false);
+
+  // ✨ รายการหมวดหมู่การท่องเที่ยว
+  const categories = [
+    'ทะเล เกาะ ชายหาด',
+    'ภูเขา ธรรมชาติ',
+    'วัด วัฒนธรรม ประวัติศาสตร์',
+    'สวนสนุก',
+    'ผจญภัย Adventure',
+    'เกษตร ฟาร์มสเตย์',
+    'เที่ยวเมือง City Trip'
+  ];
+
+  // Get today's date in YYYY-MM-DD format for min date validation
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  // ✨ Lock/Unlock body scroll เมื่อเปิด/ปิด modal
+  useEffect(() => {
+    if (isOpen) {
+      // Lock scroll หน้าหลัก - แบบเข้มข้น
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Unlock scroll หน้าหลัก
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
+
+    // Cleanup: ปลดล็อคเมื่อ component unmount
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -16,6 +63,9 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
         setTripTitle(post.title || '');
         setPostText(post.content || '');
         setMaxMembers(post.maxMembers || 10);
+        setStartDate(post.startDate || '');
+        setEndDate(post.endDate || '');
+        setCategory(post.category || ''); // ✨ โหลดหมวดหมู่จากโพสต์
         if (post.images) {
           setImages(post.images.map(url => ({ id: url, preview: url, file: null })));
         }
@@ -24,6 +74,9 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
         setPostText('');
         setImages([]);
         setMaxMembers(10);
+        setStartDate('');
+        setEndDate('');
+        setCategory(''); // ✨ รีเซ็ตหมวดหมู่
       }
     }
   }, [post, isOpen]);
@@ -58,6 +111,28 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
     }
   };
 
+  const handleStartDateChange = (e) => {
+    const newStartDate = e.target.value;
+    setStartDate(newStartDate);
+    
+    // ถ้าวันสิ้นสุดมีอยู่แล้ว และน้อยกว่าวันเริ่ม ให้รีเซ็ต
+    if (endDate && newStartDate > endDate) {
+      setEndDate('');
+    }
+  };
+
+  const handleEndDateChange = (e) => {
+    const newEndDate = e.target.value;
+    
+    // ตรวจสอบว่าวันสิ้นสุดต้องมากกว่าหรือเท่ากับวันเริ่ม
+    if (startDate && newEndDate < startDate) {
+      alert('วันสิ้นสุดทริปต้องไม่น้อยกว่าวันเริ่มทริป');
+      return;
+    }
+    
+    setEndDate(newEndDate);
+  };
+
   const readFileAsBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -70,8 +145,31 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
   };
 
   const handleSubmit = async () => {
-    if (!tripTitle.trim() && !postText.trim() && images.length === 0) {
-      alert('กรุณากรอกข้อมูลอย่างน้อยหนึ่งอย่าง');
+    // ✨ ตรวจสอบว่าต้องมีรูปภาพอย่างน้อย 1 รูป
+    if (images.length === 0) {
+      alert('กรุณาเพิ่มรูปภาพอย่างน้อย 1 รูป');
+      return;
+    }
+
+    if (!tripTitle.trim() && !postText.trim()) {
+      alert('กรุณากรอกชื่อทริปหรือรายละเอียด');
+      return;
+    }
+
+    // ✨ ตรวจสอบว่าต้องเลือกหมวดหมู่
+    if (!category) {
+      alert('กรุณาเลือกหมวดหมู่การท่องเที่ยว');
+      return;
+    }
+
+    // Validate dates
+    if (startDate && !endDate) {
+      alert('กรุณาระบุวันสิ้นสุดทริป');
+      return;
+    }
+
+    if (!startDate && endDate) {
+      alert('กรุณาระบุวันเริ่มทริป');
       return;
     }
 
@@ -102,6 +200,9 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
       content: postText,
       images: imageUrls, 
       maxMembers: maxMembers,
+      startDate: startDate,
+      endDate: endDate,
+      category: category, // ✨ ส่งหมวดหมู่ไปด้วย
     });
     
     setIsPosting(false);
@@ -130,6 +231,69 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
           onChange={(e) => setPostText(e.target.value)}
         />
 
+        {/* ✨ Category Selection Section */}
+        <div className="category-section">
+          <label className="category-label">
+            <Tag size={20} />
+            <span>หมวดหมู่การท่องเที่ยว</span>
+            <span className="required-mark">*</span>
+          </label>
+          <select
+            className="category-dropdown"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            <option value="">-- เลือกหมวดหมู่ --</option>
+            {categories.map((cat, index) => (
+              <option key={index} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Trip Dates Section */}
+        <div className="trip-dates-section">
+          <label className="trip-dates-label">
+            <Calendar size={20} />
+            <span>วันที่เดินทาง</span>
+          </label>
+          
+          <div className="trip-dates-inputs">
+            <div className="date-input-group">
+              <label className="date-label">วันเริ่มทริป</label>
+              <input
+                type="date"
+                className="trip-date-input"
+                value={startDate}
+                onChange={handleStartDateChange}
+                min={getTodayDate()}
+              />
+            </div>
+            
+            <div className="date-separator">→</div>
+            
+            <div className="date-input-group">
+              <label className="date-label">วันสิ้นสุดทริป</label>
+              <input
+                type="date"
+                className="trip-date-input"
+                value={endDate}
+                onChange={handleEndDateChange}
+                min={startDate || getTodayDate()}
+                disabled={!startDate}
+              />
+            </div>
+          </div>
+          
+          {startDate && endDate && (
+            <p className="trip-duration-hint">
+              ระยะเวลา: {Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1} วัน
+            </p>
+          )}
+        </div>
+
+        {/* Max Members Section */}
         <div className="max-members-section">
           <label className="max-members-label">
             <Users size={20} />
@@ -149,7 +313,7 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
               className="max-members-input"
               value={maxMembers}
               onChange={handleMaxMembersChange}
-              min="1"
+              min="2"
               max="10"
             />
             <button 
@@ -163,6 +327,23 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
           </div>
           <p className="max-members-hint">กำหนดได้ 3-10 คน</p>
         </div>
+
+        {/* ✨ แสดงข้อความแจ้งเตือนถ้ายังไม่มีรูป */}
+        {images.length === 0 && (
+          <div style={{
+            padding: '12px',
+            background: '#fff3cd',
+            border: '1px solid #ffc107',
+            borderRadius: '8px',
+            marginBottom: '12px',
+            textAlign: 'center',
+            color: '#856404',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            ⚠️ กรุณาเพิ่มรูปภาพอย่างน้อย 1 รูป
+          </div>
+        )}
 
         {images.length > 0 && (
           <div className={`post-image-grid layout-${images.length}`}>
@@ -180,7 +361,7 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
         <div className="post-actions">
           <label className="post-upload-btn">
             <Plus size={18} />
-            เพิ่มรูปภาพ
+            เพิ่มรูปภาพ (จำเป็น)
             <input 
               type="file" 
               accept="image/*" 
@@ -196,15 +377,14 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
             <button
               className="post-submit-btn"
               onClick={handleSubmit}
-              disabled={isPosting || images.length > 10}
+              disabled={isPosting || images.length > 10 || images.length === 0 || !category}
             >
               {isPosting ? 'กำลังบันทึก...' : (post ? 'บันทึก' : 'โพสต์')}
             </button>
           </div>
         </div>
         
-        {
-        isPosting && (
+        {isPosting && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '10px', color: '#555' }}>
             <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />
             <span style={{ marginLeft: '8px' }}>กำลังบันทึกข้อมูล...</span>

@@ -12,6 +12,8 @@ import Homepage from "./pages/Homepage";
 import Chat from "./pages/Chat/Chat";
 import Endtrip from "./pages/Endtrip";
 import ProfilePage from "./pages/Profilepage"; 
+import PostDetail from "./pages/PostDetail";
+import AllPosts from "./pages/AllPosts"; // ✅ เพิ่มบรรทัดนี้
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true); 
@@ -44,6 +46,8 @@ export default function App() {
           <Route path="/forgot" element={<ForgotPassword />} />
           
           <Route path="/homepage" element={<Homepage />} />
+          <Route path="/posts" element={<AllPosts />} /> {/* ✅ เพิ่มบรรทัดนี้ */}
+          <Route path="/post/:postId" element={<PostDetail />} />
 
           <Route path="/chat" element={<Chat />} />
           <Route path="/chat/:groupId" element={<Chat />} />
@@ -55,7 +59,6 @@ export default function App() {
 
           <Route path="/endtrip" element={<Endtrip />} />
           <Route path="/end-trip/:groupId" element={<Endtrip />} />
-
 
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/:userId" element={<ProfilePage />} />

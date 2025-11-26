@@ -1,5 +1,4 @@
 /* PostCard.css */
-
 /* Post Card*/
 .post-card {
   width: 100%;
@@ -85,6 +84,71 @@
   gap: 3px;
   box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
   white-space: nowrap;
+}
+/* ✨ ส่วนแสดงวันที่เดินทางในโพสต์การ์ด */
+.post-trip-dates {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 14px 18px;
+  flex-wrap: wrap;
+}
+
+.trip-date-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 120px;
+}
+
+.date-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6B7280;  
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.date-value {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6B7280;  
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+
+
+
+/* Responsive สำหรับหน้าจอเล็ก */
+@media (max-width: 480px) {
+  .post-trip-dates {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+
+  .trip-date-item {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    min-width: 100%;
+  }
+
+  .trip-date-separator {
+    transform: rotate(90deg);
+    font-size: 18px;
+    align-self: center;
+    margin: -4px 0;
+  }
+
+  .trip-duration {
+    width: 100%;
+    text-align: center;
+    margin-top: 4px;
+  }
 }
 
 /* Dropdown Menu */
@@ -721,7 +785,6 @@
 }
 /* ===============================
    📱 RESPONSIVE DESIGN - FIXED
-   แก้ไขแล้ว: รองรับ URL ยาวในโทรศัพท์ Post Card
 =============================== */
 
 /* Tablet (768px - 1024px) */

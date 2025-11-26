@@ -111,6 +111,20 @@ const PostCard = ({
           {post.content && <p className="post-description">{post.content}</p>}
           {post.text && <p className="post-description">{post.text}</p>}
 
+          {/* ✨ แสดงวันที่เดินทาง - ข้างบนรูป */}
+          {post.startDate && post.endDate && (
+            <div className="post-trip-dates">
+              <div className="trip-date-item">
+                <span className="date-label">📅 เริ่ม:</span>
+                <span className="date-value">{new Date(post.startDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+              </div>
+              <div className="trip-date-item">
+                <span className="date-label">🏁 สิ้นสุด:</span>
+                <span className="date-value">{new Date(post.endDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+              </div>  
+            </div>
+          )}
+
           {post.images && post.images.length > 0 && (
             <div className={`post-image-gallery images-${Math.min(post.images.length, 5)}`}>
               {post.images.slice(0, 4).map((imageUrl, index) => (
