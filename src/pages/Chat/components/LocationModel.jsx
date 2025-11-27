@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { X, MapPin, Navigation, Search, Loader } from 'lucide-react';
+import './LocationModel.css';
 
 
-const LocationModal = ({ isOpen, onClose, onSendLocation }) => {
+const LocationModel = ({ isOpen, onClose, onSendLocation }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -261,4 +262,4 @@ const LocationModal = ({ isOpen, onClose, onSendLocation }) => {
   );
 };
 
-export default LocationModal;
+export default LocationModel;

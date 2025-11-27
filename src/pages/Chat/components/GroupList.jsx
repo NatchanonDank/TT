@@ -1,21 +1,22 @@
 import React from 'react';
-import { Search, Plus } from 'lucide-react';
+import { Search } from 'lucide-react';
 import GroupCard from './GroupCard';
+import './GroupList.css';
 
 const GroupList = ({ 
   groups, 
   searchTerm, 
   onSearchChange, 
-  onChatClick, 
-  onCreateGroup 
-}) => 
-  {
-    
+  onChatClick,
+  activeGroupId
+}) => {
   return (
     <div className="group-list">
       <div className="group-list-header">
+        {/* ✅ เพิ่ม Title */}
+        <h2 className="group-list-title">แชท</h2>
+        
         <div className="search-bar">
-          <Search size={20} className="search-icon" />
           <input
             type="text"
             placeholder="ค้นหากลุ่ม..."
@@ -27,13 +28,16 @@ const GroupList = ({
 
       <div className="groups-scroll-area">
         {groups.length === 0 ? (
-          <div className="no-groups"><p>ยังไม่มีกลุ่ม</p></div>
+          <div className="no-groups">
+            <p>ยังไม่มีกลุ่ม</p>
+          </div>
         ) : (
           groups.map((group) => (
             <GroupCard 
               key={group.id} 
               group={group} 
-              onChatClick={onChatClick} 
+              onChatClick={onChatClick}
+              isActive={group.id === activeGroupId}
             />
           ))
         )}

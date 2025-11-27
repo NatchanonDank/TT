@@ -13,12 +13,13 @@ const Homepage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [recommendedTrips, setRecommendedTrips] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('ทั้งหมด');
+  const [searchQuery, setSearchQuery] = useState(''); // ✨ เพิ่ม state สำหรับค้นหา
   
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false); // ✨ เพิ่ม state สำหรับ Feb modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // ✨ รายการหมวดหมู่การท่องเที่ยว (ต้องตรงกับใน Feb.jsx)
+  // ✨ รายการหมวดหมู่การท่องเที่ยว
   const categories = [
     'ทั้งหมด',
     'ทะเล เกาะ ชายหาด',
@@ -118,7 +119,7 @@ const Homepage = () => {
         });
         
         const sortedTrips = tripsWithScore.sort((a, b) => b.hotScore - a.hotScore);
-        setRecommendedTrips(sortedTrips.slice(0, 6));
+        setRecommendedTrips(sortedTrips); 
       } catch (error) {
         console.error("Error fetching recommended trips:", error);
       }
@@ -127,7 +128,7 @@ const Homepage = () => {
     if (currentUser) {
       fetchRecommendedTrips();
     }
-  }, [currentUser, selectedCategory]); // ✨ เพิ่ม selectedCategory เป็น dependency
+  }, [currentUser, selectedCategory]);
 
   // Smooth Scroll
   useEffect(() => {
@@ -165,7 +166,7 @@ const Homepage = () => {
 
   // ✨ ฟังก์ชันไปหน้าดูโพสต์ทั้งหมด
   const handleViewAllPosts = () => {
-    navigate('/posts'); // หรือ '/all-posts' ตามที่คุณต้องการ
+    navigate('/posts');
   };
 
   // ✨ ฟังก์ชันเปิด modal สร้างโพสต์
@@ -178,6 +179,15 @@ const Homepage = () => {
     setIsModalOpen(true);
   };
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // ใช้ navigate แทน window.location
+      navigate(`/posts?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate('/posts');
+    }
+  };
   // ✨ ฟังก์ชันสร้างโพสต์
   const createPost = async (postData) => {
     if (!currentUser) return;
@@ -257,7 +267,7 @@ const Homepage = () => {
       });
       
       const sortedTrips = tripsWithScore.sort((a, b) => b.hotScore - a.hotScore);
-      setRecommendedTrips(sortedTrips.slice(0, 6));
+      setRecommendedTrips(sortedTrips);
 
       alert('สร้างโพสต์สำเร็จ! 🎉');
       
@@ -275,23 +285,41 @@ const Homepage = () => {
 
       <div className="homepage-layout">
         <main className="main-content">
-          {/* Hero Section */}
+          {/* Hero Section with Search */}
           <section className="hero-section">
             <div className="hero-overlay"></div>
             <div className="hero-content">
-              <h1 className="hero-title">
-                จองกิจกรรมน่าสนใจที่ได้รับการสนับสนุน
-                <br />
-                จากนักท่องเที่ยว
-              </h1>
+              <h3 className="hero-title">
+                Trip Together: ที่ที่การเดินทางไม่เหงาอีกต่อไป
+
+              </h3>
+              
+              {/* ✨ Search Bar */}
+              <form className="hero-search-container" onSubmit={handleSearch}>
+                <div className="search-input-wrapper">
+                  <svg className="search-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <input
+                    type="text"
+                    className="hero-search-input"
+                    placeholder="ค้นหาทริปที่คุณสนใจ..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <button type="submit" className="search-submit-btn">
+                    ค้นหา
+                  </button>
+                </div>
+              </form>
             </div>
           </section>
 
-          {/* ✨ Category Filter Section - ย้ายขึ้นมาด้านบน */}
+          {/* ✨ Category Filter Section */}
           <section className="category-filter-section">
             <div className="category-header">
               <Tag size={28} className="category-header-icon" />
-              <p className="section-title">เลือกหมวดหมู่ที่คุณสนใจ</p>
+              <h1 className="section-title">เลือกหมวดหมู่ที่คุณสนใจ</h1>
             </div>
             
             <div className="category-tabs">

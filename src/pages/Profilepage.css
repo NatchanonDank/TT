@@ -148,6 +148,12 @@ body {
   margin: 0;
 }
 
+.profile-email {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 5px 0;
+}
+
 .edit-profile-btn {
   padding: 8px 16px;
   background-color: #e4e6eb;
@@ -314,6 +320,12 @@ body {
 .review-bar-fill {
   height: 100%;
   border-radius: 4px;
+  background-color: #4caf50;
+  transition: width 0.3s ease;
+}
+
+.review-bar-fill:empty {
+  background-color: #f0f2f5;
 }
 
 .review-count {
@@ -357,6 +369,37 @@ body {
   object-fit: cover;
 }
 
+.comment-content {
+  flex: 1;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.comment-author {
+  font-weight: bold;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.comment-author-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.comment-author-link:hover {
+  text-decoration: underline;
+}
+
+.comment-date {
+  font-size: 0.75rem;
+  color: #999;
+}
+
 .comment-text {
   margin: 0;
   font-size: 0.95rem;
@@ -364,6 +407,12 @@ body {
   color: #050505;
   word-wrap: break-word;
   overflow-wrap: break-word;
+}
+
+.comment-stars {
+  font-size: 0.8rem;
+  color: #FFD700;
+  margin-top: 5px;
 }
 
 /* ===============================
@@ -597,6 +646,16 @@ body {
   background: #f0f2f5;
 }
 
+.report-btn {
+  background-color: #ffebee !important;
+  color: #d32f2f !important;
+  font-weight: 600;
+}
+
+.report-btn:hover {
+  background-color: #ffcdd2 !important;
+}
+
 .primary-btn {
   padding: 8px 24px;
   background: #1877f2;
@@ -628,6 +687,93 @@ body {
 
 .modal-content::-webkit-scrollbar-thumb:hover {
   background: #b8babf;
+}
+
+/* ===============================
+   ✨ NEW STYLES - Loading, Posts List, Empty States
+=============================== */
+
+/* Loading Screen */
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f0f2f5;
+  gap: 15px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e4e6eb;
+  border-top: 4px solid #1877f2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-screen p {
+  color: #65676b;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Posts List */
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.posts-list > * {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.posts-list .post-card {
+  margin-bottom: 0 !important;
+}
+
+/* Empty States */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 15px;
+  opacity: 0.5;
+}
+
+.empty-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1c1e21;
+  margin-bottom: 8px;
+}
+
+.empty-subtitle {
+  font-size: 0.95rem;
+  color: #65676b;
+}
+
+.empty-state-small {
+  text-align: center;
+  padding: 30px 20px;
+  color: #888;
+  background: #f9fafb;
+  border-radius: 8px;
+  font-size: 0.95rem;
 }
 
 /* ===============================
@@ -859,6 +1005,32 @@ body {
 
   .modal-actions button {
     width: 100%;
+  }
+
+  /* New Styles Responsive */
+  .empty-state {
+    padding: 40px 15px;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+  }
+
+  .empty-title {
+    font-size: 1rem;
+  }
+
+  .empty-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .empty-state-small {
+    padding: 20px 15px;
+    font-size: 0.9rem;
+  }
+
+  .posts-list {
+    gap: 15px;
   }
 }
 
@@ -1099,6 +1271,37 @@ body {
   .form-group input[type="file"]::file-selector-button {
     padding: 6px 12px;
     font-size: 0.85rem;
+  }
+
+  /* New Styles Responsive */
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+  }
+
+  .loading-screen p {
+    font-size: 0.9rem;
+  }
+
+  .empty-state {
+    padding: 30px 10px;
+  }
+
+  .empty-icon {
+    font-size: 2.5rem;
+  }
+
+  .empty-title {
+    font-size: 0.95rem;
+  }
+
+  .empty-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .posts-list {
+    gap: 12px;
   }
 }
 

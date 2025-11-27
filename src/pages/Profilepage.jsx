@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Edit2, X, Check, LogOut, Star, Flag } from 'lucide-react';
+import { Camera, Edit2, X, Check, LogOut, Flag } from 'lucide-react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import Post from '../components/Post';
+import PostCard from '../components/PostCard';
 import './Profilepage.css';
 import '../components/PostCard.css'
 import { auth, db } from '../firebase';
@@ -20,8 +20,6 @@ import {
   addDoc, 
   serverTimestamp 
 } from 'firebase/firestore';
-
-
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -50,6 +48,8 @@ const ProfilePage = () => {
     breakdown: [0, 0, 0, 0, 0]
   });
 
+  const [userPosts, setUserPosts] = useState([]);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
@@ -66,12 +66,12 @@ const ProfilePage = () => {
   }, [navigate, userId]);
 
   useEffect(() => {
-    if (!profileUserId) return; 
+    if (!profileUserId) return;
 
     const fetchProfileData = async () => {
       setIsLoading(true);
       try {
-   
+        // ดึงข้อมูล user
         const userDocRef = doc(db, "users", profileUserId);
         const userDocSnap = await getDoc(userDocRef);
         
@@ -85,25 +85,59 @@ const ProfilePage = () => {
             coverColor: firestoreData.coverColor || 'linear-gradient(135deg, #a8d5e2 0%, #f9d5a5 100%)'
           });
         } else {
-
           setProfileData(prev => ({...prev, name: "ไม่พบผู้ใช้", bio: ""}));
         }
 
-      
+        // ✅ ดึง posts ของ user - แก้ไขให้ดีขึ้น
+        try {
+          const postsQuery = query(
+            collection(db, 'posts'),
+            where('uid', '==', profileUserId),
+            orderBy('createdAt', 'desc')
+          );
+          
+          const postsSnapshot = await getDocs(postsQuery);
+          const fetchedPosts = [];
+          
+          postsSnapshot.forEach((docSnap) => {
+            const postData = docSnap.data();
+            
+            // ✅ ตรวจสอบว่ามีข้อมูลครบถ้วน
+            fetchedPosts.push({ 
+              id: docSnap.id,
+              ...postData,
+              // ป้องกันข้อมูลหาย
+              title: postData.title || 'ไม่มีชื่อโพสต์',
+              destination: postData.destination || 'ไม่ระบุสถานที่',
+              description: postData.description || '',
+              createdAt: postData.createdAt || null,
+              uid: postData.uid || profileUserId
+            });
+          });
+          
+          console.log(`✅ Loaded ${fetchedPosts.length} posts for user ${profileUserId}`);
+          setUserPosts(fetchedPosts);
+          
+        } catch (postsError) {
+          console.error("Error fetching posts:", postsError);
+          setUserPosts([]);
+        }
+
+        // ดึง reviews
         const reviewsQuery = query(
           collection(db, 'friend_reviews'),
-          where('targetUserId', '==', profileUserId), 
+          where('targetUserId', '==', profileUserId),
           orderBy('createdAt', 'desc')
         );
         
-        const querySnapshot = await getDocs(reviewsQuery);
+        const reviewsSnapshot = await getDocs(reviewsQuery);
         const fetchedReviews = [];
         let totalRating = 0;
         const breakdown = [0, 0, 0, 0, 0];
 
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          fetchedReviews.push({ id: doc.id, ...data });
+        reviewsSnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          fetchedReviews.push({ id: docSnap.id, ...data });
 
           if (data.rating) {
             totalRating += data.rating;
@@ -120,8 +154,7 @@ const ProfilePage = () => {
             breakdown: breakdown
           });
         } else {
-     
-           setReviewStats({ average: 0, total: 0, breakdown: [0, 0, 0, 0, 0] });
+          setReviewStats({ average: 0, total: 0, breakdown: [0, 0, 0, 0, 0] });
         }
 
       } catch (error) {
@@ -133,16 +166,23 @@ const ProfilePage = () => {
     
     fetchProfileData();
 
-  }, [profileUserId]); 
+  }, [profileUserId]);
 
-
-  const handleEdit = () => { setIsEditing(true); setEditForm({ ...profileData }); };
-  const handleCancel = () => { setIsEditing(false); setEditForm({ ...profileData }); };
+  const handleEdit = () => { 
+    setIsEditing(true); 
+    setEditForm({ ...profileData }); 
+  };
+  
+  const handleCancel = () => { 
+    setIsEditing(false); 
+    setEditForm({ ...profileData }); 
+  };
+  
   const handleChange = (field, value) => setEditForm(prev => ({ ...prev, [field]: value }));
+  
   const handleProfileImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-   
        if (file.size > 700 * 1024) {
          alert(`รูป ${file.name} มีขนาดใหญ่เกิน 700KB! \nกรุณาเลือกรูปที่เล็กกว่านี้ครับ`);
          return;
@@ -200,7 +240,6 @@ const ProfilePage = () => {
     }
   };
 
- 
   const handleReportUser = async () => {
     if (!loggedInUser || !profileUserId || isOwnProfile) {
       alert("ไม่สามารถรายงานตัวเองได้");
@@ -231,44 +270,83 @@ const ProfilePage = () => {
     }
   };
 
-
   const renderStars = (count) => '⭐'.repeat(count) + '☆'.repeat(5 - count);
-  const coverOptions = ['linear-gradient(135deg, #a8d5e2 0%, #f9d5a5 100%)', 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'];
+  const coverOptions = [
+    'linear-gradient(135deg, #a8d5e2 0%, #f9d5a5 100%)', 
+    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+    'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', 
+    'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', 
+    'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', 
+    'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+  ];
 
-  if (isLoading) return <div className="loading-screen">กำลังโหลดข้อมูล...</div>;
+  if (isLoading) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner"></div>
+        <p>กำลังโหลดข้อมูล...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="head">
       <Navbar brand="TripTogether" />
       
       <div className="hero-section" style={{ background: profileData.coverColor }}>
-      
          {isOwnProfile && (
-            <button 
-                onClick={handleLogout} 
-                className="logout-btn-absolute"
-                style={{ 
-                  position: 'absolute', top: '100px', right: '30px', background: 'rgba(0,0,0,0.6)', 
-                  color: 'white', border: 'none', padding: '10px 20px', borderRadius: '30px', 
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 999,
-                  fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
-                }}
-            >
+            <button onClick={handleLogout} className="logout-btn-absolute">
                 <LogOut size={18} /> ออกจากระบบ
             </button>
          )}
       </div>
 
-   
       {isOwnProfile && isEditing && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <div className="modal-header"><h2 className="modal-title">แก้ไขโปรไฟล์</h2><button onClick={handleCancel}><X size={24} /></button></div>
-            <div className="form-group"><label>รูปโปรไฟล์</label><input type="file" onChange={handleProfileImageUpload} /></div>
-            <div className="form-group"><label>ชื่อ</label><input value={editForm.name} onChange={(e)=>handleChange('name',e.target.value)} className="text-input"/></div>
-            <div className="form-group"><label>Bio</label><textarea value={editForm.bio} onChange={(e)=>handleChange('bio',e.target.value)} className="textarea-input"/></div>
-            <div className="form-group"><label>สีปก</label><div className="cover-color-grid">{coverOptions.map((c,i)=><button key={i} onClick={()=>handleChange('coverColor',c)} className={`color-option-btn ${editForm.coverColor===c?'selected':''}`} style={{background:c}}>{editForm.coverColor===c&&<Check size={20} color="#fff"/>}</button>)}</div></div>
-            <div className="modal-actions"><button onClick={handleCancel}>ยกเลิก</button><button onClick={handleSave}>บันทึก</button></div>
+            <div className="modal-header">
+              <h2 className="modal-title">แก้ไขโปรไฟล์</h2>
+              <button onClick={handleCancel}><X size={24} /></button>
+            </div>
+            <div className="form-group">
+              <label>รูปโปรไฟล์</label>
+              <input type="file" accept="image/*" onChange={handleProfileImageUpload} />
+            </div>
+            <div className="form-group">
+              <label>ชื่อ</label>
+              <input 
+                value={editForm.name} 
+                onChange={(e) => handleChange('name', e.target.value)} 
+                className="text-input"
+              />
+            </div>
+            <div className="form-group">
+              <label>Bio</label>
+              <textarea 
+                value={editForm.bio} 
+                onChange={(e) => handleChange('bio', e.target.value)} 
+                className="textarea-input"
+              />
+            </div>
+            <div className="form-group">
+              <label>สีปก</label>
+              <div className="cover-color-grid">
+                {coverOptions.map((c, i) => (
+                  <button 
+                    key={i} 
+                    onClick={() => handleChange('coverColor', c)} 
+                    className={`color-option-btn ${editForm.coverColor === c ? 'selected' : ''}`} 
+                    style={{ background: c }}
+                  >
+                    {editForm.coverColor === c && <Check size={20} color="#fff" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button onClick={handleCancel}>ยกเลิก</button>
+              <button onClick={handleSave}>บันทึก</button>
+            </div>
           </div>
         </div>
       )}
@@ -277,26 +355,33 @@ const ProfilePage = () => {
         <div className="profile-card">
           <div className="profile-card-content">
             <div className="avatar-section">
-              <div className="profile-avatar-large"><img src={profileData.avatar} alt="Profile" className="avatar-img" /></div>
-            
+              <div className="profile-avatar-large">
+                <img src={profileData.avatar} alt="Profile" className="avatar-img" />
+              </div>
               {isOwnProfile && (
-                <button onClick={handleEdit} className="edit-avatar-btn"><Camera size={18} /></button>
+                <button onClick={handleEdit} className="edit-avatar-btn">
+                  <Camera size={18} />
+                </button>
               )}
             </div>
             <div className="profile-info">
               <div className="profile-header">
                 <h2 className="profile-name">{profileData.name}</h2>
-               
                 {isOwnProfile ? (
-                  <button onClick={handleEdit} className="primary-btn edit-profile-btn"><Edit2 size={16} /> แก้ไข</button>
+                  <button onClick={handleEdit} className="primary-btn edit-profile-btn">
+                    <Edit2 size={16} /> แก้ไข
+                  </button>
                 ) : (
-                  <button onClick={handleReportUser} className="secondary-btn" style={{backgroundColor: '#ffebee', color: '#d32f2f', fontWeight: '600'}}>
+                  <button onClick={handleReportUser} className="secondary-btn report-btn">
                     <Flag size={16} /> รายงานผู้ใช้
                   </button>
                 )}
               </div>
-              <p style={{ color: '#666', fontSize: '0.9rem' }}>{profileData.email}</p>
-              <div className="bio-box"><h3 className="bio-title">ความสนใจ</h3><p className="bio-text">{profileData.bio}</p></div>
+              <p className="profile-email">{profileData.email}</p>
+              <div className="bio-box">
+                <h3 className="bio-title">ความสนใจ</h3>
+                <p className="bio-text">{profileData.bio}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -304,15 +389,26 @@ const ProfilePage = () => {
         <div className="content-grid">
           <div>
             <div className="content-box">
-              <h3 className="section-title">Post</h3>
-           
-              {profileUserId && loggedInUser && (
-                <Post 
-                  currentUser={{ name: loggedInUser.displayName, avatar: loggedInUser.photoURL, uid: loggedInUser.uid, id: loggedInUser.uid }}
-                  searchTerm=""
-                  filterByOwner={true}  
-                  ownerId={profileUserId}  
-                />
+              <h3 className="section-title">Post ({userPosts.length})</h3>
+              
+              {userPosts.length > 0 ? (
+                <div className="posts-list">
+                  {userPosts.map((post, index) => (
+                    <PostCard 
+                      key={`post-${post.id}-${index}`}
+                      post={post}
+                      currentUser={loggedInUser}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <div className="empty-icon">📝</div>
+                  <p className="empty-title">ยังไม่มีโพสต์</p>
+                  <p className="empty-subtitle">
+                    {isOwnProfile ? 'เริ่มสร้างโพสต์แรกของคุณกันเถอะ!' : 'ผู้ใช้ยังไม่มีโพสต์'}
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -331,7 +427,12 @@ const ProfilePage = () => {
                       <div key={index} className="review-bar-row">
                         <div className="review-stars">{renderStars(5 - index)}</div>
                         <div className="review-bar-container">
-                          <div className="review-bar-fill" style={{ width: `${reviewStats.total > 0 ? (count / reviewsList.length) * 100 : 0}%`, backgroundColor: count > 0 ? '#4caf50' : '#f0f0f0' }} />
+                          <div 
+                            className="review-bar-fill" 
+                            style={{ 
+                              width: `${reviewStats.total > 0 ? (count / reviewsList.length) * 100 : 0}%`
+                            }} 
+                          />
                         </div>
                         <div className="review-count">{count}</div>
                       </div>
@@ -339,7 +440,7 @@ const ProfilePage = () => {
                   </div>
                 </>
               ) : (
-                <div style={{ textAlign: 'center', padding: '20px', color: '#888' }}>ยังไม่มีการให้คะแนน</div>
+                <div className="empty-state-small">ยังไม่มีการให้คะแนน</div>
               )}
             </div>
 
@@ -350,17 +451,23 @@ const ProfilePage = () => {
                   reviewsList.map((review) => (
                     <div key={review.id} className="comment-item">
                       <Link to={`/profile/${review.reviewerId}`}>
-                        <div className="comment-avatar"><img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Reviewer" className="avatar-img" /></div>
+                        <div className="comment-avatar">
+                          <img 
+                            src="https://cdn-icons-png.flaticon.com/512/149/149071.png" 
+                            alt="Reviewer" 
+                            className="avatar-img" 
+                          />
+                        </div>
                       </Link>
-                      <div style={{flex:1}}>
-                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                          <p className="comment-text" style={{fontWeight:'bold', fontSize:'0.85rem', margin: 0}}>
-                            <Link to={`/profile/${review.reviewerId}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                      <div className="comment-content">
+                        <div className="comment-header">
+                          <p className="comment-author">
+                            <Link to={`/profile/${review.reviewerId}`} className="comment-author-link">
                               เพื่อนร่วมทริป
                             </Link>
                           </p>
                           {review.createdAt && (
-                            <span style={{fontSize: '0.75rem', color: '#999'}}>
+                            <span className="comment-date">
                               {new Date(review.createdAt.seconds * 1000).toLocaleDateString('th-TH', {
                                 year: 'numeric',
                                 month: 'short',
@@ -370,12 +477,12 @@ const ProfilePage = () => {
                           )}
                         </div>
                         <p className="comment-text">{review.comment || "ไม่มีคำอธิบาย"}</p>
-                        <div style={{fontSize:'0.8rem', color:'#FFD700'}}>{renderStars(review.rating || 0)}</div>
+                        <div className="comment-stars">{renderStars(review.rating || 0)}</div>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div style={{ textAlign: 'center', padding: '20px', color: '#888' }}>ยังไม่มีคอมเมนต์</div>
+                  <div className="empty-state-small">ยังไม่มีคอมเมนต์</div>
                 )}
               </div>
             </div>

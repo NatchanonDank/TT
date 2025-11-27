@@ -2,15 +2,15 @@ import React from 'react';
 import ChatHeader from './ChatHeader';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
+import './ChatWindow.css';
 
 const ChatWindow = ({ 
   chat, 
   messageInput,
   isTripEnded,
-  isOptionsOpen,
   onBack,
-  onToggleOptions,
   onEndTrip,
+  onLeaveGroup, // ✅ เพิ่ม prop ใหม่
   onInputChange,
   onSendMessage,
   onOpenLocationModal,
@@ -22,9 +22,8 @@ const ChatWindow = ({
       <ChatHeader
         chat={chat}
         onBack={onBack}
-        isOptionsOpen={isOptionsOpen}
-        onToggleOptions={onToggleOptions}
         onEndTrip={onEndTrip}
+        onLeaveGroup={onLeaveGroup} // ✅ ส่งต่อไปที่ ChatHeader
         isTripEnded={isTripEnded}
         currentUser={currentUser}
       />

@@ -6,6 +6,7 @@ const ChatHeader = ({
   chat, 
   onBack, 
   onEndTrip,
+  onLeaveGroup, // ✅ เพิ่ม prop ใหม่
   isTripEnded,
   currentUser
 }) => {
@@ -27,6 +28,14 @@ const ChatHeader = ({
     setIsMembersModalOpen(false);
   };
 
+  // ✅ ฟังก์ชันออกจากกลุ่ม
+  const handleLeaveGroup = () => {
+    setIsOptionsOpen(false);
+    if (window.confirm('คุณต้องการออกจากกลุ่มนี้ใช่หรือไม่?')) {
+      onLeaveGroup();
+    }
+  };
+
   return (
     <>
       <div className="chat-header">
@@ -44,12 +53,13 @@ const ChatHeader = ({
           </p>
         </div>
         
-        {/* ✅ แสดงปุ่ม options เฉพาะ Leader */}
-        {isLeader && (
-          <div className="chat-options">
-            <button onClick={handleToggleOptions}>⋮</button>
-            {isOptionsOpen && (
-              <div className="options-dropdown">
+        {/* ✅ แสดงปุ่ม options ให้ทุกคน (Leader + สมาชิก) */}
+        <div className="chat-options">
+          <button onClick={handleToggleOptions}>⋮</button>
+          {isOptionsOpen && (
+            <div className="options-dropdown">
+              {isLeader ? (
+                // ✅ เมนูสำหรับ Leader
                 <button 
                   onClick={() => {
                     setIsOptionsOpen(false);
@@ -61,15 +71,23 @@ const ChatHeader = ({
                   }} 
                   className="end-trip-btn"
                 >
-                  สิ้นสุดทริป
+                  🏁 สิ้นสุดทริป
                 </button>
-              </div>
-            )}
-          </div>
-        )}
+              ) : (
+                // ✅ เมนูสำหรับสมาชิกธรรมดา
+                <button 
+                  onClick={handleLeaveGroup}
+                  className="leave-group-btn"
+                >
+                  ออกจากกลุ่ม
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* ✅ Members Modal */}
+      {/* Members Modal */}
       {isMembersModalOpen && (
         <div className="members-modal-overlay" onClick={handleCloseMembersModal}>
           <div className="members-modal-content" onClick={(e) => e.stopPropagation()}>

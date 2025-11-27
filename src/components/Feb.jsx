@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Users, Loader, Calendar, Tag } from 'lucide-react'; 
+import { X, Plus, Users, Loader, Calendar, Tag, MapPin } from 'lucide-react'; 
 import './Feb.css';
 
 const Feb = ({ isOpen, onClose, onSubmit, post }) => {
   const [tripTitle, setTripTitle] = useState('');
+  const [destination, setDestination] = useState(''); // ✨ เพิ่ม state สำหรับสถานที่
   const [postText, setPostText] = useState('');
   const [images, setImages] = useState([]); 
   const [maxMembers, setMaxMembers] = useState(10);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [category, setCategory] = useState(''); // ✨ เพิ่ม state สำหรับหมวดหมู่
+  const [category, setCategory] = useState('');
   const [isPosting, setIsPosting] = useState(false);
 
   // ✨ รายการหมวดหมู่การท่องเที่ยว
@@ -61,22 +62,24 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
     if (isOpen) {
       if (post) { 
         setTripTitle(post.title || '');
+        setDestination(post.destination || ''); // ✨ โหลดสถานที่จากโพสต์
         setPostText(post.content || '');
         setMaxMembers(post.maxMembers || 10);
         setStartDate(post.startDate || '');
         setEndDate(post.endDate || '');
-        setCategory(post.category || ''); // ✨ โหลดหมวดหมู่จากโพสต์
+        setCategory(post.category || '');
         if (post.images) {
           setImages(post.images.map(url => ({ id: url, preview: url, file: null })));
         }
       } else { 
         setTripTitle('');
+        setDestination(''); // ✨ รีเซ็ตสถานที่
         setPostText('');
         setImages([]);
         setMaxMembers(10);
         setStartDate('');
         setEndDate('');
-        setCategory(''); // ✨ รีเซ็ตหมวดหมู่
+        setCategory('');
       }
     }
   }, [post, isOpen]);
@@ -145,20 +148,24 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
   };
 
   const handleSubmit = async () => {
-    // ✨ ตรวจสอบว่าต้องมีรูปภาพอย่างน้อย 1 รูป
-    if (images.length === 0) {
-      alert('กรุณาเพิ่มรูปภาพอย่างน้อย 1 รูป');
+    // ✨ ตรวจสอบฟิลด์บังคับ
+    if (!tripTitle.trim()) {
+      alert('กรุณากรอกชื่อทริป');
       return;
     }
 
-    if (!tripTitle.trim() && !postText.trim()) {
-      alert('กรุณากรอกชื่อทริปหรือรายละเอียด');
+    if (!destination.trim()) {
+      alert('กรุณาระบุสถานที่ที่จะไป');
       return;
     }
 
-    // ✨ ตรวจสอบว่าต้องเลือกหมวดหมู่
     if (!category) {
       alert('กรุณาเลือกหมวดหมู่การท่องเที่ยว');
+      return;
+    }
+
+    if (images.length === 0) {
+      alert('กรุณาเพิ่มรูปภาพอย่างน้อย 1 รูป');
       return;
     }
 
@@ -197,12 +204,13 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
 
     await onSubmit({
       title: tripTitle,
+      destination: destination, // ✨ ส่งสถานที่ไปด้วย
       content: postText,
       images: imageUrls, 
       maxMembers: maxMembers,
       startDate: startDate,
       endDate: endDate,
-      category: category, // ✨ ส่งหมวดหมู่ไปด้วย
+      category: category,
     });
     
     setIsPosting(false);
@@ -216,20 +224,50 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
       <div className="post-modal-content" onClick={(e) => e.stopPropagation()}>
         <h2>{post ? 'แก้ไขโพสต์' : 'สร้างโพสต์ใหม่'}</h2>
         
-        <input
-          type="text"
-          className="post-input-topic"
-          placeholder="ชื่อทริป"
-          value={tripTitle}
-          onChange={(e) => setTripTitle(e.target.value)}
-        />
+        {/* ✨ ชื่อทริป */}
+        <div className="input-group">
+          <label className="input-label">
+            <span>ชื่อทริป</span>
+            <span className="required-mark">*</span>
+          </label>
+          <input
+            type="text"
+            className="post-input-topic"
+            placeholder="ชื่อทริป"
+            value={tripTitle}
+            onChange={(e) => setTripTitle(e.target.value)}
+          />
+        </div>
+        {/* รายละเอียดเพิ่มเติม */}
+        <div className="input-group">
+          <label className="input-label">
+            <span>รายละเอียดเพิ่มเติม</span>
+          </label>
+          <textarea
+            className="post-textarea"
+            placeholder="เขียนรายละเอียดทริป กิจกรรม หรือข้อมูลเพิ่มเติม..."
+            value={postText}
+            onChange={(e) => setPostText(e.target.value)}
+          />
+        </div>
+
+
+        {/* ✨ สถานที่ */}
+        <div className="input-group">
+          <label className="input-label">
+            <MapPin size={20} />
+            <span>สถานที่ที่จะไป</span>
+            <span className="required-mark">*</span>
+          </label>
+          <input
+            type="text"
+            className="post-input-destination"
+            placeholder="เช่น เกาะสมุย, จังหวัดสุราษฎร์ธานี"
+            value={destination}
+            onChange={(e) => setDestination(e.target.value)}
+          />
+        </div>
         
-        <textarea
-          className="post-textarea"
-          placeholder="เขียนอธิบายเพิ่มเติม"
-          value={postText}
-          onChange={(e) => setPostText(e.target.value)}
-        />
 
         {/* ✨ Category Selection Section */}
         <div className="category-section">
@@ -257,6 +295,7 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
           <label className="trip-dates-label">
             <Calendar size={20} />
             <span>วันที่เดินทาง</span>
+            <span className="required-mark">*</span>
           </label>
           
           <div className="trip-dates-inputs">
@@ -303,8 +342,8 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
             <button 
               type="button"
               className="member-btn"
-              onClick={() => maxMembers > 1 && setMaxMembers(maxMembers - 1)}
-              disabled={maxMembers <= 1}
+              onClick={() => maxMembers > 3 && setMaxMembers(maxMembers - 1)}
+              disabled={maxMembers <= 3}
             >
               −
             </button>
@@ -313,7 +352,7 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
               className="max-members-input"
               value={maxMembers}
               onChange={handleMaxMembersChange}
-              min="2"
+              min="3"
               max="10"
             />
             <button 
@@ -328,20 +367,13 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
           <p className="max-members-hint">กำหนดได้ 3-10 คน</p>
         </div>
 
-        {/* ✨ แสดงข้อความแจ้งเตือนถ้ายังไม่มีรูป */}
-        {images.length === 0 && (
-          <div style={{
-            padding: '12px',
-            background: '#fff3cd',
-            border: '1px solid #ffc107',
-            borderRadius: '8px',
-            marginBottom: '12px',
-            textAlign: 'center',
-            color: '#856404',
-            fontSize: '14px',
-            fontWeight: '500'
-          }}>
-            ⚠️ กรุณาเพิ่มรูปภาพอย่างน้อย 1 รูป
+        {/* ✨ แสดงข้อความแจ้งเตือนฟิลด์ที่ขาด */}
+        {(!tripTitle.trim() || !destination.trim() || !category || images.length === 0) && (
+          <div className="validation-alerts">
+
+            {images.length === 0 && (
+              <div className="alert-item">⚠️ กรุณาเพิ่มรูปภาพอย่างน้อย 1 รูป</div>
+            )}
           </div>
         )}
 
@@ -361,7 +393,7 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
         <div className="post-actions">
           <label className="post-upload-btn">
             <Plus size={18} />
-            เพิ่มรูปภาพ (จำเป็น)
+            เพิ่มรูปภาพ <span className="required-mark">*</span>
             <input 
               type="file" 
               accept="image/*" 
@@ -377,7 +409,13 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
             <button
               className="post-submit-btn"
               onClick={handleSubmit}
-              disabled={isPosting || images.length > 10 || images.length === 0 || !category}
+              disabled={
+                isPosting || 
+                images.length === 0 || 
+                !tripTitle.trim() || 
+                !destination.trim() || 
+                !category
+              }
             >
               {isPosting ? 'กำลังบันทึก...' : (post ? 'บันทึก' : 'โพสต์')}
             </button>
@@ -385,7 +423,13 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
         </div>
         
         {isPosting && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '10px', color: '#555' }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            marginTop: '10px', 
+            color: '#555' 
+          }}>
             <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />
             <span style={{ marginLeft: '8px' }}>กำลังบันทึกข้อมูล...</span>
           </div>

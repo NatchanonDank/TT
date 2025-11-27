@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from "../../components/Navbar";
 import GroupList from './components/GroupList';
 import ChatWindow from './components/ChatWindow';
-import LocationModal from './components/LocationModal';
+import LocationModal from './components/LocationModel';
 import './Chat.css';
 
 import { auth, db } from '../../firebase';
@@ -20,7 +20,8 @@ import {
   updateDoc,
   getDoc,
   writeBatch,
-  getDocs
+  getDocs,
+  arrayRemove // ✅ เพิ่ม import
 } from 'firebase/firestore';
 
 import { useNotifications } from '../../components/NotificationContext';
@@ -41,6 +42,16 @@ const Chat = () => {
   const [messages, setMessages] = useState([]); 
 
   const { notifications } = useNotifications();
+
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 900);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth <= 900);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -111,11 +122,9 @@ const Chat = () => {
   }, [groupId, currentUser, groups, activeChat]);
 
   useEffect(() => {
-
     if (!activeChat?.id || !currentUser?.uid || !notifications) return;
 
     const markChatNotificationsAsRead = async () => {
-      
       const unreadNotifsForThisChat = notifications.filter(n =>
         n.groupId === activeChat.id &&
         n.type === 'chat_message' &&
@@ -123,18 +132,15 @@ const Chat = () => {
         n.toUid === currentUser.uid 
       );
 
-
       if (unreadNotifsForThisChat.length === 0) return; 
 
       try {
-
         const batch = writeBatch(db);
         unreadNotifsForThisChat.forEach(notif => {
           const notifRef = doc(db, 'notifications', notif.id);
           batch.update(notifRef, { read: true });
         });
         await batch.commit();
-
       } catch (error) {
         console.error("Error marking chat notifications as read:", error);
       }
@@ -269,6 +275,47 @@ const Chat = () => {
     }
   };
 
+  // ✅ เพิ่มฟังก์ชันออกจากกลุ่ม
+  const handleLeaveGroup = async () => {
+    if (!activeChat?.id || !currentUser?.uid) return;
+
+    // ป้องกันไม่ให้ Leader ออกจากกลุ่ม
+    if (activeChat.ownerId === currentUser.uid) {
+      alert('หัวหน้าทริปไม่สามารถออกจากกลุ่มได้ กรุณาสิ้นสุดทริปแทน');
+      return;
+    }
+
+    try {
+      const groupRef = doc(db, 'groups', activeChat.id);
+
+      // หาข้อมูลสมาชิกที่ต้องการออก
+      const memberToRemove = activeChat.members.find(m => m.uid === currentUser.uid);
+      
+      if (!memberToRemove) {
+        alert('ไม่พบข้อมูลสมาชิก');
+        return;
+      }
+
+      // ลบสมาชิกออกจากกลุ่ม
+      await updateDoc(groupRef, {
+        members: arrayRemove(memberToRemove),
+        memberUids: arrayRemove(currentUser.uid),
+        currentMembers: (activeChat.currentMembers || 1) - 1
+      });
+
+      alert('ออกจากกลุ่มสำเร็จ');
+      
+      // กลับไปหน้ารายชื่อกลุ่ม
+      setActiveChat(null);
+      setMessages([]);
+      navigate('/chat');
+
+    } catch (error) {
+      console.error('Error leaving group:', error);
+      alert('เกิดข้อผิดพลาดในการออกจากกลุ่ม');
+    }
+  };
+
   const handleEndTrip = async () => {
     if (!activeChat?.id) return;
 
@@ -315,33 +362,48 @@ const Chat = () => {
 
   return (
     <div className="chat">
-      {!activeChat && <Navbar brand="TripTogether" />}
+      {(!isMobileView || !activeChat) && <Navbar brand="TripTogether" />}
 
-      <div className="chat-sidebar-wrapper">
-        {!activeChat ? (
+      <div className={`chat-container ${!isMobileView ? 'split-view' : ''}`}>
+        
+        <div className={`groups-sidebar ${activeChat && isMobileView ? 'hidden' : ''}`}>
           <GroupList
             groups={filteredGroups}
             searchTerm={groupSearch}
             onSearchChange={setGroupSearch}
             onChatClick={handleChatClick}
             currentUser={currentUser}
+            activeGroupId={activeChat?.id}
           />
+        </div>
+
+        {activeChat ? (
+          <div className="chat-main">
+            <ChatWindow
+              chat={{...activeChat, messages: messages}}
+              messageInput={messageInput}
+              isTripEnded={isTripEnded}
+              
+              onBack={handleBackToList}
+              onEndTrip={handleEndTrip}
+              onLeaveGroup={handleLeaveGroup} // ✅ เพิ่ม prop
+              
+              onInputChange={setMessageInput}
+              onSendMessage={handleSendMessage}
+              
+              onOpenLocationModal={() => setIsLocationModalOpen(true)}
+              
+              currentUser={currentUser}
+            />
+          </div>
         ) : (
-          <ChatWindow
-            chat={{...activeChat, messages: messages}}
-            messageInput={messageInput}
-            isTripEnded={isTripEnded}
-            
-            onBack={handleBackToList}
-            onEndTrip={handleEndTrip}
-            
-            onInputChange={setMessageInput}
-            onSendMessage={handleSendMessage}
-            
-            onOpenLocationModal={() => setIsLocationModalOpen(true)}
-            
-            currentUser={currentUser}
-          />
+          !isMobileView && (
+            <div className="chat-empty-state">
+              <div className="empty-icon">💬</div>
+              <h3>เลือกกลุ่มเพื่อเริ่มสนทนา</h3>
+              <p>เลือกกลุ่มจากรายการด้านซ้ายเพื่อดูข้อความ</p>
+            </div>
+          )
         )}
       </div>
 

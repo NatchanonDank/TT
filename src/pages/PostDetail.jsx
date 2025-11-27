@@ -32,8 +32,8 @@ const PostDetail = ({ currentUser }) => {
           const postData = { id: postSnap.id, ...postSnap.data() };
           setPost(postData);
           
-          // Check if liked
-          if (postData.likes?.includes(currentUser?.uid)) {
+          // Check if liked - ตรวจสอบ currentUser ก่อน
+          if (currentUser && postData.likes?.includes(currentUser.uid)) {
             setLikedPosts(new Set([postId]));
           }
         } else {
@@ -47,7 +47,7 @@ const PostDetail = ({ currentUser }) => {
       }
     };
 
-    if (postId && currentUser) {
+    if (postId) {
       fetchPost();
     }
   }, [postId, currentUser]);

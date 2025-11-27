@@ -1,513 +1,597 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
-import Feb from './Feb'; 
-import PostCard from './PostCard';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { auth, db } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, query, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import Navbar from '../components/Navbar';
+import PostCard from '../components/PostCard';
+import Feb from '../components/Feb';
 import './Post.css';
-import { db } from '../firebase';
-import { 
-  collection, 
-  addDoc, 
-  deleteDoc,
-  doc, 
-  setDoc, 
-  updateDoc, 
-  arrayUnion, 
-  arrayRemove,
-  query, 
-  where, 
-  orderBy, 
-  onSnapshot, 
-  serverTimestamp,
-  getDoc
-} from 'firebase/firestore';
 
-const Post = ({ currentUser, searchTerm = '', filterByOwner = false, ownerId = null }) => {
+const Post = () => {
   const navigate = useNavigate();
-
-  const [posts, setPosts] = useState([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchQuery = searchParams.get('search') || '';
+  
+  const [currentUser, setCurrentUser] = useState(null);
+  const [allPosts, setAllPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState(searchQuery);
+  
+  // States for PostCard
   const [likedPosts, setLikedPosts] = useState(new Set());
   const [showComments, setShowComments] = useState(new Set());
-  const [showDropdown, setShowDropdown] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
-  const [loading, setLoading] = useState(true);
 
+  // Auth State
   useEffect(() => {
-   
-    if (filterByOwner && !ownerId) {
-     
-      return; 
-    }
-    setLoading(true);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          let userData = {
+            uid: user.uid,
+            name: user.displayName || 'User',
+            avatar: user.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
+          };
 
-    const postsRef = collection(db, 'posts');
-    let q;
-
-    if (filterByOwner && ownerId) {
-      q = query(
-        postsRef, 
-        where('uid', '==', ownerId), 
-        orderBy('createdAt', 'desc')
-      );
-    } else {
-      q = query(postsRef, orderBy('createdAt', 'desc'));
-    }
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const loadedPosts = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setPosts(loadedPosts);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching posts:", error);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [filterByOwner, ownerId, currentUser]); 
-
-  const handleOpenCreateModal = () => {
-    if (!currentUser) { 
-       alert("กรุณาเข้าสู่ระบบก่อนสร้างโพสต์");
-       navigate('/login');
-       return;
-    }
-    setEditingPost(null);
-    setIsModalOpen(true);
-  };
-
-  const handleOpenEditModal = (post) => {
-    setEditingPost(post);
-    setIsModalOpen(true);
-  };
-
-  
-  const createPost = async (postData) => {
-    if (!currentUser) return;
-
-  
-    try {
-      const docRef = await addDoc(collection(db, 'posts'), {
-        ...postData, 
-        uid: currentUser.uid,
-        author: {
-           name: currentUser.name,
-           avatar: currentUser.avatar,
-           uid: currentUser.uid
-        },
-        likes: [],
-        comments: [],
-        joinRequests: [],
-        members: [
-           { name: currentUser.name, avatar: currentUser.avatar, uid: currentUser.uid }
-        ],
-        currentMembers: 1,
-        createdAt: serverTimestamp(),
-        timestamp: new Date().toLocaleString('th-TH')
-      });
-      
-      const postId = docRef.id;
-
-     
-      const groupRef = doc(db, 'groups', postId);
-      await setDoc(groupRef, {
-          id: postId,
-          name: postData.title, 
-          avatar: postData.images && postData.images.length > 0 ? postData.images[0] : currentUser.avatar, // ✅ ใช้ Base64 รูปแรก
-          description: `กลุ่มแชทสำหรับทริป: ${postData.title}`,
-          maxMembers: parseInt(postData.maxMembers) || 10,
-          currentMembers: 1,
-          status: 'active',
-          ownerId: currentUser.uid,
-          memberUids: [currentUser.uid],
-          members: [{ name: currentUser.name, avatar: currentUser.avatar, uid: currentUser.uid }]
-      });
-
-      await updateDoc(docRef, { chatGroupId: postId });
-      
-      setIsModalOpen(false);
-      
-    } catch (error) {
-      console.error("Error creating post/group:", error);
-      alert("สร้างโพสต์ไม่สำเร็จ: " + error.message);
-    }
-  };
-
-
-  const updatePost = async (updatedData) => {
-    if (!editingPost) return;
-    try {
-      const postRef = doc(db, 'posts', editingPost.id);
-      
-
-      await updateDoc(postRef, {
-        title: updatedData.title,
-        content: updatedData.content,
-        images: updatedData.images,
-        maxMembers: Math.max(
-           editingPost.currentMembers, 
-           Math.min(updatedData.maxMembers || editingPost.maxMembers, 50)
-        )
-      });
-      setIsModalOpen(false);
-      setEditingPost(null);
-    } catch (error) {
-      console.error("Error updating post:", error);
-    }
-  };
-
-  const deletePost = async (postId) => {
-    if (window.confirm("ยืนยันการลบโพสต์?")) {
-      try {
-        await deleteDoc(doc(db, 'posts', postId));
-        await deleteDoc(doc(db, 'groups', postId));
-     
-      } catch (error) {
-        console.error("Error deleting post:", error);
-        alert("เกิดข้อผิดพลาดในการลบ: " + error.message);
-      }
-    }
-  };
-
-  const toggleLike = async (postId) => {
-    if (!currentUser) { alert("กรุณาเข้าสู่ระบบ"); return; }
-    
-    const post = posts.find(p => p.id === postId);
-    if (!post) return;
-
-    const postRef = doc(db, 'posts', postId);
-    const isLiked = post.likes?.includes(currentUser.uid);
-
-    try {
-      if (isLiked) {
-        await updateDoc(postRef, { likes: arrayRemove(currentUser.uid) });
-      } else {
-        await updateDoc(postRef, { likes: arrayUnion(currentUser.uid) });
-        
-        if (post.uid !== currentUser.uid) {
-           await addDoc(collection(db, 'notifications'), {
-              toUid: post.uid, 
-              type: 'like',
-              message: `ถูกใจโพสต์ของคุณ "${post.title ? post.title.substring(0, 20) : 'รูปภาพ'}"`,
-              fromName: currentUser.name,
-              fromAvatar: currentUser.avatar,
-              fromUid: currentUser.uid, 
-              postId: postId,
-              read: false,
-              createdAt: serverTimestamp()
-           });
+          if (userDoc.exists()) {
+            const firestoreData = userDoc.data();
+            if (firestoreData.avatar) userData.avatar = firestoreData.avatar;
+            if (firestoreData.name) userData.name = firestoreData.name;
+          }
+          
+          setCurrentUser(userData);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          setCurrentUser({
+            uid: user.uid,
+            name: user.displayName || 'User',
+            avatar: user.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
+          });
         }
+      } else {
+        navigate('/login');
       }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
+
+  // Fetch All Posts
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const postsQuery = query(collection(db, 'posts'));
+        const querySnapshot = await getDocs(postsQuery);
+        const posts = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        // เรียงตามเวลาล่าสุด
+        posts.sort((a, b) => {
+          const timeA = a.createdAt?.toMillis() || 0;
+          const timeB = b.createdAt?.toMillis() || 0;
+          return timeB - timeA;
+        });
+        
+        setAllPosts(posts);
+        
+        // Set liked posts
+        const liked = new Set();
+        posts.forEach(post => {
+          if (post.likes?.includes(currentUser?.uid)) {
+            liked.add(post.id);
+          }
+        });
+        setLikedPosts(liked);
+        
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+        setLoading(false);
+      }
+    };
+
+    if (currentUser) {
+      fetchPosts();
+    }
+  }, [currentUser]);
+
+  // Update search input when URL changes
+  useEffect(() => {
+    setSearchInput(searchQuery);
+  }, [searchQuery]);
+
+  // ✨ Filter Posts - ปรับปรุงให้แม่นยำ (กรองตาม category + เนื้อหา)
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredPosts(allPosts);
+    } else {
+      const query = searchQuery.toLowerCase().trim();
+      
+      const postsWithScore = allPosts.map(post => {
+        let relevanceScore = 0;
+        let matchType = '';
+        
+        // Title match
+        const title = post.title?.toLowerCase() || '';
+        if (title === query) {
+          relevanceScore += 1000;
+          matchType = 'title-exact';
+        } else if (title.includes(query)) {
+          relevanceScore += 500;
+          matchType = 'title-partial';
+        } else if (title.split(' ').some(word => word.includes(query))) {
+          relevanceScore += 250;
+          matchType = 'title-word';
+        }
+        
+        // Destination match
+        const destination = post.destination?.toLowerCase() || '';
+        if (destination === query) {
+          relevanceScore += 400;
+          if (!matchType) matchType = 'destination-exact';
+        } else if (destination.includes(query)) {
+          relevanceScore += 200;
+          if (!matchType) matchType = 'destination-partial';
+        }
+        
+        // Description/Content match
+        const description = post.description?.toLowerCase() || '';
+        const content = post.content?.toLowerCase() || '';
+        const text = post.text?.toLowerCase() || '';
+        
+        if (description.includes(query)) {
+          relevanceScore += 100;
+          if (!matchType) matchType = 'description';
+        }
+        if (content.includes(query)) {
+          relevanceScore += 80;
+          if (!matchType) matchType = 'content';
+        }
+        if (text.includes(query)) {
+          relevanceScore += 80;
+          if (!matchType) matchType = 'text';
+        }
+        
+        // ✨ Category match - ต้องมีเนื้อหาตรงด้วย
+        const category = post.category?.toLowerCase() || '';
+        const hasContentMatch = (
+          title.includes(query) || 
+          destination.includes(query) || 
+          description.includes(query) || 
+          content.includes(query) || 
+          text.includes(query)
+        );
+        
+        if (category.includes(query)) {
+          if (hasContentMatch) {
+            relevanceScore += 30;
+            if (!matchType) matchType = 'category-with-content';
+          } else {
+            // มี category ตรง แต่เนื้อหาไม่ตรง → ไม่ให้คะแนน
+            relevanceScore = 0;
+          }
+        }
+        
+        // โบนัสคะแนน
+        const matchCount = [
+          title.includes(query),
+          destination.includes(query),
+          description.includes(query),
+          content.includes(query),
+          text.includes(query)
+        ].filter(Boolean).length;
+        
+        if (matchCount > 1) {
+          relevanceScore += matchCount * 10;
+        }
+        
+        const popularityBonus = (post.likes?.length || 0) + (post.members?.length || 0) * 2;
+        relevanceScore += Math.min(popularityBonus, 30);
+        
+        return {
+          ...post,
+          relevanceScore,
+          matchType
+        };
+      });
+      
+      const filtered = postsWithScore
+        .filter(post => post.relevanceScore > 0)
+        .sort((a, b) => {
+          if (b.relevanceScore !== a.relevanceScore) {
+            return b.relevanceScore - a.relevanceScore;
+          }
+          const timeA = a.createdAt?.toMillis() || 0;
+          const timeB = b.createdAt?.toMillis() || 0;
+          return timeB - timeA;
+        });
+      
+      setFilteredPosts(filtered);
+    }
+  }, [searchQuery, allPosts]);
+
+  // Toggle Like
+  const toggleLike = async (postId) => {
+    if (!currentUser) return;
+    
+    const postRef = doc(db, 'posts', postId);
+    const isCurrentlyLiked = likedPosts.has(postId);
+    
+    try {
+      if (isCurrentlyLiked) {
+        await updateDoc(postRef, {
+          likes: arrayRemove(currentUser.uid)
+        });
+        setLikedPosts(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(postId);
+          return newSet;
+        });
+      } else {
+        await updateDoc(postRef, {
+          likes: arrayUnion(currentUser.uid)
+        });
+        setLikedPosts(prev => new Set(prev).add(postId));
+      }
+      
+      setAllPosts(prev => prev.map(post => 
+        post.id === postId 
+          ? {
+              ...post,
+              likes: isCurrentlyLiked 
+                ? post.likes.filter(uid => uid !== currentUser.uid)
+                : [...(post.likes || []), currentUser.uid]
+            }
+          : post
+      ));
+      
     } catch (error) {
-      console.error("Like error:", error);
+      console.error("Error toggling like:", error);
     }
   };
 
-  const toggleComments = (id) => {
+  // Toggle Comments
+  const toggleComments = (postId) => {
     setShowComments(prev => {
       const newSet = new Set(prev);
-      newSet.has(id) ? newSet.delete(id) : newSet.add(id);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
       return newSet;
     });
   };
 
-  const handleCommentInput = (id, value) => {
-    setCommentInputs(prev => ({ ...prev, [id]: value }));
+  // Handle Comment Input
+  const handleCommentInput = (postId, value) => {
+    setCommentInputs(prev => ({ ...prev, [postId]: value }));
   };
 
+  // Add Comment
   const addComment = async (postId) => {
-    const text = commentInputs[postId];
-    if (!text?.trim() || !currentUser) { alert("กรุณาเข้าสู่ระบบ หรือ พิมพ์ข้อความ"); return; }
-
-    const post = posts.find(p => p.id === postId); 
-
+    if (!currentUser || !commentInputs[postId]?.trim()) return;
+    
+    const postRef = doc(db, 'posts', postId);
+    const newComment = {
+      uid: currentUser.uid,
+      author: currentUser.name,
+      avatar: currentUser.avatar,
+      text: commentInputs[postId].trim(),
+      timestamp: new Date().toISOString()
+    };
+    
     try {
-      const postRef = doc(db, 'posts', postId);
-      const newComment = {
-        id: Date.now(),
-        uid: currentUser.uid, 
-        author: currentUser.name,
-        avatar: currentUser.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-        text: text,
-        timestamp: new Date().toLocaleString('th-TH')
-      };
-
       await updateDoc(postRef, {
         comments: arrayUnion(newComment)
       });
-
-      if (post && post.uid !== currentUser.uid) {
-          await addDoc(collection(db, 'notifications'), {
-              toUid: post.uid,
-              type: 'comment',
-              message: `แสดงความคิดเห็น: "${text.substring(0, 30)}..."`,
-              fromName: currentUser.name,
-              fromAvatar: currentUser.avatar,
-              fromUid: currentUser.uid, 
-              postId: postId,
-              read: false,
-              createdAt: serverTimestamp()
-          });
-      }
-
+      
+      setAllPosts(prev => prev.map(post => 
+        post.id === postId 
+          ? { ...post, comments: [...(post.comments || []), newComment] }
+          : post
+      ));
+      
       setCommentInputs(prev => ({ ...prev, [postId]: '' }));
     } catch (error) {
-      console.error("Comment error:", error);
+      console.error("Error adding comment:", error);
     }
   };
 
+  // Join Chat Request
   const handleJoinChat = async (postId) => {
-    if (!currentUser) { alert("กรุณาเข้าสู่ระบบ"); return; }
-    const post = posts.find(p => p.id === postId);
-    if (!post) return;
-
-    const roomId = post.chatGroupId || postId; 
-
-    const isMember = post.members?.some(m => m.uid === currentUser.uid);
-    if (post.uid === currentUser.uid || isMember) {
-        navigate(`/chat/${roomId}`); 
-        return;
-    }
-
-    if (post.currentMembers >= post.maxMembers) {
-        alert('กลุ่มเต็มแล้วครับ');
-        return;
-    }
-
-    const hasRequested = post.joinRequests?.some(req => req.uid === currentUser.uid);
-    if (hasRequested) {
-        alert('คุณได้ส่งคำขอไปแล้ว รอการอนุมัติครับ');
-        return;
-    }
-
+    if (!currentUser) return;
+    
+    const postRef = doc(db, 'posts', postId);
+    const joinRequest = {
+      uid: currentUser.uid,
+      name: currentUser.name,
+      avatar: currentUser.avatar,
+      requestedAt: new Date().toISOString()
+    };
+    
     try {
-       const postRef = doc(db, 'posts', postId);
-       await updateDoc(postRef, {
-          joinRequests: arrayUnion({
-             uid: currentUser.uid,
-             name: currentUser.name,
-             avatar: currentUser.avatar,
-             requestedAt: new Date().toISOString()
-          })
-       });
-
-       await addDoc(collection(db, 'notifications'), {
-          toUid: post.uid, 
-          type: 'join_request',
-          message: `ขอเข้าร่วมทริป "${post.title || 'ของคุณ'}"`,
-          fromName: currentUser.name,
-          fromAvatar: currentUser.avatar,
-          fromUid: currentUser.uid, 
-          postId: postId,
-          read: false,
-          createdAt: serverTimestamp()
-       });
-
-       alert('ส่งคำขอเข้าร่วมสำเร็จ!');
+      await updateDoc(postRef, {
+        joinRequests: arrayUnion(joinRequest)
+      });
+      
+      setAllPosts(prev => prev.map(post => 
+        post.id === postId 
+          ? { ...post, joinRequests: [...(post.joinRequests || []), joinRequest] }
+          : post
+      ));
+      
+      alert('ส่งคำขอเข้าร่วมกลุ่มเรียบร้อย!');
     } catch (error) {
-       console.error("Join request error:", error);
+      console.error("Error sending join request:", error);
+      alert('เกิดข้อผิดพลาด: ' + error.message);
     }
   };
 
-  const approveJoinRequest = async (postId, requestUser) => {
-     if (!currentUser || !requestUser?.uid) return;
-     
-     try {
-        const postRef = doc(db, 'posts', postId);
-        const postSnap = await getDoc(postRef);
-        if (!postSnap.exists()) return;
-        const postData = postSnap.data();
-        const groupId = postData.chatGroupId || postId;
-        const groupRef = doc(db, 'groups', groupId);
-
-        const memberToAdd = {
-            uid: requestUser.uid,
-            name: requestUser.name || 'Member',
-            avatar: requestUser.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
-        };
-
-        const updatedRequests = (postData.joinRequests || []).filter(req => req.uid !== requestUser.uid);
-        const currentMembers = postData.members || [];
-        let updatedMembers = [...currentMembers];
-        if (!currentMembers.some(m => m.uid === requestUser.uid)) {
-            updatedMembers.push(memberToAdd);
+  // Approve Join Request
+  const approveJoinRequest = async (postId, request) => {
+    const postRef = doc(db, 'posts', postId);
+    
+    try {
+      await updateDoc(postRef, {
+        joinRequests: arrayRemove(request),
+        members: arrayUnion({
+          uid: request.uid,
+          name: request.name,
+          avatar: request.avatar
+        }),
+        currentMembers: (allPosts.find(p => p.id === postId)?.currentMembers || 0) + 1
+      });
+      
+      setAllPosts(prev => prev.map(post => {
+        if (post.id === postId) {
+          return {
+            ...post,
+            joinRequests: post.joinRequests.filter(r => r.uid !== request.uid),
+            members: [...(post.members || []), request],
+            currentMembers: (post.currentMembers || 0) + 1
+          };
         }
-
-        await updateDoc(postRef, {
-           joinRequests: updatedRequests,
-           members: updatedMembers,
-           currentMembers: updatedMembers.length
-        });
-        
-        await updateDoc(groupRef, {
-           memberUids: arrayUnion(requestUser.uid),
-           members: arrayUnion(memberToAdd), 
-           currentMembers: updatedMembers.length
-        });
-
-        await addDoc(collection(db, 'notifications'), {
-            toUid: requestUser.uid, 
-            type: 'request_approved',
-            message: `อนุมัติคำขอเข้าร่วมทริป "${postData.title || ''}" แล้ว 🎉`,
-            fromName: currentUser.name,
-            fromAvatar: currentUser.avatar,
-            fromUid: currentUser.uid, 
-            postId: postId,
-            read: false,
-            createdAt: serverTimestamp()
-        });
-
-        alert('อนุมัติสำเร็จ!');
-
-     } catch (error) {
-        console.error("Approve error:", error);
-        alert("เกิดข้อผิดพลาด: " + error.message);
-     }
-  };
-
-  const rejectJoinRequest = async (postId, requestUser) => {
-     if (!currentUser || !requestUser?.uid) {
-        console.error("Invalid request user data");
-        return;
-     }
-
-     try {
-        const postRef = doc(db, 'posts', postId);
-        
-        const postSnap = await getDoc(postRef);
-        if (!postSnap.exists()) return;
-        const postData = postSnap.data();
-
-        const currentRequests = postData.joinRequests || [];
-        const updatedRequests = currentRequests.filter(req => req.uid !== requestUser.uid);
-
-        await updateDoc(postRef, {
-           joinRequests: updatedRequests
-        });
-
-        await addDoc(collection(db, 'notifications'), {
-            toUid: requestUser.uid,
-            type: 'request_rejected',
-            message: `ปฏิเสธคำขอเข้าร่วมทริป "${postData.title || ''}"`,
-            fromName: currentUser.name,
-            fromAvatar: currentUser.avatar,
-            fromUid: currentUser.uid, 
-            postId: postId,
-            read: false,
-            createdAt: serverTimestamp()
-        });
-        
-        alert("ปฏิเสธคำขอเรียบร้อย");
-
-     } catch (error) {
-        console.error("Reject error:", error);
-        alert("เกิดข้อผิดพลาด: " + error.message);
-     }
-  };
-
- 
-  const handleReportPost = async (postToReport, reporter) => {
-    if (!reporter || !postToReport) { alert("กรุณาเข้าสู่ระบบ"); return; }
-
-    const reason = prompt(`กรุณาระบุเหตุผลในการรายงานโพสต์ "${postToReport.title}":`);
-
-    if (reason && reason.trim().length > 0) {
-      try {
-        await addDoc(collection(db, "reports"), {
-          reporterUid: reporter.uid,
-          reporterName: reporter.name,
-          reportedUid: postToReport.author?.uid,
-          reportedName: postToReport.author?.name,
-          postId: postToReport.id,
-          reason: reason,
-          context: `Reported post: ${postToReport.title}`,
-          createdAt: serverTimestamp(),
-          status: "pending"
-        });
-        alert("ส่งรายงานโพสต์เรียบร้อยแล้ว ขอบคุณครับ");
-      } catch (error) {
-        console.error("Error submitting post report:", error);
-        alert("เกิดข้อผิดพลาดในการส่งรายงาน");
-      }
-    } else if (reason !== null) {
-      alert("กรุณาระบุเหตุผลในการรายงาน");
+        return post;
+      }));
+      
+      alert(`อนุมัติ ${request.name} เรียบร้อย!`);
+    } catch (error) {
+      console.error("Error approving request:", error);
+      alert('เกิดข้อผิดพลาด: ' + error.message);
     }
   };
 
-  const filteredPosts = posts.filter(post => {
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        post.title?.toLowerCase().includes(searchLower) ||
-        (post.content || post.text)?.toLowerCase().includes(searchLower) || 
-        post.author?.name?.toLowerCase().includes(searchLower)
-      );
+  // Reject Join Request
+  const rejectJoinRequest = async (postId, request) => {
+    const postRef = doc(db, 'posts', postId);
+    
+    try {
+      await updateDoc(postRef, {
+        joinRequests: arrayRemove(request)
+      });
+      
+      setAllPosts(prev => prev.map(post => 
+        post.id === postId 
+          ? { ...post, joinRequests: post.joinRequests.filter(r => r.uid !== request.uid) }
+          : post
+      ));
+      
+      alert(`ปฏิเสธ ${request.name} เรียบร้อย`);
+    } catch (error) {
+      console.error("Error rejecting request:", error);
     }
-    return true;
-  });
+  };
 
-  if (loading) return <div className="loading-posts">กำลังโหลดโพสต์...</div>;
+  // Delete Post
+  const deletePost = async (postId) => {
+    if (!window.confirm('คุณแน่ใจหรือไม่ที่จะลบโพสต์นี้?')) return;
+    
+    try {
+      await deleteDoc(doc(db, 'posts', postId));
+      setAllPosts(prev => prev.filter(post => post.id !== postId));
+      alert('ลบโพสต์เรียบร้อย!');
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      alert('เกิดข้อผิดพลาด: ' + error.message);
+    }
+  };
+
+  // Open Edit Modal
+  const handleOpenEditModal = (post) => {
+    setEditingPost(post);
+    setIsEditModalOpen(true);
+  };
+
+  // Update Post
+  const updatePost = async (postData) => {
+    if (!editingPost) return;
+    
+    try {
+      const postRef = doc(db, 'posts', editingPost.id);
+      await updateDoc(postRef, postData);
+      
+      setAllPosts(prev => prev.map(post => 
+        post.id === editingPost.id 
+          ? { ...post, ...postData }
+          : post
+      ));
+      
+      setIsEditModalOpen(false);
+      setEditingPost(null);
+      alert('แก้ไขโพสต์สำเร็จ!');
+    } catch (error) {
+      console.error("Error updating post:", error);
+      alert('เกิดข้อผิดพลาด: ' + error.message);
+    }
+  };
+
+  // Report Post
+  const handleReportPost = async (post, reporter) => {
+    const reason = prompt('กรุณาระบุเหตุผลในการรายงาน:');
+    if (!reason) return;
+    
+    try {
+      await addDoc(collection(db, 'reports'), {
+        postId: post.id,
+        postTitle: post.title,
+        reportedBy: reporter.uid,
+        reporterName: reporter.name,
+        reason: reason,
+        timestamp: serverTimestamp()
+      });
+      
+      alert('รายงานโพสต์เรียบร้อย');
+    } catch (error) {
+      console.error("Error reporting post:", error);
+      alert('เกิดข้อผิดพลาด: ' + error.message);
+    }
+  };
+
+  // Handle Search Submit
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchInput.trim()) {
+      setSearchParams({ search: searchInput.trim() });
+    } else {
+      setSearchParams({});
+    }
+  };
+
+  // Handle Clear Search
+  const handleClearSearch = () => {
+    setSearchInput('');
+    setSearchParams({});
+  };
+
+  if (loading) {
+    return <div className="loading-screen">กำลังโหลดข้อมูล...</div>;
+  }
 
   return (
-    <div className="post-container">
-    
-      {!filterByOwner && (
-        <button className="post-fab" onClick={handleOpenCreateModal}>
-          <Plus size={28} />
-        </button>
-      )}
-
-      <div className="post-list">
-        {filteredPosts.length > 0 ? (
-          filteredPosts.map(post => (
-            <PostCard
-              key={post.id}
-              post={post}
-              currentUser={currentUser}
-              likedPosts={likedPosts}
-              showComments={showComments}
-              commentInputs={commentInputs}
-              toggleLike={() => toggleLike(post.id)}
-              toggleComments={toggleComments}
-              handleCommentInput={handleCommentInput}
-              addComment={addComment}
-              handleJoinChat={() => handleJoinChat(post.id)}
-              showDropdown={showDropdown}
-              setShowDropdown={setShowDropdown}
-              handleOpenEditModal={handleOpenEditModal}
-              deletePost={deletePost}
-              approveJoinRequest={(requestUser) => {
-                  approveJoinRequest(post.id, requestUser);
-              }}
-              rejectJoinRequest={(requestUser) => {
-                  rejectJoinRequest(post.id, requestUser);
-              }}
-              handleReportPost={handleReportPost} 
-            />
-          ))
-        ) : (
-          <div className="empty-state">
-            {filterByOwner 
-              ? 'ผู้ใช้คนนี้ยังไม่มีโพสต์' 
-              : (searchTerm 
-                  ? `ไม่พบโพสต์ที่ตรงกับการค้นหา "${searchTerm}"`
-                  : 'ยังไม่มีโพสต์ในระบบ กดปุ่ม + เพื่อเริ่มสร้างโพสต์แรก!'
-                )
-            }
-          </div>
-        )}
-      </div>
+    <div className="posts-container">
+      <Navbar brand="TripTogether" />
       
-      <Feb
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={editingPost ? updatePost : createPost}
-        post={editingPost}
-      />
+      <div className="posts-layout">
+        <main className="posts-main">
+          {/* Search Bar */}
+          <div className="posts-search-section">
+            <h1 className="posts-page-title">
+              {searchQuery ? `ผลการค้นหา: "${searchQuery}"` : 'โพสต์ทั้งหมด'}
+            </h1>
+            
+            <form className="posts-search-form" onSubmit={handleSearch}>
+              <div className="search-wrapper">
+                <svg className="search-icon" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <input
+                  type="text"
+                  className="posts-search-input"
+                  placeholder="ค้นหาทริป, สถานที่, หมวดหมู่..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                />
+                {searchInput && (
+                  <button 
+                    type="button"
+                    className="clear-input-btn"
+                    onClick={() => setSearchInput('')}
+                    aria-label="Clear search"
+                  >
+                    ✕
+                  </button>
+                )}
+                <button type="submit" className="posts-search-btn">
+                  ค้นหา
+                </button>
+              </div>
+            </form>
+            
+            {searchQuery && (
+              <div className="search-results-info">
+                <p>พบ {filteredPosts.length} โพสต์ที่เกี่ยวข้อง</p>
+                <button 
+                  className="clear-search-btn" 
+                  onClick={handleClearSearch}
+                >
+                  ล้างการค้นหา
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Posts List */}
+          <div className="posts-list">
+            {filteredPosts.length > 0 ? (
+              filteredPosts.map(post => (
+                <PostCard 
+                  key={post.id} 
+                  post={post} 
+                  currentUser={currentUser}
+                  likedPosts={likedPosts}
+                  showComments={showComments}
+                  commentInputs={commentInputs}
+                  toggleLike={() => toggleLike(post.id)}
+                  toggleComments={toggleComments}
+                  handleCommentInput={handleCommentInput}
+                  addComment={addComment}
+                  handleJoinChat={() => handleJoinChat(post.id)}
+                  showDropdown={showDropdown}
+                  setShowDropdown={setShowDropdown}
+                  handleOpenEditModal={handleOpenEditModal}
+                  deletePost={deletePost}
+                  approveJoinRequest={(request) => approveJoinRequest(post.id, request)}
+                  rejectJoinRequest={(request) => rejectJoinRequest(post.id, request)}
+                  handleReportPost={handleReportPost}
+                />
+              ))
+            ) : (
+              <div className="no-results">
+                <div className="no-results-icon">🔍</div>
+                <h2>ไม่พบผลลัพธ์</h2>
+                <p>
+                  {searchQuery 
+                    ? `ไม่พบโพสต์ที่ตรงกับ "${searchQuery}"`
+                    : 'ยังไม่มีโพสต์ในระบบ'
+                  }
+                </p>
+                <p className="no-results-suggestion">
+                  ลองค้นหาด้วยคำอื่น หรือดูโพสต์ทั้งหมด
+                </p>
+                {searchQuery && (
+                  <button 
+                    className="view-all-posts-btn"
+                    onClick={handleClearSearch}
+                  >
+                    ดูโพสต์ทั้งหมด
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+
+      {/* Edit Modal */}
+      {isEditModalOpen && (
+        <Feb
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingPost(null);
+          }}
+          onSubmit={updatePost}
+          post={editingPost}
+        />
+      )}
     </div>
   );
 };

@@ -1,8 +1,8 @@
 /* PostCard.css */
 /* Post Card*/
 .post-card {
-  width: 100%;
-  max-width: 700px;
+  width: 100% !important;
+  max-width: 750px !important;
   margin: 0 auto 1.5rem;
   min-height: auto;
   max-height: none;
@@ -85,6 +85,7 @@
   box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
   white-space: nowrap;
 }
+
 /* ✨ ส่วนแสดงวันที่เดินทางในโพสต์การ์ด */
 .post-trip-dates {
   display: flex;
@@ -118,8 +119,20 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-
-
+/* 📍 ส่วนแสดงสถานที่ */
+.post-destination {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 3px solid #495057;
+}
 
 /* Responsive สำหรับหน้าจอเล็ก */
 @media (max-width: 480px) {
@@ -148,6 +161,11 @@
     width: 100%;
     text-align: center;
     margin-top: 4px;
+  }
+
+  .post-destination {
+    font-size: 0.9rem;
+    padding: 6px 10px;
   }
 }
 
@@ -230,6 +248,7 @@
 .post-body {
   padding: 1.25rem;
 }
+
 .post-title {
   font-size: 1.25rem;
   font-weight: 700;
@@ -245,17 +264,18 @@
    color: #444;
    white-space: pre-wrap;
    word-wrap: break-word;
-   overflow-wrap: break-word;  /* 🔧 เพิ่ม: บังคับให้ขึ้นบรรทัดใหม่ */
-   word-break: break-word;     /* 🔧 เพิ่ม: ตัดคำยาวได้ */
-   max-width: 100%;            /* 🔧 เพิ่ม: จำกัดความกว้าง */
-   overflow: hidden;           /* 🔧 เพิ่ม: ซ่อนส่วนที่ล้น */
+   overflow-wrap: break-word;
+   word-break: break-word;
+   max-width: 100%;
+   overflow: hidden;
    margin: 0 0 1rem 0;
 }
 
-/* Image Gallery*/
+/* 🎨 Image Gallery - ขนาดคงที่ ไม่ยืดตามรูป */
 
 .post-image-gallery {
-  width: 100%;
+  width: 100% !important;
+  max-width: 750px !important;
   margin: 1rem 0 0 0;
   display: grid;
   gap: 4px;
@@ -263,61 +283,74 @@
   position: relative;
   border-radius: 12px;
   overflow: hidden;
-  max-height: none;
 }
 
+/* รูปเดียว - ความสูงคงที่ 400px */
 .post-image-gallery.images-1 {
   grid-template-columns: 1fr;
+  max-height: 400px !important;
+  height: 400px !important;
 }
 
 .post-image-gallery.images-1 img {
   width: 100%;
-  height: auto;
-  max-height: none;
-  object-fit: contain;
+  height: 400px !important;
+  object-fit: cover;
+  border-radius: 12px;
 }
 
+/* 2 รูป - ความสูงคงที่ 300px */
 .post-image-gallery.images-2 {
   grid-template-columns: 1fr 1fr;
+  max-height: 300px !important;
+  height: 300px !important;
 }
 
 .post-image-gallery.images-2 img {
   width: 100%;
-  height: 300px;
+  height: 300px !important;
   object-fit: cover;
 }
 
+/* 3 รูป - ความสูงคงที่ 350px */
 .post-image-gallery.images-3 {
   grid-template-columns: 2fr 1fr;
   grid-template-rows: 1fr 1fr;
+  max-height: 350px !important;
+  height: 350px !important;
 }
 
 .post-image-gallery.images-3 img:first-child {
   grid-row: 1 / 3;
-  height: 100%;
-  min-height: 400px;
+  width: 100%;
+  height: 350px !important;
   object-fit: cover;
 }
 
 .post-image-gallery.images-3 img:nth-child(2),
 .post-image-gallery.images-3 img:nth-child(3) {
-  height: 200px;
+  width: 100%;
+  height: 175px !important;
   object-fit: cover;
 }
 
+/* 4-5 รูป - ความสูงคงที่ 400px */
 .post-image-gallery.images-4,
 .post-image-gallery.images-5 {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
+  max-height: 400px !important;
+  height: 400px !important;
 }
 
 .post-image-gallery.images-4 img,
 .post-image-gallery.images-5 img {
   width: 100%;
-  height: 250px;
+  height: 200px !important;
   object-fit: cover;
 }
 
+/* Overlay สำหรับรูปเพิ่มเติม */
 .more-images-overlay {
   position: absolute;
   bottom: 4px;
@@ -615,24 +648,39 @@
   margin-bottom: 1rem;
 }
 
-.comment {
+.comment-item {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.75rem;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.comment-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid #e4e6eb;
+}
+
+.comment-bubble {
+  flex: 1;
   background: white;
+  padding: 0.75rem;
   border-radius: 12px;
   border: 1px solid #efefef;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.comment strong {
+.comment-author {
   color: #1a1a1a;
   font-weight: 600;
   font-size: 14px;
+  display: block;
+  margin-bottom: 4px;
 }
 
-.comment p {
+.comment-bubble p {
   font-size: 0.875rem;
   line-height: 1.5;
   color: #444;
@@ -783,13 +831,18 @@
   padding: 0.5rem 1rem;
   border-radius: 20px;
 }
+
 /* ===============================
-   📱 RESPONSIVE DESIGN - FIXED
+   📱 RESPONSIVE DESIGN
 =============================== */
 
 /* Tablet (768px - 1024px) */
 @media (max-width: 1024px) {
   .post-card {
+    max-width: 100%;
+  }
+
+  .post-image-gallery {
     max-width: 100%;
   }
 }
@@ -833,13 +886,48 @@
     overflow: hidden;
   }
 
-  .post-image-gallery { border-radius: 10px; }
-  .post-image-gallery.images-2 img { height: 180px; }
-  .post-image-gallery.images-3 img:first-child { min-height: 300px; }
+  .post-image-gallery { 
+    border-radius: 10px;
+    max-width: 100%;
+  }
+  
+  .post-image-gallery.images-1 { 
+    max-height: 320px;
+    height: 320px;
+  }
+  .post-image-gallery.images-1 img { 
+    height: 320px;
+  }
+  
+  .post-image-gallery.images-2 { 
+    max-height: 240px;
+    height: 240px;
+  }
+  .post-image-gallery.images-2 img { 
+    height: 240px;
+  }
+  
+  .post-image-gallery.images-3 { 
+    max-height: 280px;
+    height: 280px;
+  }
+  .post-image-gallery.images-3 img:first-child { 
+    height: 280px;
+  }
   .post-image-gallery.images-3 img:nth-child(2),
-  .post-image-gallery.images-3 img:nth-child(3) { height: 150px; }
+  .post-image-gallery.images-3 img:nth-child(3) { 
+    height: 140px;
+  }
+  
+  .post-image-gallery.images-4,
+  .post-image-gallery.images-5 { 
+    max-height: 320px;
+    height: 320px;
+  }
   .post-image-gallery.images-4 img,
-  .post-image-gallery.images-5 img { height: 180px; }
+  .post-image-gallery.images-5 img { 
+    height: 160px;
+  }
   .more-images-overlay { font-size: 28px; }
 
   .pending-requests-section { padding: 0.875rem 1rem; }
@@ -850,15 +938,15 @@
   .request-time { font-size: 11px; }
   .request-actions {
     display: flex;
-    flex-direction: row; /* 🔧 เปลี่ยนเป็นแนวนอน */
+    flex-direction: row;
     gap: 0.5rem;
-    width: auto; /* 🔧 เปลี่ยนจาก 100% */
+    width: auto;
   }
   .approve-btn, .reject-btn { 
-    flex: 1; /* 🔧 แบ่งพื้นที่เท่าๆ กัน */
-    padding: 0.5rem 1rem; /* 🔧 ปรับ padding */
+    flex: 1;
+    padding: 0.5rem 1rem;
     font-size: 12px;
-    white-space: nowrap; /* 🔧 ป้องกันตัวอักษรขึ้นบรรทัดใหม่ */
+    white-space: nowrap;
   }
 
   .post-actions { padding: 0.625rem 1rem; }
@@ -869,9 +957,11 @@
   .join-now-btn { padding: 0.8rem 1.25rem; font-size: 0.9rem; }
 
   .comments-section { padding: 0.875rem 1rem; max-height: 250px; }
-  .comment { padding: 0.625rem; }
-  .comment strong { font-size: 13px; }
-  .comment p { font-size: 0.8125rem; }
+  .comment-item { gap: 0.625rem; }
+  .comment-avatar { width: 30px; height: 30px; }
+  .comment-bubble { padding: 0.625rem; }
+  .comment-author { font-size: 13px; }
+  .comment-bubble p { font-size: 0.8125rem; }
   .comment-time { font-size: 11px; }
   .comment-input { font-size: 13px; padding: 0.65rem 0.875rem; }
   .send-comment-btn { width: 38px; height: 38px; }
@@ -928,23 +1018,59 @@
     overflow: hidden;
   }
 
-  .post-image-gallery { border-radius: 8px; margin: 0.875rem 0 0 0; }
-  .post-image-gallery.images-1 img { max-height: 350px; }
-  .post-image-gallery.images-2 img { height: 150px; }
+  .post-destination {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+  }
+
+  .post-image-gallery { 
+    border-radius: 8px; 
+    margin: 0.875rem 0 0 0;
+    max-width: 100%;
+  }
+  
+  .post-image-gallery.images-1 { 
+    max-height: 250px;
+    height: 250px;
+  }
+  .post-image-gallery.images-1 img { 
+    height: 250px;
+  }
+  
+  .post-image-gallery.images-2 { 
+    max-height: 200px;
+    height: 200px;
+  }
+  .post-image-gallery.images-2 img { 
+    height: 200px;
+  }
+  
   .post-image-gallery.images-3 {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto auto;
+    max-height: 280px;
+    height: 280px;
   }
   .post-image-gallery.images-3 img:first-child {
     grid-row: 1 / 2;
     grid-column: 1 / 3;
-    min-height: 200px;
-    height: 200px;
+    height: 180px;
   }
   .post-image-gallery.images-3 img:nth-child(2),
-  .post-image-gallery.images-3 img:nth-child(3) { height: 120px; }
+  .post-image-gallery.images-3 img:nth-child(3) { 
+    height: 100px;
+  }
+  
+  .post-image-gallery.images-4,
+  .post-image-gallery.images-5 { 
+    max-height: 260px;
+    height: 260px;
+  }
   .post-image-gallery.images-4 img,
-  .post-image-gallery.images-5 img { height: 150px; }
+  .post-image-gallery.images-5 img { 
+    height: 130px;
+  }
   .more-images-overlay { font-size: 24px; }
 
   .pending-requests-section { padding: 0.75rem 0.875rem; }
@@ -955,16 +1081,16 @@
   .request-time { font-size: 10px; }
   .request-actions { 
     display: flex;
-    flex-direction: row; /* 🔧 เปลี่ยนเป็นแนวนอน */
+    flex-direction: row;
     gap: 0.5rem;
     margin-top: 0.5rem;
-    width: auto; /* 🔧 เปลี่ยนจาก 100% */
+    width: auto;
   }
   .approve-btn, .reject-btn { 
-    flex: 1; /* 🔧 แบ่งพื้นที่เท่าๆ กัน */
-    padding: 0.5rem 0.875rem; /* 🔧 ปรับ padding */
-    font-size: 12px; /* 🔧 เพิ่มขนาด font */
-    white-space: nowrap; /* 🔧 ป้องกันตัวอักษรขึ้นบรรทัดใหม่ */
+    flex: 1;
+    padding: 0.5rem 0.875rem;
+    font-size: 12px;
+    white-space: nowrap;
   }
 
   .post-actions { padding: 0.5rem 0.875rem; gap: 0.375rem; }
@@ -977,9 +1103,11 @@
 
   .comments-section { padding: 0.75rem 0.875rem; max-height: 200px; }
   .comments-list { gap: 0.625rem; }
-  .comment { padding: 0.5rem; }
-  .comment strong { font-size: 12px; }
-  .comment p { font-size: 0.75rem; }
+  .comment-item { gap: 0.5rem; }
+  .comment-avatar { width: 28px; height: 28px; }
+  .comment-bubble { padding: 0.5rem; }
+  .comment-author { font-size: 12px; }
+  .comment-bubble p { font-size: 0.75rem; }
   .comment-time { font-size: 10px; }
   .comment-input-wrapper { gap: 0.5rem; margin-top: 0.75rem; }
   .comment-input { font-size: 12px; padding: 0.6rem 0.75rem; border-radius: 20px; }
@@ -1019,25 +1147,82 @@
     overflow: hidden;
   }
   
-  .post-image-gallery.images-1 img { max-height: 300px; }
+  .post-image-gallery.images-1 { 
+    max-height: 220px;
+    height: 220px;
+  }
+  .post-image-gallery.images-1 img { 
+    height: 220px;
+  }
+  
+  .post-image-gallery.images-2 { 
+    max-height: 180px;
+    height: 180px;
+  }
   .post-image-gallery.images-2 img,
   .post-image-gallery.images-4 img,
-  .post-image-gallery.images-5 img { height: 130px; }
-  .post-image-gallery.images-3 img:first-child { height: 180px; min-height: 180px; }
+  .post-image-gallery.images-5 img { 
+    height: 110px;
+  }
+  
+  .post-image-gallery.images-3 { 
+    max-height: 240px;
+    height: 240px;
+  }
+  .post-image-gallery.images-3 img:first-child { 
+    height: 160px;
+  }
   .post-image-gallery.images-3 img:nth-child(2),
-  .post-image-gallery.images-3 img:nth-child(3) { height: 100px; }
+  .post-image-gallery.images-3 img:nth-child(3) { 
+    height: 80px;
+  }
+  
+  .post-image-gallery.images-4,
+  .post-image-gallery.images-5 { 
+    max-height: 220px;
+    height: 220px;
+  }
   .action-btn { font-size: 0.75rem; padding: 0.5rem 0.3rem; }
   .join-now-btn { font-size: 0.8125rem; }
 }
 
 /* Landscape Mode */
 @media (max-width: 896px) and (orientation: landscape) {
-  .post-image-gallery.images-1 img { max-height: 300px; }
+  .post-image-gallery.images-1 { 
+    max-height: 320px;
+    height: 320px;
+  }
+  .post-image-gallery.images-1 img { 
+    height: 320px;
+  }
+  
+  .post-image-gallery.images-2 { 
+    max-height: 240px;
+    height: 240px;
+  }
   .post-image-gallery.images-2 img,
   .post-image-gallery.images-4 img,
-  .post-image-gallery.images-5 img { height: 200px; }
-  .post-image-gallery.images-3 img:first-child { height: 250px; min-height: 250px; }
-  .viewer-content img { max-height: 85vh; }
+  .post-image-gallery.images-5 img { 
+    height: 180px;
+  }
+  
+  .post-image-gallery.images-3 { 
+    max-height: 260px;
+    height: 260px;
+  }
+  .post-image-gallery.images-3 img:first-child { 
+    height: 260px;
+  }
+  
+  .post-image-gallery.images-4,
+  .post-image-gallery.images-5 { 
+    max-height: 360px;
+    height: 360px;
+  }
+  
+  .viewer-content img { 
+    max-height: 85vh;
+  }
 }
 
 /* ป้องกัน tap highlight บน iOS */

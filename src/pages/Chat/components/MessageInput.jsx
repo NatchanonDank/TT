@@ -1,5 +1,6 @@
 import React from 'react';
 import { MapPin, Send } from 'lucide-react';
+import './MessageInput.css';
 
 const MessageInput = ({ 
   messageInput, 

@@ -1,0 +1,17 @@
+/* ChatWindow.css - Split View Compatible */
+
+.chat-window {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    background: white;
+    overflow: hidden;
+  }
+  
+  /* Mobile: Full screen with rounded corners */
+  @media (max-width: 900px) {
+    .chat-window {
+      border-radius: 0;
+    }
+  }
