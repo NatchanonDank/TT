@@ -15,11 +15,9 @@ const PostDetail = ({ currentUser }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // State สำหรับ PostCard - เก็บเฉพาะที่จำเป็น
-  const [showComments, setShowComments] = useState(new Set([postId])); // เปิด comments ทันที
+  const [showComments, setShowComments] = useState(new Set([postId]));
   const [showDropdown, setShowDropdown] = useState(null);
 
-  // ✨ เพิ่ม handler สำหรับ update post (สำหรับไลค์, คอมเมนต์, ฯลฯ)
   const handleUpdatePost = (updatedPost) => {
     setPost(updatedPost);
   };
@@ -96,7 +94,6 @@ const PostDetail = ({ currentUser }) => {
         </button>
 
         <div className="post-detail-content">
-          {/* ✨ ส่ง onUpdatePost เพื่อให้ PostCard update state ได้ */}
           <PostCard
             post={post}
             currentUser={currentUser}

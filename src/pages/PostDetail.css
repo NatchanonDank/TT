@@ -13,7 +13,7 @@
   min-height: 100vh;
 }
 
-.back-button {
+.back {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -34,7 +34,7 @@
   margin-bottom: 20px;
 }
 
-.back-button:hover {
+.back:hover {
   background: white;
   border-color: #1976d2;
   color: #1976d2;
