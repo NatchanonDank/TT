@@ -302,7 +302,7 @@ const AllPosts = () => {
         {/* Header */}
         <div className="page-header">
           <div className="page-header-top">
-            <button className="back-button" onClick={handleBackToHome}>
+            <button className="back" onClick={handleBackToHome}>
               <ArrowLeft size={18} />
               <span>กลับหน้าหลัก</span>
             </button>

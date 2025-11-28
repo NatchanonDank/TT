@@ -77,9 +77,9 @@
 .brand {
   font-size: 26px;
   font-weight: 800;
-  color: #ffffff;
+  color: #323232; 
   margin: 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.3);
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -126,6 +126,7 @@
     opacity: 0;
   }
 }
+
 /* Navigation Items */
 .nav-items {
   display: flex;
@@ -185,7 +186,8 @@
 }
 
 .nav-button.inactive {
-  color: #ffffff;
+  color: #323232; 
+
 }
 
 .nav-button.inactive:hover {

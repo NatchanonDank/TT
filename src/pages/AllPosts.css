@@ -39,7 +39,7 @@
   text-align: center;
 }
 
-.back-button {
+.back {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -56,13 +56,13 @@
   flex-shrink: 0;
 }
 
-.back-button:hover {
+.back:hover {
   background: linear-gradient(135deg, #AED6F1 0%, #A8D8EA 100%);
   transform: translateX(-4px) translateY(-2px);
   box-shadow: 0 4px 20px rgba(168, 216, 234, 0.5);
 }
 
-.back-button:active {
+.back:active {
   transform: translateX(-2px) translateY(0);
 }
 
