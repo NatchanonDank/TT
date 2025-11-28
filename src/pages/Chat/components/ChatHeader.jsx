@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft, X, Trash2 } from 'lucide-react'; // ✅ เพิ่ม Trash2
 import './ChatHeader.css';
 
 const ChatHeader = ({ 
   chat, 
   onBack, 
   onEndTrip,
-  onLeaveGroup, // ✅ เพิ่ม prop ใหม่
+  onLeaveGroup, 
+  onDeleteGroup,
   isTripEnded,
   currentUser
 }) => {
@@ -22,18 +23,23 @@ const ChatHeader = ({
 
   const handleOpenMembersModal = () => {
     setIsMembersModalOpen(true);
+    setIsOptionsOpen(false); 
   };
 
   const handleCloseMembersModal = () => {
     setIsMembersModalOpen(false);
   };
 
-  // ✅ ฟังก์ชันออกจากกลุ่ม
   const handleLeaveGroup = () => {
     setIsOptionsOpen(false);
     if (window.confirm('คุณต้องการออกจากกลุ่มนี้ใช่หรือไม่?')) {
       onLeaveGroup();
     }
+  };
+
+  const handleDeleteGroup = () => {
+    setIsOptionsOpen(false);
+    onDeleteGroup();
   };
 
   return (
@@ -45,36 +51,40 @@ const ChatHeader = ({
         <img src={chat.avatar} alt={chat.name} className="chat-avatar" />
         <div className="chat-header-info">
           <h3>{chat.name}</h3>
-          <p 
-            className="member-info clickable" 
-            onClick={handleOpenMembersModal}
-          >
+          <p className="member-info clickable" onClick={handleOpenMembersModal}>
             {chat.currentMembers}/{chat.maxMembers} คน
           </p>
         </div>
+        
         <div className="chat-options">
           <button onClick={handleToggleOptions}>⋮</button>
           {isOptionsOpen && (
             <div className="options-dropdown">
+              <button onClick={handleOpenMembersModal}>
+                👥 ดูรายชื่อสมาชิก
+              </button>
+
               {isLeader ? (
-                <button 
-                  onClick={() => {
-                    setIsOptionsOpen(false);
-                    if (isTripEnded) {
-                      alert('ทริปนี้ได้สิ้นสุดไปแล้ว');
-                    } else {
+                isTripEnded ? (
+                  <button 
+                    onClick={handleDeleteGroup} 
+                    className="end-trip-btn" 
+                  >
+                    <Trash2 size={16} style={{marginRight: '4px', display: 'inline'}}/> ลบกลุ่มแชท
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => {
+                      setIsOptionsOpen(false);
                       onEndTrip();
-                    }
-                  }} 
-                  className="end-trip-btn"
-                >
-                  🏁 สิ้นสุดทริป
-                </button>
+                    }} 
+                    className="end-trip-btn"
+                  >
+                    🏁 สิ้นสุดทริป
+                  </button>
+                )
               ) : (
-                <button 
-                  onClick={handleLeaveGroup}
-                  className="leave-group-btn"
-                >
+                <button onClick={handleLeaveGroup} className="leave-group-btn">
                   ออกจากกลุ่ม
                 </button>
               )}
@@ -82,6 +92,7 @@ const ChatHeader = ({
           )}
         </div>
       </div>
+
       {isMembersModalOpen && (
         <div className="members-modal-overlay" onClick={handleCloseMembersModal}>
           <div className="members-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -91,11 +102,9 @@ const ChatHeader = ({
                 <X size={24} />
               </button>
             </div>
-            
             <div className="members-count-badge">
               {chat.currentMembers}/{chat.maxMembers} คน
             </div>
-
             <div className="members-list">
               {chat.members && chat.members.length > 0 ? (
                 chat.members.map((member, index) => (

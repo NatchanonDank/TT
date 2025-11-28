@@ -62,9 +62,10 @@
   
   /* Bubble - ตัวเอง (ขวา) */
   .message-wrapper.own .message-bubble {
-    background: linear-gradient(135deg, #42a5f5 0%, #2196f3 100%);
-    border-bottom-right-radius: 4px;
-    color: white;
+  background: linear-gradient(135deg, #42a5f5 0%, #2196f3 100%);
+  border-bottom-right-radius: 4px;
+  color: white;
+  padding-right: 34px;
   }
   
   /* Sender Name */
@@ -172,7 +173,7 @@
   position: absolute;
   top: 4px;
   right: 4px;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.2s;
 }
 
@@ -192,6 +193,8 @@
   justify-content: center;
   cursor: pointer;
   color: inherit;
+  opacity: 0.7;
+  transition: all 0.2s;
 }
 
 .message-wrapper.own .options-trigger {

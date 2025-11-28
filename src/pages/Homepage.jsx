@@ -8,97 +8,6 @@ import Navbar from '../components/Navbar';
 import Feb from '../components/Feb';
 import './Homepage.css';
 
-const TripCard = ({ trip, onClick }) => {
-  const [authorRating, setAuthorRating] = useState(0);
-  const [reviewCount, setReviewCount] = useState(0);
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
-  };
-
-  useEffect(() => {
-    const fetchAuthorRating = async () => {
-      const authorId = trip.author?.uid || trip.uid;
-      if (!authorId) return;
-
-      try {
-        const q = query(
-          collection(db, 'friend_reviews'),
-          where('targetUserId', '==', authorId)
-        );
-        const querySnapshot = await getDocs(q);
-        const reviews = querySnapshot.docs.map(doc => doc.data());
-        
-        if (reviews.length > 0) {
-          const totalRating = reviews.reduce((sum, review) => sum + (review.rating || 0), 0);
-          setAuthorRating(totalRating / reviews.length);
-          setReviewCount(reviews.length);
-        } else {
-          setAuthorRating(0);
-          setReviewCount(0);
-        }
-      } catch (error) {
-        console.error("Error fetching rating:", error);
-      }
-    };
-
-    fetchAuthorRating();
-  }, [trip]);
-
-  return (
-    <div className="trip-card" onClick={onClick}>
-      <div className="trip-card-image-wrapper">
-        <img 
-          src={trip.imageUrl || trip.images?.[0] || 'https://www.ktc.co.th/pub/media/Article/01/wooden-bridge-island-surat-thani-thailand.webp'} 
-          alt={trip.title || trip.destination} 
-          className="trip-card-image" 
-        />
-        {trip.isHot && <span className="trip-badge">🔥 HOT</span>}
-      </div>
-      <div className="trip-card-content">
-        <div className="trip-location">{trip.destination || 'ไทย'}</div>
-        <h3 className="trip-title">{trip.title || trip.content?.substring(0, 50)}</h3>
-        
-        {trip.startDate && trip.endDate && (
-          <div className="trip-dates">
-            <div className="date-details">
-              <div className="date-row">
-                <span className="date-label">เริ่ม</span>
-                <span className="date-value">{formatDate(trip.startDate)}</span>
-              </div>
-              <div className="date-row">
-                <span className="date-label">สิ้นสุด</span>
-                <span className="date-value">{formatDate(trip.endDate)}</span>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        <div className="trip-meta">
-          <div className="trip-members">
-            <Users size={16} />
-            <span>{trip.membersCount || 0} คน</span>
-          </div>
-
-          <div className="trip-rating" style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
-            <Star size={14} fill={authorRating > 0 ? "#FFD700" : "none"} color={authorRating > 0 ? "#FFD700" : "#999"} />
-            <span>
-              {authorRating > 0 ? authorRating.toFixed(1) : 'New'} 
-              {reviewCount > 0 && <span style={{fontSize: '10px', color: '#888', marginLeft: '2px'}}> ({reviewCount})</span>}
-            </span>
-          </div>
-        </div>
-        
-        <div className="trip-author">
-          <span className="author-label">จัดโดย </span>
-          <span className="author-name">{trip.author?.name || 'ผู้ใช้'}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const Homepage = () => {
   const navigate = useNavigate();
@@ -112,37 +21,16 @@ const Homepage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const categories = [
-    'ทั้งหมด',
-    'ทะเล เกาะ',
-    'ภูเขา ดอย',
-    'แคมป์ปิ้ง',
-    'วัด ทำบุญ',
-    'คาเฟ่ อาหาร',
-    'สวนสนุก สวนน้ำ',
-    'เดินป่า ผจญภัย',
-    'เที่ยวในเมือง',
-    'ไนท์ไลฟ์ ปาร์ตี้',
-    'ดำน้ำ',
-    'จิตอาสา',
-    'ถ่ายรูป',
-    'ดูคอนเสิร์ต'
+    'ทั้งหมด', 'ทะเล เกาะ', 'ภูเขา ดอย', 'แคมป์ปิ้ง', 'วัด ทำบุญ',
+    'คาเฟ่ อาหาร', 'สวนสนุก สวนน้ำ', 'เดินป่า ผจญภัย', 'เที่ยวในเมือง',
+    'ไนท์ไลฟ์ ปาร์ตี้', 'ดำน้ำ', 'จิตอาสา', 'ถ่ายรูป', 'ดูคอนเสิร์ต'
   ];
 
   const categoryIcons = {
-    'ทั้งหมด': '🌎',
-    'ทะเล เกาะ': '🏖️',
-    'ภูเขา ดอย': '⛰️',
-    'แคมป์ปิ้ง': '⛺',
-    'วัด ทำบุญ': '🛕',
-    'คาเฟ่ อาหาร': '☕',
-    'สวนสนุก สวนน้ำ': '🎡',
-    'เดินป่า ผจญภัย': '🧗',
-    'เที่ยวในเมือง': '🏙️',
-    'ไนท์ไลฟ์ ปาร์ตี้': '🍻',
-    'ดำน้ำ': '🤿',
-    'จิตอาสา': '🤝',
-    'ถ่ายรูป': '📸',
-    'ดูคอนเสิร์ต': '🎵'
+    'ทั้งหมด': '🌎', 'ทะเล เกาะ': '🏖️', 'ภูเขา ดอย': '⛰️', 'แคมป์ปิ้ง': '⛺',
+    'วัด ทำบุญ': '🛕', 'คาเฟ่ อาหาร': '☕', 'สวนสนุก สวนน้ำ': '🎡',
+    'เดินป่า ผจญภัย': '🧗', 'เที่ยวในเมือง': '🏙️', 'ไนท์ไลฟ์ ปาร์ตี้': '🍻',
+    'ดำน้ำ': '🤿', 'จิตอาสา': '🤝', 'ถ่ายรูป': '📸', 'ดูคอนเสิร์ต': '🎵'
   };
 
   useEffect(() => {
@@ -156,23 +44,16 @@ const Homepage = () => {
             uid: user.uid,
             id: user.uid 
           };
-
           if (userDoc.exists()) {
              const firestoreData = userDoc.data();
              if (firestoreData.avatar) userData.avatar = firestoreData.avatar;
              if (firestoreData.name) userData.name = firestoreData.name;
           }
-          
           setCurrentUser(userData);
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        }
-      } else {
-        navigate('/login');
-      }
+        } catch (error) { console.error("Error fetching user data:", error); }
+      } else { navigate('/login'); }
       setLoading(false);
     });
-
     return () => unsubscribe();
   }, [navigate]);
 
@@ -181,10 +62,7 @@ const Homepage = () => {
       try {
         const postsQuery = query(collection(db, 'posts'));
         const querySnapshot = await getDocs(postsQuery);
-        let trips = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        let trips = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
         if (selectedCategory !== 'ทั้งหมด') {
           trips = trips.filter(trip => trip.category === selectedCategory);
@@ -195,12 +73,7 @@ const Homepage = () => {
           const members = trip.currentMembers || trip.members?.length || 0;
           const joinRequests = trip.joinRequests?.length || 0;
           const hotScore = likes * 10 + members * 20 + joinRequests * 5;
-          
-          return {
-            ...trip,
-            hotScore,
-            membersCount: members
-          };
+          return { ...trip, hotScore, membersCount: members };
         });
         
         const sortedTrips = tripsWithScore.sort((a, b) => {
@@ -215,29 +88,26 @@ const Homepage = () => {
           ...trip,
           isHot: index < top10PercentCount
         }));
-        
         setRecommendedTrips(tripsWithHotFlag);
-        
-      } catch (error) {
-        console.error("Error fetching trips:", error);
-      }
+      } catch (error) { console.error("Error fetching trips:", error); }
     };
-
-    if (currentUser) {
-      fetchRecommendedTrips();
-    }
+    if (currentUser) { fetchRecommendedTrips(); }
   }, [currentUser, selectedCategory]);
 
   useEffect(() => {
     const handleWheel = (e) => {
       const mainContent = document.querySelector('.main-content');
-      if (mainContent) {
-        mainContent.scrollTop += e.deltaY;
-      }
+      if (mainContent) mainContent.scrollTop += e.deltaY;
     };
     window.addEventListener('wheel', handleWheel, { passive: true });
     return () => window.removeEventListener('wheel', handleWheel);
   }, []);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+  };
 
   const handlePrevSlide = () => {
     setCurrentSlide((prev) => (prev === 0 ? Math.max(0, Math.ceil(recommendedTrips.length / 4) - 1) : prev - 1));
@@ -292,44 +162,17 @@ const Homepage = () => {
         status: 'active',
         ownerId: currentUser.uid,
         memberUids: [currentUser.uid],
-        members: [{ name: currentUser.name, avatar: currentUser.avatar, uid: currentUser.uid }]
+        members: [{ name: currentUser.name, avatar: currentUser.avatar, uid: currentUser.uid }],
+        startDate: postData.startDate, 
+        notified_approaching: false,   
+        notified_today: false          
       });
 
       await updateDoc(docRef, { chatGroupId: docRef.id });
       setIsModalOpen(false);
 
-      const querySnapshot = await getDocs(query(collection(db, 'posts')));
-      let trips = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      if (selectedCategory !== 'ทั้งหมด') {
-        trips = trips.filter(trip => trip.category === selectedCategory);
-      }
-      
-      const tripsWithScore = trips.map(trip => {
-        const likes = trip.likes?.length || 0;
-        const members = trip.currentMembers || trip.members?.length || 0;
-        const joinRequests = trip.joinRequests?.length || 0;
-        return {
-          ...trip,
-          hotScore: likes * 10 + members * 20 + joinRequests * 5,
-          membersCount: members
-        };
-      });
-      
-      const sortedTrips = tripsWithScore.sort((a, b) => {
-        if (b.hotScore !== a.hotScore) return b.hotScore - a.hotScore;
-        return (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0);
-      });
-      
-      const top10PercentCount = Math.ceil(sortedTrips.length * 0.1);
-      const tripsWithHotFlag = sortedTrips.map((trip, index) => ({
-        ...trip,
-        isHot: index < top10PercentCount
-      }));
-      
-      setRecommendedTrips(tripsWithHotFlag);
-
       alert('สร้างโพสต์สำเร็จ! 🎉');
+      window.location.reload(); 
     } catch (error) {
       console.error("Error creating post:", error);
       alert("สร้างโพสต์ไม่สำเร็จ: " + error.message);

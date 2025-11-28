@@ -96,7 +96,10 @@ const Chat = () => {
     const selectGroupFromUrl = async () => {
       const existingGroup = groups.find(g => g.id === groupId);
       if (existingGroup) {
-        if (activeChat?.id !== existingGroup.id) {
+        if (!activeChat || activeChat.id !== existingGroup.id || 
+            activeChat.notified_approaching !== existingGroup.notified_approaching ||
+            activeChat.notified_today !== existingGroup.notified_today ||
+            activeChat.status !== existingGroup.status) {
           setActiveChat(existingGroup);
         }
       } else {
@@ -122,6 +125,68 @@ const Chat = () => {
     }
     
   }, [groupId, currentUser, groups, activeChat]);
+
+  useEffect(() => {
+    if (!activeChat || !currentUser || !activeChat.startDate) return;
+    
+    if (activeChat.ownerId !== currentUser.uid) return;
+
+    const checkAndSendNotifications = async () => {
+      const now = new Date();
+      now.setHours(0, 0, 0, 0); 
+      
+      const tripStart = new Date(activeChat.startDate);
+      tripStart.setHours(0, 0, 0, 0);
+
+      const diffTime = tripStart.getTime() - now.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
+      if (diffDays === 1 && !activeChat.notified_approaching) {
+        try {
+          const messageText = "🔔 พรุ่งนี้ถึงวันเดินทางแล้ว! อย่าลืมเตรียมตัวให้พร้อมนะครับ";
+          
+          await addDoc(collection(db, 'messages'), {
+            text: messageText,
+            createdAt: serverTimestamp(),
+            uid: 'system',
+            sender: 'ระบบแจ้งเตือน',
+            photoURL: 'https://cdn-icons-png.flaticon.com/512/3237/3237472.png',
+            room: activeChat.id,
+            type: 'text'
+          });
+
+          await updateDoc(doc(db, 'groups', activeChat.id), {
+            notified_approaching: true,
+            lastMessageTime: serverTimestamp(),
+            description: "🔔 พรุ่งนี้ถึงวันเดินทางแล้ว!"
+          });
+        } catch (err) { console.error("Auto notify error:", err); }
+      }
+
+      if (diffDays === 0 && !activeChat.notified_today) {
+        try {
+          const messageText = "🎉 ถึงวันเดินทางแล้ว! ขอให้ทุกคนเดินทางปลอดภัยและสนุกกับทริปนะครับ";
+          
+          await addDoc(collection(db, 'messages'), {
+            text: messageText,
+            createdAt: serverTimestamp(),
+            uid: 'system',
+            sender: 'ระบบแจ้งเตือน',
+            photoURL: 'https://cdn-icons-png.flaticon.com/512/744/744922.png',
+            room: activeChat.id,
+            type: 'text'
+          });
+
+          await updateDoc(doc(db, 'groups', activeChat.id), {
+            notified_today: true,
+            lastMessageTime: serverTimestamp(),
+            description: "🎉 ถึงวันเดินทางแล้ว!"
+          });
+        } catch (err) { console.error("Auto notify error:", err); }
+      }
+    };
+
+    checkAndSendNotifications();
+  }, [activeChat, currentUser]);
 
   useEffect(() => {
     if (!activeChat?.id || !currentUser?.uid || !notifications) return;
@@ -277,17 +342,17 @@ const Chat = () => {
     }
   };
 
-  const handleLeaveGroup = async () => {
-    if (!activeChat?.id || !currentUser?.uid) return;
+  const handleLeaveGroup = async (targetGroup = activeChat) => {
+    if (!targetGroup?.id || !currentUser?.uid) return;
 
-    if (activeChat.ownerId === currentUser.uid) {
+    if (targetGroup.ownerId === currentUser.uid) {
       alert('หัวหน้าทริปไม่สามารถออกจากกลุ่มได้ กรุณาสิ้นสุดทริปแทน');
       return;
     }
 
     try {
-      const groupRef = doc(db, 'groups', activeChat.id);
-      const memberToRemove = activeChat.members.find(m => m.uid === currentUser.uid);
+      const groupRef = doc(db, 'groups', targetGroup.id);
+      const memberToRemove = targetGroup.members.find(m => m.uid === currentUser.uid);
       
       if (!memberToRemove) {
         alert('ไม่พบข้อมูลสมาชิก');
@@ -297,13 +362,16 @@ const Chat = () => {
       await updateDoc(groupRef, {
         members: arrayRemove(memberToRemove),
         memberUids: arrayRemove(currentUser.uid),
-        currentMembers: (activeChat.currentMembers || 1) - 1
+        currentMembers: (targetGroup.currentMembers || 1) - 1
       });
 
       alert('ออกจากกลุ่มสำเร็จ');
-      setActiveChat(null);
-      setMessages([]);
-      navigate('/chat');
+      
+      if (activeChat?.id === targetGroup.id) {
+        setActiveChat(null);
+        setMessages([]);
+        navigate('/chat');
+      }
 
     } catch (error) {
       console.error('Error leaving group:', error);
@@ -311,27 +379,31 @@ const Chat = () => {
     }
   };
 
-  const handleEndTrip = async () => {
-    if (!activeChat?.id) return;
+  const handleEndTrip = async (targetGroup = activeChat) => {
+    if (!targetGroup?.id) return;
 
-    if (activeChat.ownerId !== currentUser?.uid) {
+    if (targetGroup.ownerId !== currentUser?.uid) {
       alert('ขออภัย เฉพาะหัวหน้าทริป (Leader) เท่านั้นที่สามารถจบทริปได้');
       return;
     }
 
-    if (isTripEnded) {
+    if (targetGroup.status === 'ended') {
       alert('ทริปนี้ได้สิ้นสุดไปแล้ว');
       return;
     }
 
-    if (activeChat.currentMembers === 1) {
+    if (targetGroup.currentMembers === 1) {
       if (window.confirm("เนื่องจากมีสมาชิกเพียง 1 คน การจบทริปจะเป็นการ 'ลบทริป' ออกจากระบบ ยืนยันหรือไม่?")) {
          try {
-           await deleteDoc(doc(db, 'groups', activeChat.id));
-           await deleteDoc(doc(db, 'posts', activeChat.id));
-           
+           await deleteDoc(doc(db, 'groups', targetGroup.id));
+           await deleteDoc(doc(db, 'posts', targetGroup.id));
            alert('ลบทริปเรียบร้อยแล้ว');
-           navigate('/homepage'); 
+           
+           if (activeChat?.id === targetGroup.id) {
+             setActiveChat(null);
+             setMessages([]);
+             navigate('/homepage');
+           }
          } catch (error) {
            console.error("Error deleting trip:", error);
            alert("เกิดข้อผิดพลาดในการลบทริป");
@@ -342,13 +414,42 @@ const Chat = () => {
 
     if (window.confirm("ยืนยันที่จะจบขบวนทริปนี้?")) {
       try {
-        const groupRef = doc(db, 'groups', activeChat.id);
+        const groupRef = doc(db, 'groups', targetGroup.id);
         await updateDoc(groupRef, {
           status: 'ended',
           description: 'ทริปนี้จบแล้ว'
         });
-        setIsTripEnded(true);
+        
+        if (activeChat?.id === targetGroup.id) {
+            setIsTripEnded(true);
+        }
       } catch (error) { console.error(error); }
+    }
+  };
+
+  const handleDeleteGroup = async (targetGroup = activeChat) => {
+    if (!targetGroup?.id) return;
+    if (targetGroup.ownerId !== currentUser?.uid) {
+      alert('เฉพาะหัวหน้าทริปเท่านั้นที่สามารถลบกลุ่มได้');
+      return;
+    }
+
+    if (window.confirm("คุณต้องการลบกลุ่มแชทนี้และโพสต์ที่เกี่ยวข้องถาวรใช่หรือไม่?")) {
+      try {
+        await deleteDoc(doc(db, 'groups', targetGroup.id));
+        await deleteDoc(doc(db, 'posts', targetGroup.id));
+        
+        alert('ลบกลุ่มเรียบร้อยแล้ว');
+        
+        if (activeChat?.id === targetGroup.id) {
+          setActiveChat(null);
+          setMessages([]);
+          navigate('/chat');
+        }
+      } catch (error) {
+        console.error("Error deleting group:", error);
+        alert("เกิดข้อผิดพลาดในการลบกลุ่ม");
+      }
     }
   };
 
@@ -388,7 +489,6 @@ const Chat = () => {
   };
 
   const groupsWithUnread = groups.map(group => {
-
     const unreadCount = notifications ? notifications.filter(n => 
       n.groupId === group.id && 
       n.type === 'chat_message' && 
@@ -427,6 +527,9 @@ const Chat = () => {
             onChatClick={handleChatClick}
             currentUser={currentUser}
             activeGroupId={activeChat?.id}
+            onEndTrip={handleEndTrip}
+            onLeaveGroup={handleLeaveGroup}
+            onDeleteGroup={handleDeleteGroup}
           />
         </div>
 
@@ -438,8 +541,9 @@ const Chat = () => {
               isTripEnded={isTripEnded}
               
               onBack={handleBackToList}
-              onEndTrip={handleEndTrip}
-              onLeaveGroup={handleLeaveGroup}
+              onEndTrip={() => handleEndTrip(activeChat)}
+              onLeaveGroup={() => handleLeaveGroup(activeChat)}
+              onDeleteGroup={() => handleDeleteGroup(activeChat)}
               
               onInputChange={setMessageInput}
               onSendMessage={handleSendMessage}

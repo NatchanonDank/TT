@@ -8,7 +8,10 @@ const GroupList = ({
   searchTerm, 
   onSearchChange, 
   onChatClick,
-  activeGroupId
+  activeGroupId,
+  currentUser, 
+  onEndTrip,   
+  onLeaveGroup 
 }) => {
   return (
     <div className="group-list">
@@ -37,6 +40,9 @@ const GroupList = ({
               group={group} 
               onChatClick={onChatClick}
               isActive={group.id === activeGroupId}
+              currentUser={currentUser} 
+              onEndTrip={onEndTrip}     
+              onLeaveGroup={onLeaveGroup} 
             />
           ))
         )}
