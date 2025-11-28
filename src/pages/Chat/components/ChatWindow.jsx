@@ -2,7 +2,7 @@ import React from 'react';
 import ChatHeader from './ChatHeader';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
-import './ChatWindow.css';
+import './Chatwindow.css';
 
 const ChatWindow = ({ 
   chat, 
