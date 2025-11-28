@@ -361,26 +361,30 @@ body {
 }
 
 /* Trip Card - แสดง 4 ใบต่อหน้า */
+/* Trip Card - ปรับให้เหมือน AllPosts */
 .trip-card {
   flex: 0 0 calc(25% - 15px);
   min-width: calc(25% - 15px);
   background: white;
-  border-radius: 16px;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .trip-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(-6px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
 }
 
 .trip-card-image-wrapper {
   position: relative;
   width: 100%;
-  height: 220px;
+  height: 180px;
   overflow: hidden;
 }
 
@@ -397,36 +401,42 @@ body {
 
 .trip-badge {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: 10px;
+  right: 10px;  /* เปลี่ยนจาก left เป็น right */
   background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
   color: white;
   padding: 6px 14px;
   border-radius: 20px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   z-index: 2;
-  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
-  animation: pulse 2s infinite;
+  box-shadow: 0 3px 12px rgba(255, 107, 107, 0.5);  /* เพิ่มเงา */
+  animation: pulse-badge 2s ease-in-out infinite;  /* เปลี่ยนชื่อ animation */
 }
 
-@keyframes pulse {
+@keyframes pulse-badge {  /* เปลี่ยนชื่อเพื่อไม่ชนกับ animation อื่น */
   0%, 100% {
     transform: scale(1);
+    box-shadow: 0 3px 12px rgba(255, 107, 107, 0.5);
   }
   50% {
     transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(255, 107, 107, 0.7);  /* เพิ่มเงาตอน pulse */
   }
 }
 
+
 .trip-card-content {
-  padding: 20px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .trip-location {
-  font-size: 14px;
+  font-size: 13px;
   color: #666;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -441,7 +451,7 @@ body {
   font-size: 16px;
   font-weight: 600;
   color: #1a1a1a;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -450,14 +460,17 @@ body {
   min-height: 44px;
 }
 
-/* Trip Dates - ปรับสีให้เข้มขึ้น */
+/* Trip Dates - ทำเหมือน AllPosts */
 .trip-dates {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 6px;
   margin-bottom: 12px;
-  font-size: 13px;
-  color: #1a1a1a;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 12px;
 }
 
 .date-details {
@@ -475,23 +488,24 @@ body {
 
 .date-label {
   font-weight: 500;
-  color: #2c3e50;
+  color: #666;
+  font-size: 11px;
 }
 
 .date-value {
-  font-weight:450;
-  color: #34495e;
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 12px;
 }
 
-/* Trip Meta (จำนวนคนและคะแนน) */
+/* Trip Meta - เหมือน AllPosts */
 .trip-meta {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
-  padding: 10px 0;
+  align-items: center;
+  padding-top: 12px;
   border-top: 1px solid #f0f0f0;
-  border-bottom: 1px solid #f0f0f0;
+  margin-top: auto;
 }
 
 .trip-members {
@@ -499,29 +513,38 @@ body {
   align-items: center;
   gap: 6px;
   color: #667eea;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
 }
 
 .trip-members svg {
   color: #667eea;
+  width: 16px;
+  height: 16px;
 }
 
 .trip-rating {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #1a1a1a;
 }
 
-/* Trip Author */
+.trip-rating svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Trip Author - เหมือน AllPosts */
 .trip-author {
   display: flex;
   align-items: baseline;
   gap: 4px;
-  font-size: 14px;
+  font-size: 12px;
+  color: #999;
+  margin-top: 8px;
 }
 
 .author-label {
@@ -532,7 +555,6 @@ body {
   color: #667eea;
   font-weight: 600;
 }
-
 /* ==================== POSTS SECTION ==================== */
 .posts-section {
   margin-top: 3rem;

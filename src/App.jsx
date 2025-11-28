@@ -13,7 +13,10 @@ import Chat from "./pages/Chat/Chat";
 import Endtrip from "./pages/Endtrip";
 import ProfilePage from "./pages/Profilepage"; 
 import PostDetail from "./pages/PostDetail";
-import AllPosts from "./pages/AllPosts"; // ✅ เพิ่มบรรทัดนี้
+import AllPosts from "./pages/AllPosts";
+import Privacypolicy from './pages/Privacypolicy';
+import Termsofservice from './pages/Termsofservice';
+
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true); 
@@ -27,7 +30,6 @@ export default function App() {
       }
       setLoading(false); 
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -40,29 +42,24 @@ export default function App() {
       <NotificationProvider>
         <Routes>
           <Route path="/" element={currentUser ? <Navigate to="/homepage" /> : <Login />} />
-
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot" element={<ForgotPassword />} />
-          
           <Route path="/homepage" element={<Homepage />} />
-          <Route path="/posts" element={<AllPosts />} /> {/* ✅ เพิ่มบรรทัดนี้ */}
-          <Route path="/post/:postId" element={<PostDetail />} />
-
+          <Route path="/posts" element={<AllPosts />} />
+          <Route path="/post/:postId" element={<PostDetail currentUser={currentUser} />} /> {/* ✅ แก้ตรงนี้ */}
           <Route path="/chat" element={<Chat />} />
           <Route path="/chat/:groupId" element={<Chat />} />
-
+          <Route path="/privacy-policy" element={<Privacypolicy />} />
+          <Route path="/terms-of-service" element={<Termsofservice />} /> 
           <Route 
             path="/notifications"
             element={<NotificationsPage />} 
           />
-
           <Route path="/endtrip" element={<Endtrip />} />
           <Route path="/end-trip/:groupId" element={<Endtrip />} />
-
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/:userId" element={<ProfilePage />} />
-          
         </Routes>
       </NotificationProvider>
     </PostProvider>

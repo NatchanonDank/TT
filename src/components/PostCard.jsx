@@ -48,7 +48,10 @@ const PostCard = ({
   const showDropdown = showDropdownFromParent !== undefined ? showDropdownFromParent : internalShowDropdown;
   const setShowDropdown = setShowDropdownFromParent || setInternalShowDropdown;
   
-  const isLeader = post.uid === currentUser?.uid;
+  // ✅ แก้ไขตรงนี้ - เช็คทั้ง post.uid และ post.author.uid
+  const postAuthorUid = post.author?.uid || post.uid;
+  const isLeader = postAuthorUid === currentUser?.uid;
+  
   const hasRequested = post.joinRequests?.some(r => r.uid === currentUser?.uid);
   const isMember = post.members?.some(m => m.uid === currentUser?.uid);
   const isFull = post.currentMembers >= post.maxMembers;
@@ -174,7 +177,7 @@ const PostCard = ({
           reporterName: currentUser.name || 'User',
           postId: post.id,
           postTitle: post.title || 'ไม่มีชื่อ',
-          postAuthorUid: post.uid,
+          postAuthorUid: postAuthorUid,
           reason: reason,
           createdAt: serverTimestamp(),
           status: 'pending'
@@ -193,7 +196,7 @@ const PostCard = ({
   };
 
   const internalApproveJoinRequest = async (request) => {
-    if (!currentUser || post.uid !== currentUser.uid) return;
+    if (!currentUser || !isLeader) return;
     if (post.currentMembers >= post.maxMembers) {
       alert('กลุ่มเต็มแล้ว ไม่สามารถเพิ่มสมาชิกได้');
       return;
@@ -221,7 +224,7 @@ const PostCard = ({
   };
 
   const internalRejectJoinRequest = async (request) => {
-    if (!currentUser || post.uid !== currentUser.uid) return;
+    if (!currentUser || !isLeader) return;
 
     try {
       const postRef = doc(db, 'posts', post.id);
@@ -291,7 +294,7 @@ const PostCard = ({
       <div className="post-card">
         <div className="post-header">
           <div className="post-author">
-            <Link to={`/profile/${post.author?.uid || post.uid}`}>
+            <Link to={`/profile/${postAuthorUid}`}>
               <img 
                 src={post.author?.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
                 alt="avatar" 
@@ -301,7 +304,7 @@ const PostCard = ({
             <div className="author-info">
               <h3 className="author-name">
                 <Link 
-                  to={`/profile/${post.author?.uid || post.uid}`} 
+                  to={`/profile/${postAuthorUid}`} 
                   style={{ color: 'inherit', textDecoration: 'none' }}
                 >
                   {post.author?.name || 'Unknown'}

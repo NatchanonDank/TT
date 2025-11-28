@@ -15,11 +15,14 @@ const PostDetail = ({ currentUser }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // State สำหรับ PostCard
-  const [likedPosts, setLikedPosts] = useState(new Set());
+  // State สำหรับ PostCard - เก็บเฉพาะที่จำเป็น
   const [showComments, setShowComments] = useState(new Set([postId])); // เปิด comments ทันที
-  const [commentInputs, setCommentInputs] = useState({});
   const [showDropdown, setShowDropdown] = useState(null);
+
+  // ✨ เพิ่ม handler สำหรับ update post (สำหรับไลค์, คอมเมนต์, ฯลฯ)
+  const handleUpdatePost = (updatedPost) => {
+    setPost(updatedPost);
+  };
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -31,11 +34,6 @@ const PostDetail = ({ currentUser }) => {
         if (postSnap.exists()) {
           const postData = { id: postSnap.id, ...postSnap.data() };
           setPost(postData);
-          
-          // Check if liked - ตรวจสอบ currentUser ก่อน
-          if (currentUser && postData.likes?.includes(currentUser.uid)) {
-            setLikedPosts(new Set([postId]));
-          }
         } else {
           setError('ไม่พบโพสต์นี้');
         }
@@ -50,55 +48,7 @@ const PostDetail = ({ currentUser }) => {
     if (postId) {
       fetchPost();
     }
-  }, [postId, currentUser]);
-
-  // PostCard handlers (จะต้อง integrate กับ Post.jsx)
-  const toggleLike = async (id) => {
-    // Implementation จาก Post.jsx
-    console.log('Toggle like:', id);
-  };
-
-  const toggleComments = (id) => {
-    setShowComments(prev => {
-      const newSet = new Set(prev);
-      newSet.has(id) ? newSet.delete(id) : newSet.add(id);
-      return newSet;
-    });
-  };
-
-  const handleCommentInput = (id, value) => {
-    setCommentInputs(prev => ({ ...prev, [id]: value }));
-  };
-
-  const addComment = async (id) => {
-    // Implementation จาก Post.jsx
-    console.log('Add comment:', id);
-  };
-
-  const handleJoinChat = async (id) => {
-    // Implementation จาก Post.jsx
-    console.log('Join chat:', id);
-  };
-
-  const handleOpenEditModal = (post) => {
-    console.log('Edit post:', post);
-  };
-
-  const deletePost = async (id) => {
-    console.log('Delete post:', id);
-  };
-
-  const approveJoinRequest = (request) => {
-    console.log('Approve:', request);
-  };
-
-  const rejectJoinRequest = (request) => {
-    console.log('Reject:', request);
-  };
-
-  const handleReportPost = (post, user) => {
-    console.log('Report:', post);
-  };
+  }, [postId]);
 
   if (loading) {
     return (
@@ -114,7 +64,7 @@ const PostDetail = ({ currentUser }) => {
       <div className="container">
         <Navbar brand="TripTogether" />
         <div className="post-detail-container">
-          <button className="back-button" onClick={() => navigate('/')}>
+          <button className="back-button" onClick={() => navigate('/homepage')}>
             <ArrowLeft size={20} />
             <span>กลับหน้าหลัก</span>
           </button>
@@ -123,36 +73,37 @@ const PostDetail = ({ currentUser }) => {
       </div>
     );
   }
+  
+  const postAuthorUid = post.author?.uid || post.uid;
+  const isLeader = postAuthorUid === currentUser?.uid;
+
+  console.log('🔍 PostCard Debug:', {
+    'Post Author UID': postAuthorUid,
+    'Current User UID': currentUser?.uid,
+    'Is Leader?': isLeader,
+    'post.uid': post.uid,
+    'post.author.uid': post.author?.uid
+  });
 
   return (
     <div className="container">
       <Navbar brand="TripTogether" />
       
       <div className="post-detail-container">
-        <button className="back-button" onClick={() => navigate('/')}>
+        <button className="back-button" onClick={() => navigate('/homepage')}>
           <ArrowLeft size={20} />
           <span>กลับหน้าหลัก</span>
         </button>
 
         <div className="post-detail-content">
+          {/* ✨ ส่ง onUpdatePost เพื่อให้ PostCard update state ได้ */}
           <PostCard
             post={post}
             currentUser={currentUser}
-            likedPosts={likedPosts}
             showComments={showComments}
-            commentInputs={commentInputs}
-            toggleLike={() => toggleLike(post.id)}
-            toggleComments={toggleComments}
-            handleCommentInput={handleCommentInput}
-            addComment={addComment}
-            handleJoinChat={() => handleJoinChat(post.id)}
             showDropdown={showDropdown}
             setShowDropdown={setShowDropdown}
-            handleOpenEditModal={handleOpenEditModal}
-            deletePost={deletePost}
-            approveJoinRequest={approveJoinRequest}
-            rejectJoinRequest={rejectJoinRequest}
-            handleReportPost={handleReportPost}
+            onUpdatePost={handleUpdatePost}
           />
         </div>
       </div>

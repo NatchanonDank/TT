@@ -194,3 +194,57 @@ body, html {
     font-size: 15px;
   }
 }
+/* เพิ่ม CSS นี้เข้าไปใน Register.module.css ของคุณ */
+
+/* ✨ Terms Checkbox Styles */
+.termsCheckbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 20px 0;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.termsCheckbox input[type="checkbox"] {
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.termsCheckbox label {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  cursor: pointer;
+  user-select: none;
+}
+
+.termsLink {
+  color: #667eea;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.termsLink:hover {
+  color: #764ba2;
+}
+
+/* ✨ Disabled Button */
+button:disabled,
+button.disabled {
+  background: #ccc !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+button:disabled:hover,
+button.disabled:hover {
+  background: #ccc !important;
+  transform: none !important;
+}

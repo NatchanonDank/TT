@@ -91,10 +91,40 @@ const AllPosts = () => {
     setSearchInput(searchQuery);
   }, [searchQuery]);
 
-  // ✨ Smart Search Filter - กรอง category + เนื้อหา
+  // ✨ Smart Search Filter - กรอง category + เนื้อหา + Hot Posts First
   useEffect(() => {
     if (searchQuery.trim() === '') {
-      setFilteredPosts(allPosts);
+      // ✨ เมื่อไม่มีการค้นหา ให้เรียงตาม Hot Score
+      const postsWithHotScore = allPosts.map(post => {
+        const likes = post.likes?.length || 0;
+        const members = post.currentMembers || 0;
+        const joinRequests = post.joinRequests?.length || 0;
+        const hotScore = likes * 10 + members * 20 + joinRequests * 5;
+        
+        return {
+          ...post,
+          hotScore
+        };
+      });
+      
+      // เรียงตาม Hot Score สูงสุดก่อน
+      const sorted = postsWithHotScore.sort((a, b) => {
+        if (b.hotScore !== a.hotScore) {
+          return b.hotScore - a.hotScore; // Hot ก่อน
+        }
+        // ถ้า Hot Score เท่ากัน เรียงตามเวลาล่าสุด
+        const timeA = a.createdAt?.toMillis() || 0;
+        const timeB = b.createdAt?.toMillis() || 0;
+        return timeB - timeA;
+      });
+      
+      setFilteredPosts(sorted);
+      
+      // 🔍 Debug: ดูค่า Hot Score
+      console.log('🔥 Top 5 Posts by Hot Score:');
+      sorted.slice(0, 5).forEach((post, i) => {
+        console.log(`${i+1}. ${post.title} - Hot Score: ${post.hotScore}`);
+      });
     } else {
       const query = searchQuery.toLowerCase().trim();
       
@@ -143,30 +173,28 @@ const AllPosts = () => {
           if (!matchType) matchType = 'text';
         }
         
-        // ✨ Category match - ต้องมีเนื้อหาตรงด้วย (Smart Logic)
+        // ✨ Category match - ค้นหาตามหมวดหมู่
         const category = post.category?.toLowerCase() || '';
-        const hasContentMatch = (
-          title.includes(query) || 
-          destination.includes(query) || 
-          description.includes(query) || 
-          content.includes(query) || 
-          text.includes(query)
-        );
-        
+
         if (category.includes(query)) {
+          relevanceScore += 150;
+          if (!matchType) matchType = 'category';
+          
+          const hasContentMatch = (
+            title.includes(query) || 
+            destination.includes(query) || 
+            description.includes(query) || 
+            content.includes(query) || 
+            text.includes(query)
+          );
+          
           if (hasContentMatch) {
-            // มีทั้ง category ตรง และเนื้อหาตรง → โบนัสคะแนน
-            relevanceScore += 30;
-            if (!matchType) matchType = 'category-with-content';
-          } else {
-            // มีแค่ category ตรง แต่เนื้อหาไม่ตรง → ไม่ให้คะแนน
-            relevanceScore = 0;
+            relevanceScore += 50;
           }
         }
         
-        // 🔧 FIX: ให้ popularity bonus เฉพาะเมื่อมี relevanceScore > 0
+        // 🔥 Hot Score - เพิ่มคะแนนจากความนิยม
         if (relevanceScore > 0) {
-          // โบนัสคะแนนสำหรับโพสต์ที่มีหลายตำแหน่งตรง
           const matchCount = [
             title.includes(query),
             destination.includes(query),
@@ -179,31 +207,55 @@ const AllPosts = () => {
             relevanceScore += matchCount * 10;
           }
           
-          // โบนัสคะแนนสำหรับโพสต์ที่ Hot
-          const popularityBonus = (post.likes?.length || 0) + (post.members?.length || 0) * 2;
-          relevanceScore += Math.min(popularityBonus, 30);
+          // ✨ เพิ่ม Hot Score มากขึ้น
+          const likes = post.likes?.length || 0;
+          const members = post.currentMembers || 0;
+          const joinRequests = post.joinRequests?.length || 0;
+          const popularityBonus = likes * 5 + members * 10 + joinRequests * 3;
+          relevanceScore += Math.min(popularityBonus, 100);
         }
+        
+        // คำนวณ Hot Score สำหรับการเรียงลำดับ
+        const likes = post.likes?.length || 0;
+        const members = post.currentMembers || 0;
+        const joinRequests = post.joinRequests?.length || 0;
+        const hotScore = likes * 10 + members * 20 + joinRequests * 5;
         
         return {
           ...post,
           relevanceScore,
-          matchType
+          matchType,
+          hotScore
         };
       });
       
-      // กรองและเรียง
+      // กรองและเรียง - โพสต์ Hot ขึ้นก่อนเมื่อ relevanceScore ใกล้เคียงกัน
       const filtered = postsWithScore
         .filter(post => post.relevanceScore > 0)
         .sort((a, b) => {
-          if (b.relevanceScore !== a.relevanceScore) {
+          // ถ้า relevanceScore ต่างกันมาก (>100) ให้เรียงตาม relevanceScore
+          if (Math.abs(b.relevanceScore - a.relevanceScore) > 100) {
             return b.relevanceScore - a.relevanceScore;
           }
+          
+          // ถ้า relevanceScore ใกล้เคียงกัน ให้เรียงตาม Hot Score
+          if (b.hotScore !== a.hotScore) {
+            return b.hotScore - a.hotScore;
+          }
+          
+          // ถ้า Hot Score เท่ากัน ให้เรียงตามเวลาล่าสุด
           const timeA = a.createdAt?.toMillis() || 0;
           const timeB = b.createdAt?.toMillis() || 0;
           return timeB - timeA;
         });
       
       setFilteredPosts(filtered);
+      
+      // 🔍 Debug: ดูค่า Hot Score เมื่อค้นหา
+      console.log('🔥 Search Results Top 5:');
+      filtered.slice(0, 5).forEach((post, i) => {
+        console.log(`${i+1}. ${post.title} - Hot Score: ${post.hotScore}, Relevance: ${post.relevanceScore}`);
+      });
     }
   }, [searchQuery, allPosts]);
 
@@ -315,6 +367,12 @@ const AllPosts = () => {
                     alt={post.title}
                     className="post-image"
                   />
+                  {/* 🔥 HOT Badge - แสดงเฉพาะ Top 10% */}
+                  {filteredPosts.indexOf(post) < Math.ceil(filteredPosts.length * 0.1) && (
+                    <span className="hot-badge">
+                      🔥 HOT
+                    </span>
+                  )}
                   {post.category && (
                     <span className="post-category-badge">
                       {categoryIcons[post.category]} {post.category}
