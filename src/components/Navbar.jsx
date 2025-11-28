@@ -51,17 +51,13 @@ const Navbar = ({ brand = "TripTogether", currentUser }) => {
     }, 1000);
   };
 
-  // ✅ ฟังก์ชันเช็ค active state ที่รองรับ sub-paths
   const isActive = (item) => {
     const currentPath = location.pathname;
     
-    // กรณีพิเศษ: homepage ต้องตรงทุกตัวอักษร
     if (item.path === '/homepage') {
       return currentPath === '/homepage' || currentPath === '/';
     }
     
-    // กรณีปกติ: ใช้ startsWith เพื่อรองรับ sub-paths
-    // เช่น /chat, /chat/abc123, /profile, /profile/xyz
     return currentPath.startsWith(item.path);
   };
 
@@ -92,7 +88,7 @@ const Navbar = ({ brand = "TripTogether", currentUser }) => {
         <div className="nav-items">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const itemIsActive = isActive(item); // ✅ ใช้ฟังก์ชันใหม่
+            const itemIsActive = isActive(item);
             const isNotification = item.id === 'notifications'; 
             const isChat = item.id === 'chat';
 

@@ -11,7 +11,6 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // ✨ เช็คว่ายอมรับเงื่อนไขหรือยัง
     if (!acceptedTerms) {
       alert("กรุณายอมรับนโยบายความเป็นส่วนตัวและเงื่อนไขการให้บริการก่อนสมัครสมาชิก");
       return;
@@ -21,8 +20,8 @@ export default function Register() {
     const email = e.target.email.value;
     const password = e.target.password.value;
     const confirm = e.target.confirm.value;
-
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[A-Za-z\d\W_]{8,}$/;
+    
     if (!passwordRegex.test(password)) {
       alert(
         "Password is not secure!\n\n" +
@@ -30,7 +29,7 @@ export default function Register() {
         "- At least one lowercase letter (a-z)\n" +
         "- At least one uppercase letter (A-Z)\n" +
         "- At least one number (0-9)\n" +
-        "- At least one special character (e.g., @, $, !, %, *, ?, &)"
+        "- At least one special character (e.g., ! @ # $ % ^ & * _ + - =)"
       );
       return; 
     }
@@ -66,7 +65,6 @@ export default function Register() {
         <input type="password" name="password" placeholder="Password" required />
         <input type="password" name="confirm" placeholder="Confirm Password" required />
         
-        {/* ✨ Checkbox ยอมรับเงื่อนไข */}
         <div className={styles.termsCheckbox}>
           <input 
             type="checkbox" 

@@ -13,7 +13,6 @@ const GroupList = ({
   return (
     <div className="group-list">
       <div className="group-list-header">
-        {/* ✅ เพิ่ม Title */}
         <h2 className="group-list-title">แชท</h2>
         
         <div className="search-bar">

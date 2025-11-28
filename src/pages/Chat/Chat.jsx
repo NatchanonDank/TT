@@ -21,7 +21,9 @@ import {
   getDoc,
   writeBatch,
   getDocs,
-  arrayRemove // ✅ เพิ่ม import
+  arrayRemove,
+  deleteDoc,
+  setDoc
 } from 'firebase/firestore';
 
 import { useNotifications } from '../../components/NotificationContext';
@@ -275,11 +277,9 @@ const Chat = () => {
     }
   };
 
-  // ✅ เพิ่มฟังก์ชันออกจากกลุ่ม
   const handleLeaveGroup = async () => {
     if (!activeChat?.id || !currentUser?.uid) return;
 
-    // ป้องกันไม่ให้ Leader ออกจากกลุ่ม
     if (activeChat.ownerId === currentUser.uid) {
       alert('หัวหน้าทริปไม่สามารถออกจากกลุ่มได้ กรุณาสิ้นสุดทริปแทน');
       return;
@@ -287,8 +287,6 @@ const Chat = () => {
 
     try {
       const groupRef = doc(db, 'groups', activeChat.id);
-
-      // หาข้อมูลสมาชิกที่ต้องการออก
       const memberToRemove = activeChat.members.find(m => m.uid === currentUser.uid);
       
       if (!memberToRemove) {
@@ -296,7 +294,6 @@ const Chat = () => {
         return;
       }
 
-      // ลบสมาชิกออกจากกลุ่ม
       await updateDoc(groupRef, {
         members: arrayRemove(memberToRemove),
         memberUids: arrayRemove(currentUser.uid),
@@ -304,8 +301,6 @@ const Chat = () => {
       });
 
       alert('ออกจากกลุ่มสำเร็จ');
-      
-      // กลับไปหน้ารายชื่อกลุ่ม
       setActiveChat(null);
       setMessages([]);
       navigate('/chat');
@@ -329,6 +324,22 @@ const Chat = () => {
       return;
     }
 
+    if (activeChat.currentMembers === 1) {
+      if (window.confirm("เนื่องจากมีสมาชิกเพียง 1 คน การจบทริปจะเป็นการ 'ลบทริป' ออกจากระบบ ยืนยันหรือไม่?")) {
+         try {
+           await deleteDoc(doc(db, 'groups', activeChat.id));
+           await deleteDoc(doc(db, 'posts', activeChat.id));
+           
+           alert('ลบทริปเรียบร้อยแล้ว');
+           navigate('/homepage'); 
+         } catch (error) {
+           console.error("Error deleting trip:", error);
+           alert("เกิดข้อผิดพลาดในการลบทริป");
+         }
+      }
+      return;
+    }
+
     if (window.confirm("ยืนยันที่จะจบขบวนทริปนี้?")) {
       try {
         const groupRef = doc(db, 'groups', activeChat.id);
@@ -341,19 +352,61 @@ const Chat = () => {
     }
   };
 
-  const filteredGroups = groups.filter(g => 
+  const handleEditMessage = async (messageId, newText) => {
+    if (!newText.trim()) return;
+    try {
+      const messageRef = doc(db, 'messages', messageId);
+      await updateDoc(messageRef, {
+        text: newText,
+        isEdited: true,
+        editedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Error editing message:", error);
+    }
+  };
+
+  const handleDeleteMessage = async (message) => {
+    if (!window.confirm("ต้องการลบข้อความนี้ใช่หรือไม่?")) return;
+    try {
+      await setDoc(doc(db, 'deleted_messages', message.id), {
+        ...message,
+        deletedAt: serverTimestamp(),
+        deletedBy: currentUser.uid
+      });
+
+      const messageRef = doc(db, 'messages', message.id);
+      await updateDoc(messageRef, {
+        text: "ข้อความนี้ถูกลบแล้ว",
+        isDeleted: true,
+        type: 'deleted', 
+        originalType: message.type 
+      });
+    } catch (error) {
+      console.error("Error deleting message:", error);
+    }
+  };
+
+  const groupsWithUnread = groups.map(group => {
+
+    const unreadCount = notifications ? notifications.filter(n => 
+      n.groupId === group.id && 
+      n.type === 'chat_message' && 
+      !n.read
+    ).length : 0;
+    
+    return { ...group, unread: unreadCount };
+  });
+
+  const filteredGroups = groupsWithUnread.filter(g => 
     g.name?.toLowerCase().includes(groupSearch.toLowerCase())
   )
   .sort((a, b) => {
     const isAEnded = a.status === 'ended';
     const isBEnded = b.status === 'ended';
 
-    if (isAEnded && !isBEnded) {
-      return 1; 
-    }
-    if (!isAEnded && isBEnded) {
-      return -1; 
-    }
+    if (isAEnded && !isBEnded) return 1; 
+    if (!isAEnded && isBEnded) return -1; 
 
     const timeA = a.lastMessageTime?.seconds || 0;
     const timeB = b.lastMessageTime?.seconds || 0;
@@ -386,12 +439,15 @@ const Chat = () => {
               
               onBack={handleBackToList}
               onEndTrip={handleEndTrip}
-              onLeaveGroup={handleLeaveGroup} // ✅ เพิ่ม prop
+              onLeaveGroup={handleLeaveGroup}
               
               onInputChange={setMessageInput}
               onSendMessage={handleSendMessage}
               
               onOpenLocationModal={() => setIsLocationModalOpen(true)}
+              
+              onEditMessage={handleEditMessage}
+              onDeleteMessage={handleDeleteMessage}
               
               currentUser={currentUser}
             />

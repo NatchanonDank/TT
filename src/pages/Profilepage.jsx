@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Edit2, X, Check, LogOut, Flag } from 'lucide-react';
+import { Camera, Edit2, X, Check, LogOut, Flag, Image as ImageIcon, Trash2 } from 'lucide-react'; // ✅ เพิ่มไอคอน ImageIcon, Trash2
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import PostCard from '../components/PostCard';
@@ -37,7 +37,8 @@ const ProfilePage = () => {
     email: '...',
     bio: 'กำลังโหลดข้อมูล...',
     avatar: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-    coverColor: 'linear-gradient(135deg, #a8d5e2 0%, #f9d5a5 100%)'
+    coverColor: 'linear-gradient(135deg, #a8d5e2 0%, #f9d5a5 100%)',
+    coverImage: null 
   });
 
   const [editForm, setEditForm] = useState({ ...profileData });
@@ -54,7 +55,6 @@ const ProfilePage = () => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setLoggedInUser(currentUser); 
-        
         const targetUserId = userId || currentUser.uid; 
         setProfileUserId(targetUserId);
         setIsOwnProfile(targetUserId === currentUser.uid); 
@@ -71,7 +71,6 @@ const ProfilePage = () => {
     const fetchProfileData = async () => {
       setIsLoading(true);
       try {
-        // ดึงข้อมูล user
         const userDocRef = doc(db, "users", profileUserId);
         const userDocSnap = await getDoc(userDocRef);
         
@@ -82,31 +81,26 @@ const ProfilePage = () => {
             email: firestoreData.email || '... (ไม่มีอีเมล)',
             avatar: firestoreData.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
             bio: firestoreData.bio || 'ยังไม่มีคำอธิบายตัวตน',
-            coverColor: firestoreData.coverColor || 'linear-gradient(135deg, #a8d5e2 0%, #f9d5a5 100%)'
+            coverColor: firestoreData.coverColor || 'linear-gradient(135deg, #a8d5e2 0%, #f9d5a5 100%)',
+            coverImage: firestoreData.coverImage || null 
           });
         } else {
           setProfileData(prev => ({...prev, name: "ไม่พบผู้ใช้", bio: ""}));
         }
 
-        // ✅ ดึง posts ของ user - แก้ไขให้ดีขึ้น
         try {
           const postsQuery = query(
             collection(db, 'posts'),
             where('uid', '==', profileUserId),
             orderBy('createdAt', 'desc')
           );
-          
           const postsSnapshot = await getDocs(postsQuery);
           const fetchedPosts = [];
-          
           postsSnapshot.forEach((docSnap) => {
             const postData = docSnap.data();
-            
-            // ✅ ตรวจสอบว่ามีข้อมูลครบถ้วน
             fetchedPosts.push({ 
               id: docSnap.id,
               ...postData,
-              // ป้องกันข้อมูลหาย
               title: postData.title || 'ไม่มีชื่อโพสต์',
               destination: postData.destination || 'ไม่ระบุสถานที่',
               description: postData.description || '',
@@ -114,22 +108,17 @@ const ProfilePage = () => {
               uid: postData.uid || profileUserId
             });
           });
-          
-          console.log(`✅ Loaded ${fetchedPosts.length} posts for user ${profileUserId}`);
           setUserPosts(fetchedPosts);
-          
         } catch (postsError) {
           console.error("Error fetching posts:", postsError);
           setUserPosts([]);
         }
 
-        // ดึง reviews
         const reviewsQuery = query(
           collection(db, 'friend_reviews'),
           where('targetUserId', '==', profileUserId),
           orderBy('createdAt', 'desc')
         );
-        
         const reviewsSnapshot = await getDocs(reviewsQuery);
         const fetchedReviews = [];
         let totalRating = 0;
@@ -138,7 +127,6 @@ const ProfilePage = () => {
         reviewsSnapshot.forEach((docSnap) => {
           const data = docSnap.data();
           fetchedReviews.push({ id: docSnap.id, ...data });
-
           if (data.rating) {
             totalRating += data.rating;
             const index = 5 - Math.floor(data.rating);
@@ -184,13 +172,30 @@ const ProfilePage = () => {
     const file = e.target.files[0];
     if (file) {
        if (file.size > 700 * 1024) {
-         alert(`รูป ${file.name} มีขนาดใหญ่เกิน 700KB! \nกรุณาเลือกรูปที่เล็กกว่านี้ครับ`);
+         alert(`รูป ${file.name} มีขนาดใหญ่เกิน 700KB!`);
          return;
        }
        const reader = new FileReader();
        reader.onloadend = () => setEditForm(prev => ({ ...prev, avatar: reader.result }));
        reader.readAsDataURL(file);
     }
+  };
+
+  const handleCoverImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+       if (file.size > 2 * 1024 * 1024) {
+         alert(`รูปปกมีขนาดใหญ่เกิน 2MB!`);
+         return;
+       }
+       const reader = new FileReader();
+       reader.onloadend = () => setEditForm(prev => ({ ...prev, coverImage: reader.result }));
+       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveCoverImage = () => {
+    setEditForm(prev => ({ ...prev, coverImage: null }));
   };
   
   const handleLogout = async () => {
@@ -209,15 +214,13 @@ const ProfilePage = () => {
       await setDoc(doc(db, "users", userUID), {
         name: editForm.name, 
         bio: editForm.bio, 
-        coverColor: editForm.coverColor, 
+        coverColor: editForm.coverColor,
+        coverImage: editForm.coverImage || null, 
         avatar: editForm.avatar, 
         email: loggedInUser.email
       }, { merge: true });
 
-      const postsQuery = query(
-          collection(db, 'posts'),
-          where('uid', '==', userUID)
-      );
+      const postsQuery = query(collection(db, 'posts'), where('uid', '==', userUID));
       const postsSnapshot = await getDocs(postsQuery);
       
       const batch = writeBatch(db); 
@@ -232,7 +235,7 @@ const ProfilePage = () => {
       
       setProfileData({ ...editForm });
       setIsEditing(false);
-      alert("บันทึกข้อมูลสำเร็จ! โพสต์ทั้งหมดของคุณได้รับการอัปเดตแล้ว");
+      alert("บันทึกข้อมูลสำเร็จ!");
       
     } catch (error) { 
       console.error("Error saving profile:", error);
@@ -245,9 +248,7 @@ const ProfilePage = () => {
       alert("ไม่สามารถรายงานตัวเองได้");
       return;
     }
-
     const reason = prompt(`กรุณาระบุเหตุผลในการรายงานผู้ใช้ ${profileData.name}:`);
-
     if (reason && reason.trim().length > 0) {
       try {
         await addDoc(collection(db, "reports"), {
@@ -265,8 +266,6 @@ const ProfilePage = () => {
         console.error("Error submitting report:", error);
         alert("เกิดข้อผิดพลาดในการส่งรายงาน");
       }
-    } else if (reason !== null) { 
-      alert("กรุณาระบุเหตุผลในการรายงาน");
     }
   };
 
@@ -292,8 +291,15 @@ const ProfilePage = () => {
   return (
     <div className="head">
       <Navbar brand="TripTogether" />
-      
-      <div className="hero-section" style={{ background: profileData.coverColor }}>
+      <div 
+        className="hero-section" 
+        style={{ 
+          background: profileData.coverImage ? `url(${profileData.coverImage})` : profileData.coverColor,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundColor: '#f0f2f5'
+        }}
+      >
          {isOwnProfile && (
             <button onClick={handleLogout} className="logout-btn-absolute">
                 <LogOut size={18} /> ออกจากระบบ
@@ -308,10 +314,12 @@ const ProfilePage = () => {
               <h2 className="modal-title">แก้ไขโปรไฟล์</h2>
               <button onClick={handleCancel}><X size={24} /></button>
             </div>
+            
             <div className="form-group">
               <label>รูปโปรไฟล์</label>
               <input type="file" accept="image/*" onChange={handleProfileImageUpload} />
             </div>
+
             <div className="form-group">
               <label>ชื่อ</label>
               <input 
@@ -320,6 +328,7 @@ const ProfilePage = () => {
                 className="text-input"
               />
             </div>
+
             <div className="form-group">
               <label>Bio</label>
               <textarea 
@@ -329,20 +338,67 @@ const ProfilePage = () => {
               />
             </div>
             <div className="form-group">
-              <label>สีปก</label>
+              <label style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                รูปภาพปก
+                {editForm.coverImage && (
+                  <button 
+                    onClick={handleRemoveCoverImage}
+                    style={{
+                      background: 'none', border: 'none', color: '#e53e3e', 
+                      fontSize: '0.85rem', cursor: 'pointer', display: 'flex', gap: '4px', alignItems: 'center'
+                    }}
+                  >
+                    <Trash2 size={14} /> ลบรูปปก
+                  </button>
+                )}
+              </label>
+              <div style={{
+                border: '2px dashed #dddfe2', borderRadius: '8px', padding: '10px',
+                textAlign: 'center', background: '#f9fafb', marginBottom: '10px',
+                position: 'relative', overflow: 'hidden', height: '120px'
+              }}>
+                {editForm.coverImage ? (
+                  <img 
+                    src={editForm.coverImage} 
+                    alt="Cover Preview" 
+                    style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px'}} 
+                  />
+                ) : (
+                  <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#666'}}>
+                    <ImageIcon size={24} style={{marginBottom: '5px'}}/>
+                    <span style={{fontSize: '0.9rem'}}>ยังไม่มีรูปภาพปก</span>
+                  </div>
+                )}
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleCoverImageUpload}
+                  style={{
+                    position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
+                    opacity: 0, cursor: 'pointer'
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>หรือ เลือกสีปก</label>
               <div className="cover-color-grid">
                 {coverOptions.map((c, i) => (
                   <button 
                     key={i} 
-                    onClick={() => handleChange('coverColor', c)} 
-                    className={`color-option-btn ${editForm.coverColor === c ? 'selected' : ''}`} 
+                    onClick={() => {
+                      setEditForm(prev => ({ ...prev, coverColor: c, coverImage: null }));
+                    }} 
+                    className={`color-option-btn ${editForm.coverColor === c && !editForm.coverImage ? 'selected' : ''}`} 
                     style={{ background: c }}
                   >
-                    {editForm.coverColor === c && <Check size={20} color="#fff" />}
+                    {editForm.coverColor === c && !editForm.coverImage && <Check size={20} color="#fff" />}
                   </button>
                 ))}
               </div>
             </div>
+
             <div className="modal-actions">
               <button onClick={handleCancel}>ยกเลิก</button>
               <button onClick={handleSave}>บันทึก</button>
@@ -350,7 +406,6 @@ const ProfilePage = () => {
           </div>
         </div>
       )}
-
       <div className="content-wrapper">
         <div className="profile-card">
           <div className="profile-card-content">

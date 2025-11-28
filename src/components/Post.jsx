@@ -18,8 +18,7 @@ const Post = () => {
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState(searchQuery);
-  
-  // States for PostCard
+
   const [likedPosts, setLikedPosts] = useState(new Set());
   const [showComments, setShowComments] = useState(new Set());
   const [commentInputs, setCommentInputs] = useState({});
@@ -27,7 +26,6 @@ const Post = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
 
-  // Auth State
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -61,7 +59,6 @@ const Post = () => {
     return () => unsubscribe();
   }, [navigate]);
 
-  // Fetch All Posts
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -71,8 +68,7 @@ const Post = () => {
           id: doc.id,
           ...doc.data()
         }));
-        
-        // เรียงตามเวลาล่าสุด
+
         posts.sort((a, b) => {
           const timeA = a.createdAt?.toMillis() || 0;
           const timeB = b.createdAt?.toMillis() || 0;
@@ -80,8 +76,7 @@ const Post = () => {
         });
         
         setAllPosts(posts);
-        
-        // Set liked posts
+
         const liked = new Set();
         posts.forEach(post => {
           if (post.likes?.includes(currentUser?.uid)) {
@@ -102,12 +97,10 @@ const Post = () => {
     }
   }, [currentUser]);
 
-  // Update search input when URL changes
   useEffect(() => {
     setSearchInput(searchQuery);
   }, [searchQuery]);
 
-  // ✨ Filter Posts - ปรับปรุงให้แม่นยำ (กรองตาม category + เนื้อหา)
   useEffect(() => {
     if (searchQuery.trim() === '') {
       setFilteredPosts(allPosts);
@@ -118,7 +111,6 @@ const Post = () => {
         let relevanceScore = 0;
         let matchType = '';
         
-        // Title match
         const title = post.title?.toLowerCase() || '';
         if (title === query) {
           relevanceScore += 1000;
@@ -131,7 +123,6 @@ const Post = () => {
           matchType = 'title-word';
         }
         
-        // Destination match
         const destination = post.destination?.toLowerCase() || '';
         if (destination === query) {
           relevanceScore += 400;
@@ -141,7 +132,6 @@ const Post = () => {
           if (!matchType) matchType = 'destination-partial';
         }
         
-        // Description/Content match
         const description = post.description?.toLowerCase() || '';
         const content = post.content?.toLowerCase() || '';
         const text = post.text?.toLowerCase() || '';
@@ -159,7 +149,6 @@ const Post = () => {
           if (!matchType) matchType = 'text';
         }
         
-        // ✨ Category match - ต้องมีเนื้อหาตรงด้วย
         const category = post.category?.toLowerCase() || '';
         const hasContentMatch = (
           title.includes(query) || 
@@ -174,12 +163,10 @@ const Post = () => {
             relevanceScore += 30;
             if (!matchType) matchType = 'category-with-content';
           } else {
-            // มี category ตรง แต่เนื้อหาไม่ตรง → ไม่ให้คะแนน
             relevanceScore = 0;
           }
         }
-        
-        // โบนัสคะแนน
+
         const matchCount = [
           title.includes(query),
           destination.includes(query),
@@ -217,7 +204,6 @@ const Post = () => {
     }
   }, [searchQuery, allPosts]);
 
-  // Toggle Like
   const toggleLike = async (postId) => {
     if (!currentUser) return;
     
@@ -257,7 +243,6 @@ const Post = () => {
     }
   };
 
-  // Toggle Comments
   const toggleComments = (postId) => {
     setShowComments(prev => {
       const newSet = new Set(prev);
@@ -270,12 +255,10 @@ const Post = () => {
     });
   };
 
-  // Handle Comment Input
   const handleCommentInput = (postId, value) => {
     setCommentInputs(prev => ({ ...prev, [postId]: value }));
   };
 
-  // Add Comment
   const addComment = async (postId) => {
     if (!currentUser || !commentInputs[postId]?.trim()) return;
     
@@ -305,7 +288,6 @@ const Post = () => {
     }
   };
 
-  // Join Chat Request
   const handleJoinChat = async (postId) => {
     if (!currentUser) return;
     
@@ -335,7 +317,6 @@ const Post = () => {
     }
   };
 
-  // Approve Join Request
   const approveJoinRequest = async (postId, request) => {
     const postRef = doc(db, 'posts', postId);
     
@@ -369,7 +350,6 @@ const Post = () => {
     }
   };
 
-  // Reject Join Request
   const rejectJoinRequest = async (postId, request) => {
     const postRef = doc(db, 'posts', postId);
     
@@ -390,7 +370,6 @@ const Post = () => {
     }
   };
 
-  // Delete Post
   const deletePost = async (postId) => {
     if (!window.confirm('คุณแน่ใจหรือไม่ที่จะลบโพสต์นี้?')) return;
     
@@ -404,13 +383,11 @@ const Post = () => {
     }
   };
 
-  // Open Edit Modal
   const handleOpenEditModal = (post) => {
     setEditingPost(post);
     setIsEditModalOpen(true);
   };
 
-  // Update Post
   const updatePost = async (postData) => {
     if (!editingPost) return;
     
@@ -433,7 +410,6 @@ const Post = () => {
     }
   };
 
-  // Report Post
   const handleReportPost = async (post, reporter) => {
     const reason = prompt('กรุณาระบุเหตุผลในการรายงาน:');
     if (!reason) return;
@@ -455,7 +431,6 @@ const Post = () => {
     }
   };
 
-  // Handle Search Submit
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchInput.trim()) {
@@ -465,7 +440,6 @@ const Post = () => {
     }
   };
 
-  // Handle Clear Search
   const handleClearSearch = () => {
     setSearchInput('');
     setSearchParams({});
@@ -481,7 +455,6 @@ const Post = () => {
       
       <div className="posts-layout">
         <main className="posts-main">
-          {/* Search Bar */}
           <div className="posts-search-section">
             <h1 className="posts-page-title">
               {searchQuery ? `ผลการค้นหา: "${searchQuery}"` : 'โพสต์ทั้งหมด'}
@@ -527,8 +500,6 @@ const Post = () => {
               </div>
             )}
           </div>
-
-          {/* Posts List */}
           <div className="posts-list">
             {filteredPosts.length > 0 ? (
               filteredPosts.map(post => (
@@ -579,8 +550,6 @@ const Post = () => {
           </div>
         </main>
       </div>
-
-      {/* Edit Modal */}
       {isEditModalOpen && (
         <Feb
           isOpen={isEditModalOpen}

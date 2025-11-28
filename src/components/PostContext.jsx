@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext } from 'react';
 const PostContext = createContext();
 
 export const PostProvider = ({ children }) => {
-  const [posts, setPosts] = useState([]); // ✅ เริ่มต้นด้วย array ว่าง - ไม่มี mock data
+  const [posts, setPosts] = useState([]);
 
   const addPost = (newPost) => {
     setPosts(prev => [newPost, ...prev]);

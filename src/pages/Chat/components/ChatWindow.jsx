@@ -10,27 +10,30 @@ const ChatWindow = ({
   isTripEnded,
   onBack,
   onEndTrip,
-  onLeaveGroup, // ✅ เพิ่ม prop ใหม่
+  onLeaveGroup,
   onInputChange,
   onSendMessage,
   onOpenLocationModal,
+  onEditMessage,
+  onDeleteMessage,
   currentUser
 }) => {
   return (
     <div className="chat-window">
-      
       <ChatHeader
         chat={chat}
         onBack={onBack}
         onEndTrip={onEndTrip}
-        onLeaveGroup={onLeaveGroup} // ✅ ส่งต่อไปที่ ChatHeader
+        onLeaveGroup={onLeaveGroup}
         isTripEnded={isTripEnded}
         currentUser={currentUser}
       />
     
       <MessageList 
         messages={chat.messages} 
-        currentUser={currentUser} 
+        currentUser={currentUser}
+        onEditMessage={onEditMessage}
+        onDeleteMessage={onDeleteMessage}
       />
       
       <MessageInput

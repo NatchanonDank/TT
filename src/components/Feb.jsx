@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Users, Loader, Calendar, Tag, MapPin } from 'lucide-react'; 
 import './Feb.css';
+import { auth, db } from '../firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const Feb = ({ isOpen, onClose, onSubmit, post }) => {
   const [tripTitle, setTripTitle] = useState('');
-  const [destination, setDestination] = useState(''); // ✨ เพิ่ม state สำหรับสถานที่
+  const [destination, setDestination] = useState(''); 
   const [postText, setPostText] = useState('');
   const [images, setImages] = useState([]); 
   const [maxMembers, setMaxMembers] = useState(10);
@@ -13,34 +15,35 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
   const [category, setCategory] = useState('');
   const [isPosting, setIsPosting] = useState(false);
 
-  // ✨ รายการหมวดหมู่การท่องเที่ยว
   const categories = [
-    'ทะเล เกาะ ชายหาด',
-    'ภูเขา ธรรมชาติ',
-    'วัด วัฒนธรรม ประวัติศาสตร์',
-    'สวนสนุก',
-    'ผจญภัย Adventure',
-    'เกษตร ฟาร์มสเตย์',
-    'เที่ยวเมือง City Trip'
+    'ทะเล เกาะ',
+    'ภูเขา ดอย',
+    'แคมป์ปิ้ง',
+    'วัด ทำบุญ',
+    'คาเฟ่ อาหาร',
+    'สวนสนุก สวนน้ำ',
+    'เดินป่า ผจญภัย',
+    'เที่ยวในเมือง',
+    'ไนท์ไลฟ์ ปาร์ตี้',
+    'ดำน้ำ',
+    'จิตอาสา',
+    'ถ่ายรูป',
+    'ดูคอนเสิร์ต'
   ];
 
-  // Get today's date in YYYY-MM-DD format for min date validation
   const getTodayDate = () => {
     const today = new Date();
     return today.toISOString().split('T')[0];
   };
 
-  // ✨ Lock/Unlock body scroll เมื่อเปิด/ปิด modal
   useEffect(() => {
     if (isOpen) {
-      // Lock scroll หน้าหลัก - แบบเข้มข้น
       const scrollY = window.scrollY;
       document.body.style.position = 'fixed';
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
     } else {
-      // Unlock scroll หน้าหลัก
       const scrollY = document.body.style.top;
       document.body.style.position = '';
       document.body.style.top = '';
@@ -49,7 +52,6 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
       window.scrollTo(0, parseInt(scrollY || '0') * -1);
     }
 
-    // Cleanup: ปลดล็อคเมื่อ component unmount
     return () => {
       document.body.style.position = '';
       document.body.style.top = '';
@@ -62,7 +64,7 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
     if (isOpen) {
       if (post) { 
         setTripTitle(post.title || '');
-        setDestination(post.destination || ''); // ✨ โหลดสถานที่จากโพสต์
+        setDestination(post.destination || ''); 
         setPostText(post.content || '');
         setMaxMembers(post.maxMembers || 10);
         setStartDate(post.startDate || '');
@@ -73,7 +75,7 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
         }
       } else { 
         setTripTitle('');
-        setDestination(''); // ✨ รีเซ็ตสถานที่
+        setDestination(''); 
         setPostText('');
         setImages([]);
         setMaxMembers(10);
@@ -89,7 +91,7 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
     if (files.length > 0) {
       const newImages = files.map(file => {
         if (file.size > 700 * 1024) {
-          alert(`รูป ${file.name} มีขนาดใหญ่เกิน 700KB! \nกรุณาเลือกรูปที่เล็กกว่านี้ครับ`);
+          alert(`รูป ${file.name} มีขนาดใหญ่เกิน 700KB! \nกรุณาเลือกรูปที่เล็กกว่านี้`);
           return null;
         }
         return {
@@ -109,7 +111,7 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
 
   const handleMaxMembersChange = (e) => {
     const value = parseInt(e.target.value);
-    if (value >= 3 && value <= 10) {
+    if (!isNaN(value) && value >= 3) { 
       setMaxMembers(value);
     }
   };
@@ -118,7 +120,6 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
     const newStartDate = e.target.value;
     setStartDate(newStartDate);
     
-    // ถ้าวันสิ้นสุดมีอยู่แล้ว และน้อยกว่าวันเริ่ม ให้รีเซ็ต
     if (endDate && newStartDate > endDate) {
       setEndDate('');
     }
@@ -127,7 +128,6 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
   const handleEndDateChange = (e) => {
     const newEndDate = e.target.value;
     
-    // ตรวจสอบว่าวันสิ้นสุดต้องมากกว่าหรือเท่ากับวันเริ่ม
     if (startDate && newEndDate < startDate) {
       alert('วันสิ้นสุดทริปต้องไม่น้อยกว่าวันเริ่มทริป');
       return;
@@ -148,36 +148,43 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
   };
 
   const handleSubmit = async () => {
-    // ✨ ตรวจสอบฟิลด์บังคับ
-    if (!tripTitle.trim()) {
-      alert('กรุณากรอกชื่อทริป');
-      return;
-    }
+    if (!tripTitle.trim()) { alert('กรุณากรอกชื่อทริป'); return; }
+    if (!destination.trim()) { alert('กรุณาระบุสถานที่ที่จะไป'); return; }
+    if (!category) { alert('กรุณาเลือกหมวดหมู่การท่องเที่ยว'); return; }
+    if (images.length === 0) { alert('กรุณาเพิ่มรูปภาพอย่างน้อย 1 รูป'); return; }
+    if (startDate && !endDate) { alert('กรุณาระบุวันสิ้นสุดทริป'); return; }
+    if (!startDate && endDate) { alert('กรุณาระบุวันเริ่มทริป'); return; }
+    if (auth.currentUser) {
+        try {
+            const q = query(
+                collection(db, 'posts'),
+                where('uid', '==', auth.currentUser.uid)
+            );
+            const querySnapshot = await getDocs(q);
+            
+            const newStart = new Date(startDate);
+            const newEnd = new Date(endDate);
+            
+            const isOverlapping = querySnapshot.docs.some(doc => {
+                const trip = doc.data();
 
-    if (!destination.trim()) {
-      alert('กรุณาระบุสถานที่ที่จะไป');
-      return;
-    }
+                if (post && doc.id === post.id) return false;
 
-    if (!category) {
-      alert('กรุณาเลือกหมวดหมู่การท่องเที่ยว');
-      return;
-    }
+                if (!trip.startDate || !trip.endDate) return false;
 
-    if (images.length === 0) {
-      alert('กรุณาเพิ่มรูปภาพอย่างน้อย 1 รูป');
-      return;
-    }
+                const tripStart = new Date(trip.startDate);
+                const tripEnd = new Date(trip.endDate);
+ 
+                return newStart <= tripEnd && newEnd >= tripStart;
+            });
 
-    // Validate dates
-    if (startDate && !endDate) {
-      alert('กรุณาระบุวันสิ้นสุดทริป');
-      return;
-    }
-
-    if (!startDate && endDate) {
-      alert('กรุณาระบุวันเริ่มทริป');
-      return;
+            if (isOverlapping) {
+                alert('⚠️ คุณมีทริปในช่วงเวลานี้อยู่แล้ว!\nไม่สามารถสร้างทริปที่วันชนกันได้ กรุณาตรวจสอบวันที่อีกครั้ง');
+                return; 
+            }
+        } catch (error) {
+            console.error("Error checking date overlap:", error);
+        }
     }
 
     setIsPosting(true);
@@ -204,7 +211,7 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
 
     await onSubmit({
       title: tripTitle,
-      destination: destination, // ✨ ส่งสถานที่ไปด้วย
+      destination: destination,
       content: postText,
       images: imageUrls, 
       maxMembers: maxMembers,
@@ -224,7 +231,6 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
       <div className="post-modal-content" onClick={(e) => e.stopPropagation()}>
         <h2>{post ? 'แก้ไขโพสต์' : 'สร้างโพสต์ใหม่'}</h2>
         
-        {/* ✨ ชื่อทริป */}
         <div className="input-group">
           <label className="input-label">
             <span>ชื่อทริป</span>
@@ -238,7 +244,7 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
             onChange={(e) => setTripTitle(e.target.value)}
           />
         </div>
-        {/* รายละเอียดเพิ่มเติม */}
+
         <div className="input-group">
           <label className="input-label">
             <span>รายละเอียดเพิ่มเติม</span>
@@ -251,8 +257,6 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
           />
         </div>
 
-
-        {/* ✨ สถานที่ */}
         <div className="input-group">
           <label className="input-label">
             <MapPin size={20} />
@@ -268,8 +272,6 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
           />
         </div>
         
-
-        {/* ✨ Category Selection Section */}
         <div className="category-section">
           <label className="category-label">
             <Tag size={20} />
@@ -290,7 +292,6 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
           </select>
         </div>
 
-        {/* Trip Dates Section */}
         <div className="trip-dates-section">
           <label className="trip-dates-label">
             <Calendar size={20} />
@@ -332,18 +333,17 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
           )}
         </div>
 
-        {/* Max Members Section */}
         <div className="max-members-section">
           <label className="max-members-label">
             <Users size={20} />
-            <span>จำนวนคนร่วมทริป</span>
+            <span>จำนวนคนร่วมทริปสูงสุด</span>
           </label>
           <div className="max-members-input-group">
             <button 
               type="button"
               className="member-btn"
-              onClick={() => maxMembers > 3 && setMaxMembers(maxMembers - 1)}
-              disabled={maxMembers <= 3}
+              onClick={() => maxMembers > 2 && setMaxMembers(maxMembers - 1)}
+              disabled={maxMembers <= 2}
             >
               −
             </button>
@@ -352,25 +352,21 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
               className="max-members-input"
               value={maxMembers}
               onChange={handleMaxMembersChange}
-              min="3"
-              max="10"
+              min="2"
             />
             <button 
               type="button"
               className="member-btn"
-              onClick={() => maxMembers < 10 && setMaxMembers(maxMembers + 1)}
-              disabled={maxMembers >= 10}
+              onClick={() => setMaxMembers(maxMembers + 1)}
             >
               +
             </button>
           </div>
-          <p className="max-members-hint">กำหนดได้ 3-10 คน</p>
+          <p className="max-members-hint">ไม่จำกัดจำนวนสูงสุด (ขั้นต่ำ 2 คน)</p>
         </div>
 
-        {/* ✨ แสดงข้อความแจ้งเตือนฟิลด์ที่ขาด */}
         {(!tripTitle.trim() || !destination.trim() || !category || images.length === 0) && (
           <div className="validation-alerts">
-
             {images.length === 0 && (
               <div className="alert-item">⚠️ กรุณาเพิ่มรูปภาพอย่างน้อย 1 รูป</div>
             )}

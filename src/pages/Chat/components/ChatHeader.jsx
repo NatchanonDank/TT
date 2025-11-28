@@ -52,14 +52,11 @@ const ChatHeader = ({
             {chat.currentMembers}/{chat.maxMembers} คน
           </p>
         </div>
-        
-        {/* ✅ แสดงปุ่ม options ให้ทุกคน (Leader + สมาชิก) */}
         <div className="chat-options">
           <button onClick={handleToggleOptions}>⋮</button>
           {isOptionsOpen && (
             <div className="options-dropdown">
               {isLeader ? (
-                // ✅ เมนูสำหรับ Leader
                 <button 
                   onClick={() => {
                     setIsOptionsOpen(false);
@@ -74,7 +71,6 @@ const ChatHeader = ({
                   🏁 สิ้นสุดทริป
                 </button>
               ) : (
-                // ✅ เมนูสำหรับสมาชิกธรรมดา
                 <button 
                   onClick={handleLeaveGroup}
                   className="leave-group-btn"
@@ -86,8 +82,6 @@ const ChatHeader = ({
           )}
         </div>
       </div>
-
-      {/* Members Modal */}
       {isMembersModalOpen && (
         <div className="members-modal-overlay" onClick={handleCloseMembersModal}>
           <div className="members-modal-content" onClick={(e) => e.stopPropagation()}>

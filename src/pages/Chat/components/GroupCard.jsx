@@ -2,7 +2,7 @@ import React from 'react';
 import { Users } from 'lucide-react';
 import './GroupCard.css';
 
-const GroupCard = ({ group, onChatClick, isActive }) => { // ✅ เพิ่ม isActive
+const GroupCard = ({ group, onChatClick, isActive }) => { 
   return (
     <div 
       className={`group-card ${group.unread > 0 ? 'group-unread-card' : ''} ${group.status === 'ended' ? 'ended' : ''} ${isActive ? 'active' : ''}`} 

@@ -20,16 +20,21 @@ const AllPosts = () => {
   const [searchInput, setSearchInput] = useState(searchQuery);
 
   const categoryIcons = {
-    'ทะเล เกาะ ชายหาด': '🏖️',
-    'ภูเขา ธรรมชาติ': '⛰️',
-    'วัด วัฒนธรรม ประวัติศาสตร์': '🛕',
-    'สวนสนุก': '🎡',
-    'ผจญภัย Adventure': '🧗',
-    'เกษตร ฟาร์มสเตย์': '🌾',
-    'เที่ยวเมือง City Trip': '🏙️'
+    'ทะเล เกาะ': '🏖️',
+    'ภูเขา ดอย': '⛰️',
+    'แคมป์ปิ้ง': '⛺',
+    'วัด ทำบุญ': '🛕',
+    'คาเฟ่ อาหาร': '☕',
+    'สวนสนุก สวนน้ำ': '🎡',
+    'เดินป่า ผจญภัย': '🧗',
+    'เที่ยวในเมือง': '🏙️',
+    'ไนท์ไลฟ์ ปาร์ตี้': '🍻',
+    'ดำน้ำ': '🤿',
+    'จิตอาสา': '🤝',
+    'ถ่ายรูป': '📸',
+    'ดูคอนเสิร์ต': '🎵'
   };
 
-  // Auth State
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -56,8 +61,6 @@ const AllPosts = () => {
     });
     return () => unsubscribe();
   }, [navigate]);
-
-  // Fetch All Posts
   useEffect(() => {
     const fetchAllPosts = async () => {
       try {
@@ -67,8 +70,7 @@ const AllPosts = () => {
           id: doc.id,
           ...doc.data()
         }));
-        
-        // เรียงตามเวลาล่าสุด
+
         posts.sort((a, b) => {
           const timeA = a.createdAt?.toMillis() || 0;
           const timeB = b.createdAt?.toMillis() || 0;
@@ -86,15 +88,12 @@ const AllPosts = () => {
     }
   }, [currentUser]);
 
-  // Update search input when URL changes
   useEffect(() => {
     setSearchInput(searchQuery);
   }, [searchQuery]);
 
-  // ✨ Smart Search Filter - กรอง category + เนื้อหา + Hot Posts First
   useEffect(() => {
     if (searchQuery.trim() === '') {
-      // ✨ เมื่อไม่มีการค้นหา ให้เรียงตาม Hot Score
       const postsWithHotScore = allPosts.map(post => {
         const likes = post.likes?.length || 0;
         const members = post.currentMembers || 0;
@@ -107,12 +106,10 @@ const AllPosts = () => {
         };
       });
       
-      // เรียงตาม Hot Score สูงสุดก่อน
       const sorted = postsWithHotScore.sort((a, b) => {
         if (b.hotScore !== a.hotScore) {
-          return b.hotScore - a.hotScore; // Hot ก่อน
+          return b.hotScore - a.hotScore; 
         }
-        // ถ้า Hot Score เท่ากัน เรียงตามเวลาล่าสุด
         const timeA = a.createdAt?.toMillis() || 0;
         const timeB = b.createdAt?.toMillis() || 0;
         return timeB - timeA;
@@ -120,7 +117,6 @@ const AllPosts = () => {
       
       setFilteredPosts(sorted);
       
-      // 🔍 Debug: ดูค่า Hot Score
       console.log('🔥 Top 5 Posts by Hot Score:');
       sorted.slice(0, 5).forEach((post, i) => {
         console.log(`${i+1}. ${post.title} - Hot Score: ${post.hotScore}`);
@@ -132,7 +128,6 @@ const AllPosts = () => {
         let relevanceScore = 0;
         let matchType = '';
         
-        // Title match (น้ำหนักสูงสุด)
         const title = post.title?.toLowerCase() || '';
         if (title === query) {
           relevanceScore += 1000;
@@ -145,7 +140,6 @@ const AllPosts = () => {
           matchType = 'title-word';
         }
         
-        // Destination match
         const destination = post.destination?.toLowerCase() || '';
         if (destination === query) {
           relevanceScore += 400;
@@ -155,7 +149,6 @@ const AllPosts = () => {
           if (!matchType) matchType = 'destination-partial';
         }
         
-        // Description/Content match
         const description = post.description?.toLowerCase() || '';
         const content = post.content?.toLowerCase() || '';
         const text = post.text?.toLowerCase() || '';
@@ -173,7 +166,6 @@ const AllPosts = () => {
           if (!matchType) matchType = 'text';
         }
         
-        // ✨ Category match - ค้นหาตามหมวดหมู่
         const category = post.category?.toLowerCase() || '';
 
         if (category.includes(query)) {
@@ -193,7 +185,6 @@ const AllPosts = () => {
           }
         }
         
-        // 🔥 Hot Score - เพิ่มคะแนนจากความนิยม
         if (relevanceScore > 0) {
           const matchCount = [
             title.includes(query),
@@ -207,7 +198,6 @@ const AllPosts = () => {
             relevanceScore += matchCount * 10;
           }
           
-          // ✨ เพิ่ม Hot Score มากขึ้น
           const likes = post.likes?.length || 0;
           const members = post.currentMembers || 0;
           const joinRequests = post.joinRequests?.length || 0;
@@ -215,7 +205,6 @@ const AllPosts = () => {
           relevanceScore += Math.min(popularityBonus, 100);
         }
         
-        // คำนวณ Hot Score สำหรับการเรียงลำดับ
         const likes = post.likes?.length || 0;
         const members = post.currentMembers || 0;
         const joinRequests = post.joinRequests?.length || 0;
@@ -229,29 +218,24 @@ const AllPosts = () => {
         };
       });
       
-      // กรองและเรียง - โพสต์ Hot ขึ้นก่อนเมื่อ relevanceScore ใกล้เคียงกัน
       const filtered = postsWithScore
         .filter(post => post.relevanceScore > 0)
         .sort((a, b) => {
-          // ถ้า relevanceScore ต่างกันมาก (>100) ให้เรียงตาม relevanceScore
           if (Math.abs(b.relevanceScore - a.relevanceScore) > 100) {
             return b.relevanceScore - a.relevanceScore;
           }
-          
-          // ถ้า relevanceScore ใกล้เคียงกัน ให้เรียงตาม Hot Score
+ 
           if (b.hotScore !== a.hotScore) {
             return b.hotScore - a.hotScore;
           }
           
-          // ถ้า Hot Score เท่ากัน ให้เรียงตามเวลาล่าสุด
           const timeA = a.createdAt?.toMillis() || 0;
           const timeB = b.createdAt?.toMillis() || 0;
           return timeB - timeA;
         });
       
       setFilteredPosts(filtered);
-      
-      // 🔍 Debug: ดูค่า Hot Score เมื่อค้นหา
+
       console.log('🔥 Search Results Top 5:');
       filtered.slice(0, 5).forEach((post, i) => {
         console.log(`${i+1}. ${post.title} - Hot Score: ${post.hotScore}, Relevance: ${post.relevanceScore}`);
@@ -277,7 +261,6 @@ const AllPosts = () => {
     navigate('/homepage');
   };
 
-  // Handle Search
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchInput.trim()) {
@@ -299,7 +282,6 @@ const AllPosts = () => {
       <Navbar brand="TripTogether" />
 
       <div className="all-posts-page">
-        {/* Header */}
         <div className="page-header">
           <div className="page-header-top">
             <button className="back" onClick={handleBackToHome}>
@@ -313,8 +295,6 @@ const AllPosts = () => {
             </div>
             <div className="posts-count">{filteredPosts.length} โพสต์</div>
           </div>
-
-          {/* ✨ Search Bar */}
           <div className="search-section">
             <form className="search-form" onSubmit={handleSearch}>
               <div className="search-wrapper">
@@ -351,8 +331,6 @@ const AllPosts = () => {
             )}
           </div>
         </div>
-
-        {/* Posts Grid */}
         <div className="posts-grid">
           {filteredPosts.length > 0 ? (
             filteredPosts.map((post) => (
@@ -367,7 +345,6 @@ const AllPosts = () => {
                     alt={post.title}
                     className="post-image"
                   />
-                  {/* 🔥 HOT Badge - แสดงเฉพาะ Top 10% */}
                   {filteredPosts.indexOf(post) < Math.ceil(filteredPosts.length * 0.1) && (
                     <span className="hot-badge">
                       🔥 HOT

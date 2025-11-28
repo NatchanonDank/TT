@@ -76,7 +76,7 @@
   }
   
   .message-wrapper.other .message-sender-name {
-    color: #1976d2;
+    color: #1a1a1a;
   }
   
   .message-wrapper.own .message-sender-name {
@@ -147,3 +147,141 @@
       max-width: 80%;
     }
   }
+
+/* ✅ สไตล์สำหรับข้อความที่ถูกลบ */
+.message-bubble.deleted {
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  border: 1px dashed #cbd5e1;
+}
+
+.deleted-text {
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* ✅ Tag แก้ไขแล้ว */
+.edited-tag {
+  font-size: 0.7rem;
+  opacity: 0.6;
+  margin-left: 4px;
+}
+
+/* ✅ ปุ่ม Option (3 จุด) */
+.message-options {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+/* แสดงปุ่มเมื่อเอาเมาส์ไปวางที่ bubble */
+.message-bubble:hover .message-options {
+  opacity: 1;
+}
+
+.options-trigger {
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: inherit;
+}
+
+.message-wrapper.own .options-trigger {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* ✅ เมนู Dropdown */
+.options-menu {
+  position: absolute;
+  top: 24px;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  z-index: 10;
+  min-width: 80px;
+  display: flex;
+  flex-direction: column;
+}
+
+.options-menu button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: none;
+  background: none;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-radius: 4px;
+  color: #333;
+  width: 100%;
+  text-align: left;
+}
+
+.options-menu button:hover {
+  background: #f0f2f5;
+}
+
+.options-menu .delete-option {
+  color: #ef4444;
+}
+
+.options-menu .delete-option:hover {
+  background: #fee2e2;
+}
+
+
+.edit-mode-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 200px;
+}
+
+.edit-message-input {
+  flex: 1;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.95rem;
+  outline: none;
+  color: #333;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.edit-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.edit-btn.save {
+  background: #22c55e;
+  color: white;
+}
+
+.edit-btn.cancel {
+  background: #ef4444;
+  color: white;
+}

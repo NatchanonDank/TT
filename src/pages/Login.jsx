@@ -1,5 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth"; 
+import { 
+  signInWithEmailAndPassword, 
+  setPersistence, 
+  browserSessionPersistence 
+} from "firebase/auth"; 
 import { auth } from "../firebase"; 
 import styles from "./Login.module.css";
 
@@ -12,13 +16,14 @@ export default function Login() {
     const password = e.target.password.value;
 
     try {
+      await setPersistence(auth, browserSessionPersistence);
 
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
       if (!user.emailVerified) {
         alert("กรุณายืนยันตัวตนผ่านอีเมลที่คุณได้รับก่อนเข้าใช้งาน");
-}
+      }
       
       console.log("Login success:", user);
       alert("Login สำเร็จ! ยินดีต้อนรับ " + user.email);
@@ -26,7 +31,6 @@ export default function Login() {
       navigate("/homepage");
 
     } catch (error) {
-
       console.error("Login error:", error.code, error.message);
       
       let errorMessage = "เกิดข้อผิดพลาดในการเข้าสู่ระบบ";
