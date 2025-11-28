@@ -24,7 +24,7 @@ import {
   arrayRemove,
   deleteDoc,
   setDoc,
-  increment 
+  increment
 } from 'firebase/firestore';
 
 import { useNotifications } from '../../components/NotificationContext';
@@ -100,8 +100,7 @@ const Chat = () => {
         if (!activeChat || activeChat.id !== existingGroup.id || 
             activeChat.notified_approaching !== existingGroup.notified_approaching ||
             activeChat.notified_today !== existingGroup.notified_today ||
-            activeChat.status !== existingGroup.status ||
-            activeChat.currentMembers !== existingGroup.currentMembers) {
+            activeChat.status !== existingGroup.status) {
           setActiveChat(existingGroup);
         }
       } else {
@@ -313,11 +312,15 @@ const Chat = () => {
       return;
     }
 
+    if (!window.confirm(`ยืนยันที่จะออกจากกลุ่ม "${targetGroup.name}" ใช่หรือไม่? คุณจะไม่สามารถเข้าห้องแชทนี้ได้อีกจนกว่าจะได้รับการอนุมัติใหม่`)) {
+      return;
+    }
+
     try {
       const batch = writeBatch(db); 
 
       const groupRef = doc(db, 'groups', targetGroup.id);
-      const postRef = doc(db, 'posts', targetGroup.id);
+      const postRef = doc(db, 'posts', targetGroup.id); 
 
       const memberToRemove = targetGroup.members.find(m => m.uid === currentUser.uid);
       
@@ -332,10 +335,13 @@ const Chat = () => {
         currentMembers: increment(-1) 
       });
 
-      batch.update(postRef, {
-        members: arrayRemove(memberToRemove),
-        currentMembers: increment(-1)
-      });
+      const postSnap = await getDoc(postRef);
+      if (postSnap.exists()) {
+        batch.update(postRef, {
+          members: arrayRemove(memberToRemove),
+          currentMembers: increment(-1)
+        });
+      }
 
       await batch.commit(); 
 
@@ -349,7 +355,7 @@ const Chat = () => {
 
     } catch (error) {
       console.error('Error leaving group:', error);
-      alert('เกิดข้อผิดพลาดในการออกจากกลุ่ม');
+      alert('เกิดข้อผิดพลาดในการออกจากกลุ่ม: ' + error.message);
     }
   };
 
@@ -375,12 +381,16 @@ const Chat = () => {
 
     if (window.confirm("ยืนยันที่จะจบขบวนทริปนี้?")) {
       try {
-        const groupRef = doc(db, 'groups', targetGroup.id);
-        const postRef = doc(db, 'posts', targetGroup.id);
         const batch = writeBatch(db);
+        const groupRef = doc(db, 'groups', targetGroup.id);
+        const postRef = doc(db, 'posts', targetGroup.id); 
 
         batch.update(groupRef, { status: 'ended', description: 'ทริปนี้จบแล้ว' });
-        batch.update(postRef, { status: 'ended' });
+        
+        const postSnap = await getDoc(postRef);
+        if (postSnap.exists()) {
+            batch.update(postRef, { status: 'ended' });
+        }
 
         await batch.commit();
         
@@ -438,10 +448,13 @@ const Chat = () => {
           currentMembers: increment(-1)
         });
 
-        batch.update(postRef, {
-          members: arrayRemove(memberToRemove),
-          currentMembers: increment(-1)
-        });
+        const postSnap = await getDoc(postRef);
+        if (postSnap.exists()) {
+            batch.update(postRef, {
+                members: arrayRemove(memberToRemove),
+                currentMembers: increment(-1)
+            });
+        }
 
         await batch.commit();
         alert(`ลบ ${memberToRemove.name} เรียบร้อยแล้ว`);
