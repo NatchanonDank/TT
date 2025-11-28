@@ -3,14 +3,25 @@ import { Users, Star, Tag, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, collection, query, getDocs, addDoc, setDoc, updateDoc, serverTimestamp, where } from 'firebase/firestore';
+import { 
+  doc, 
+  getDoc, 
+  collection, 
+  query, 
+  getDocs, 
+  addDoc, 
+  setDoc, 
+  updateDoc, 
+  serverTimestamp, 
+  where, 
+  deleteDoc 
+} from 'firebase/firestore';
 import Navbar from '../components/Navbar';
 import Feb from '../components/Feb';
-import TripCard from '../components/TripCard';
+import TripCard from '../components/TripCard'; 
 import './Homepage.css';
 
 const Homepage = () => {
-  
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [recommendedTrips, setRecommendedTrips] = useState([]);
@@ -45,16 +56,23 @@ const Homepage = () => {
             uid: user.uid,
             id: user.uid 
           };
+
           if (userDoc.exists()) {
              const firestoreData = userDoc.data();
              if (firestoreData.avatar) userData.avatar = firestoreData.avatar;
              if (firestoreData.name) userData.name = firestoreData.name;
           }
+          
           setCurrentUser(userData);
-        } catch (error) { console.error("Error fetching user data:", error); }
-      } else { navigate('/login'); }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      } else {
+        navigate('/login');
+      }
       setLoading(false);
     });
+
     return () => unsubscribe();
   }, [navigate]);
 
@@ -63,7 +81,10 @@ const Homepage = () => {
       try {
         const postsQuery = query(collection(db, 'posts'));
         const querySnapshot = await getDocs(postsQuery);
-        let trips = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        let trips = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
         
         if (selectedCategory !== 'ทั้งหมด') {
           trips = trips.filter(trip => trip.category === selectedCategory);
@@ -74,7 +95,12 @@ const Homepage = () => {
           const members = trip.currentMembers || trip.members?.length || 0;
           const joinRequests = trip.joinRequests?.length || 0;
           const hotScore = likes * 10 + members * 20 + joinRequests * 5;
-          return { ...trip, hotScore, membersCount: members };
+          
+          return {
+            ...trip,
+            hotScore,
+            membersCount: members
+          };
         });
         
         const sortedTrips = tripsWithScore.sort((a, b) => {
@@ -89,16 +115,25 @@ const Homepage = () => {
           ...trip,
           isHot: index < top10PercentCount
         }));
+        
         setRecommendedTrips(tripsWithHotFlag);
-      } catch (error) { console.error("Error fetching trips:", error); }
+        
+      } catch (error) {
+        console.error("Error fetching trips:", error);
+      }
     };
-    if (currentUser) { fetchRecommendedTrips(); }
+
+    if (currentUser) {
+      fetchRecommendedTrips();
+    }
   }, [currentUser, selectedCategory]);
 
   useEffect(() => {
     const handleWheel = (e) => {
       const mainContent = document.querySelector('.main-content');
-      if (mainContent) mainContent.scrollTop += e.deltaY;
+      if (mainContent) {
+        mainContent.scrollTop += e.deltaY;
+      }
     };
     window.addEventListener('wheel', handleWheel, { passive: true });
     return () => window.removeEventListener('wheel', handleWheel);
@@ -129,9 +164,25 @@ const Homepage = () => {
     e.preventDefault();
     navigate(searchQuery.trim() ? `/posts?search=${encodeURIComponent(searchQuery.trim())}` : '/posts');
   };
+
+  const handleDeleteTrip = async (tripId) => {
+    if (window.confirm("คุณต้องการลบโพสต์นี้ใช่หรือไม่?")) {
+      try {
+        await deleteDoc(doc(db, 'posts', tripId));
+        try { await deleteDoc(doc(db, 'groups', tripId)); } catch(e) { /* ignore error if group not found */ }
+        
+        setRecommendedTrips(prev => prev.filter(t => t.id !== tripId));
+        alert('ลบโพสต์สำเร็จ');
+      } catch (error) {
+        console.error("Error deleting post:", error);
+        alert("เกิดข้อผิดพลาดในการลบ");
+      }
+    }
+  };
   
   const createPost = async (postData) => {
     if (!currentUser) return;
+
     try {
       const docRef = await addDoc(collection(db, 'posts'), {
         ...postData,
@@ -164,30 +215,10 @@ const Homepage = () => {
 
       await updateDoc(docRef, { chatGroupId: docRef.id });
       setIsModalOpen(false);
-      
-      const querySnapshot = await getDocs(query(collection(db, 'posts')));
-      let trips = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      if (selectedCategory !== 'ทั้งหมด') {
-        trips = trips.filter(trip => trip.category === selectedCategory);
-      }
-      const tripsWithScore = trips.map(trip => {
-        const likes = trip.likes?.length || 0;
-        const members = trip.currentMembers || trip.members?.length || 0;
-        const joinRequests = trip.joinRequests?.length || 0;
-        return { ...trip, hotScore: likes * 10 + members * 20 + joinRequests * 5, membersCount: members };
-      });
-      const sortedTrips = tripsWithScore.sort((a, b) => {
-        if (b.hotScore !== a.hotScore) return b.hotScore - a.hotScore;
-        return (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0);
-      });
-      const top10PercentCount = Math.ceil(sortedTrips.length * 0.1);
-      const tripsWithHotFlag = sortedTrips.map((trip, index) => ({
-        ...trip,
-        isHot: index < top10PercentCount
-      }));
-      setRecommendedTrips(tripsWithHotFlag);
 
       alert('สร้างโพสต์สำเร็จ! 🎉');
+      window.location.reload(); 
+
     } catch (error) {
       console.error("Error creating post:", error);
       alert("สร้างโพสต์ไม่สำเร็จ: " + error.message);
@@ -251,6 +282,8 @@ const Homepage = () => {
                         key={trip.id} 
                         trip={trip} 
                         onClick={() => handleTripClick(trip.id)} 
+                        currentUser={currentUser}
+                        onDelete={handleDeleteTrip} 
                       />
                     ))}
                   </div>
