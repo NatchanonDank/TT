@@ -6,10 +6,11 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, query, getDocs, addDoc, setDoc, updateDoc, serverTimestamp, where } from 'firebase/firestore';
 import Navbar from '../components/Navbar';
 import Feb from '../components/Feb';
+import TripCard from '../components/TripCard';
 import './Homepage.css';
 
-
 const Homepage = () => {
+  
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [recommendedTrips, setRecommendedTrips] = useState([]);
@@ -103,12 +104,6 @@ const Homepage = () => {
     return () => window.removeEventListener('wheel', handleWheel);
   }, []);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
-  };
-
   const handlePrevSlide = () => {
     setCurrentSlide((prev) => (prev === 0 ? Math.max(0, Math.ceil(recommendedTrips.length / 4) - 1) : prev - 1));
   };
@@ -137,7 +132,6 @@ const Homepage = () => {
   
   const createPost = async (postData) => {
     if (!currentUser) return;
-
     try {
       const docRef = await addDoc(collection(db, 'posts'), {
         ...postData,
@@ -163,16 +157,37 @@ const Homepage = () => {
         ownerId: currentUser.uid,
         memberUids: [currentUser.uid],
         members: [{ name: currentUser.name, avatar: currentUser.avatar, uid: currentUser.uid }],
-        startDate: postData.startDate, 
-        notified_approaching: false,   
-        notified_today: false          
+        startDate: postData.startDate,
+        notified_approaching: false,
+        notified_today: false
       });
 
       await updateDoc(docRef, { chatGroupId: docRef.id });
       setIsModalOpen(false);
+      
+      const querySnapshot = await getDocs(query(collection(db, 'posts')));
+      let trips = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (selectedCategory !== 'ทั้งหมด') {
+        trips = trips.filter(trip => trip.category === selectedCategory);
+      }
+      const tripsWithScore = trips.map(trip => {
+        const likes = trip.likes?.length || 0;
+        const members = trip.currentMembers || trip.members?.length || 0;
+        const joinRequests = trip.joinRequests?.length || 0;
+        return { ...trip, hotScore: likes * 10 + members * 20 + joinRequests * 5, membersCount: members };
+      });
+      const sortedTrips = tripsWithScore.sort((a, b) => {
+        if (b.hotScore !== a.hotScore) return b.hotScore - a.hotScore;
+        return (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0);
+      });
+      const top10PercentCount = Math.ceil(sortedTrips.length * 0.1);
+      const tripsWithHotFlag = sortedTrips.map((trip, index) => ({
+        ...trip,
+        isHot: index < top10PercentCount
+      }));
+      setRecommendedTrips(tripsWithHotFlag);
 
       alert('สร้างโพสต์สำเร็จ! 🎉');
-      window.location.reload(); 
     } catch (error) {
       console.error("Error creating post:", error);
       alert("สร้างโพสต์ไม่สำเร็จ: " + error.message);
