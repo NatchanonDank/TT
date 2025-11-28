@@ -1,5 +1,4 @@
 import React from 'react';
-import { Search } from 'lucide-react';
 import GroupCard from './GroupCard';
 import './GroupList.css';
 
@@ -9,15 +8,16 @@ const GroupList = ({
   onSearchChange, 
   onChatClick,
   activeGroupId,
-  currentUser, 
-  onEndTrip,   
-  onLeaveGroup 
+  currentUser,
+  onEndTrip,
+  onLeaveGroup,
+  onDeleteGroup,
+  onRemoveMember 
 }) => {
   return (
     <div className="group-list">
       <div className="group-list-header">
         <h2 className="group-list-title">แชท</h2>
-        
         <div className="search-bar">
           <input
             type="text"
@@ -40,9 +40,11 @@ const GroupList = ({
               group={group} 
               onChatClick={onChatClick}
               isActive={group.id === activeGroupId}
-              currentUser={currentUser} 
-              onEndTrip={onEndTrip}     
-              onLeaveGroup={onLeaveGroup} 
+              currentUser={currentUser}
+              onEndTrip={onEndTrip}
+              onLeaveGroup={onLeaveGroup}
+              onDeleteGroup={onDeleteGroup}
+              onRemoveMember={onRemoveMember} 
             />
           ))
         )}

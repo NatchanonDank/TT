@@ -139,7 +139,8 @@ const Chat = () => {
       tripStart.setHours(0, 0, 0, 0);
 
       const diffTime = tripStart.getTime() - now.getTime();
-      const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
+      const diffDays = Math.round(diffTime / (1000 * 3600 * 24)); 
+
       if (diffDays === 1 && !activeChat.notified_approaching) {
         try {
           const messageText = "🔔 พรุ่งนี้ถึงวันเดินทางแล้ว! อย่าลืมเตรียมตัวให้พร้อมนะครับ";
@@ -397,6 +398,7 @@ const Chat = () => {
          try {
            await deleteDoc(doc(db, 'groups', targetGroup.id));
            await deleteDoc(doc(db, 'posts', targetGroup.id));
+           
            alert('ลบทริปเรียบร้อยแล้ว');
            
            if (activeChat?.id === targetGroup.id) {
@@ -488,6 +490,47 @@ const Chat = () => {
     }
   };
 
+  const handleRemoveMember = async (targetGroup, memberToRemove) => {
+    if (!targetGroup?.id || !currentUser?.uid) return;
+
+    if (targetGroup.ownerId !== currentUser.uid) {
+      alert('เฉพาะหัวหน้าทริปเท่านั้นที่สามารถลบสมาชิกได้');
+      return;
+    }
+
+    if (memberToRemove.uid === currentUser.uid) {
+      alert('คุณไม่สามารถลบตัวเองได้ กรุณาใช้เมนู "ออกจากกลุ่ม"');
+      return;
+    }
+
+    if (window.confirm(`คุณต้องการลบ ${memberToRemove.name} ออกจากกลุ่มใช่หรือไม่?`)) {
+      try {
+        const groupRef = doc(db, 'groups', targetGroup.id);
+        
+        await updateDoc(groupRef, {
+          members: arrayRemove(memberToRemove),
+          memberUids: arrayRemove(memberToRemove.uid),
+          currentMembers: (targetGroup.currentMembers || 1) - 1
+        });
+
+        const postRef = doc(db, 'posts', targetGroup.id);
+        const postSnap = await getDoc(postRef);
+        if (postSnap.exists()) {
+             await updateDoc(postRef, {
+                members: arrayRemove(memberToRemove),
+                currentMembers: (targetGroup.currentMembers || 1) - 1
+             });
+        }
+
+        alert(`ลบ ${memberToRemove.name} เรียบร้อยแล้ว`);
+
+      } catch (error) {
+        console.error("Error removing member:", error);
+        alert("เกิดข้อผิดพลาดในการลบสมาชิก");
+      }
+    }
+  };
+
   const groupsWithUnread = groups.map(group => {
     const unreadCount = notifications ? notifications.filter(n => 
       n.groupId === group.id && 
@@ -530,6 +573,7 @@ const Chat = () => {
             onEndTrip={handleEndTrip}
             onLeaveGroup={handleLeaveGroup}
             onDeleteGroup={handleDeleteGroup}
+            onRemoveMember={handleRemoveMember}
           />
         </div>
 
@@ -544,6 +588,7 @@ const Chat = () => {
               onEndTrip={() => handleEndTrip(activeChat)}
               onLeaveGroup={() => handleLeaveGroup(activeChat)}
               onDeleteGroup={() => handleDeleteGroup(activeChat)}
+              onRemoveMember={handleRemoveMember}
               
               onInputChange={setMessageInput}
               onSendMessage={handleSendMessage}

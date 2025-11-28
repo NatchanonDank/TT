@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, X, Trash2 } from 'lucide-react'; // ✅ เพิ่ม Trash2
+import { ArrowLeft, X, Trash2, UserMinus } from 'lucide-react'; 
 import './ChatHeader.css';
 
 const ChatHeader = ({ 
@@ -8,6 +8,7 @@ const ChatHeader = ({
   onEndTrip,
   onLeaveGroup, 
   onDeleteGroup,
+  onRemoveMember, 
   isTripEnded,
   currentUser
 }) => {
@@ -42,6 +43,10 @@ const ChatHeader = ({
     onDeleteGroup();
   };
 
+  const handleKickMember = (member) => {
+    onRemoveMember(chat, member);
+  };
+
   return (
     <>
       <div className="chat-header">
@@ -66,20 +71,11 @@ const ChatHeader = ({
 
               {isLeader ? (
                 isTripEnded ? (
-                  <button 
-                    onClick={handleDeleteGroup} 
-                    className="end-trip-btn" 
-                  >
+                  <button onClick={handleDeleteGroup} className="end-trip-btn">
                     <Trash2 size={16} style={{marginRight: '4px', display: 'inline'}}/> ลบกลุ่มแชท
                   </button>
                 ) : (
-                  <button 
-                    onClick={() => {
-                      setIsOptionsOpen(false);
-                      onEndTrip();
-                    }} 
-                    className="end-trip-btn"
-                  >
+                  <button onClick={() => { setIsOptionsOpen(false); onEndTrip(); }} className="end-trip-btn">
                     🏁 สิ้นสุดทริป
                   </button>
                 )
@@ -102,9 +98,11 @@ const ChatHeader = ({
                 <X size={24} />
               </button>
             </div>
+            
             <div className="members-count-badge">
               {chat.currentMembers}/{chat.maxMembers} คน
             </div>
+
             <div className="members-list">
               {chat.members && chat.members.length > 0 ? (
                 chat.members.map((member, index) => (
@@ -118,6 +116,15 @@ const ChatHeader = ({
                       <p className="member-name">{member.name || 'สมาชิก'}</p>
                       {index === 0 && <span className="leader-badge">👑 Leader</span>}
                     </div>
+                    {isLeader && member.uid !== currentUser.uid && !isTripEnded && (
+                      <button 
+                        className="kick-btn"
+                        onClick={() => handleKickMember(member)}
+                        title="ลบสมาชิก"
+                      >
+                        <UserMinus size={18} />
+                      </button>
+                    )}
                   </div>
                 ))
               ) : (

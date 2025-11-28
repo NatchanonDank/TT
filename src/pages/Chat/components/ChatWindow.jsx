@@ -11,7 +11,8 @@ const ChatWindow = ({
   onBack,
   onEndTrip,
   onLeaveGroup,
-  onDeleteGroup, 
+  onDeleteGroup,
+  onRemoveMember,
   onInputChange,
   onSendMessage,
   onOpenLocationModal,
@@ -26,7 +27,8 @@ const ChatWindow = ({
         onBack={onBack}
         onEndTrip={onEndTrip}
         onLeaveGroup={onLeaveGroup}
-        onDeleteGroup={onDeleteGroup} 
+        onDeleteGroup={onDeleteGroup}
+        onRemoveMember={onRemoveMember}
         isTripEnded={isTripEnded}
         currentUser={currentUser}
       />

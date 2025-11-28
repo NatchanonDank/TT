@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, MoreVertical, X, LogOut, Flag, Trash2 } from 'lucide-react'; // ✅ เพิ่ม Trash2
+import { Users, MoreVertical, X, LogOut, Flag, Trash2, UserMinus } from 'lucide-react';
 import './GroupCard.css';
 
 const GroupCard = ({ 
@@ -9,7 +9,8 @@ const GroupCard = ({
   currentUser, 
   onEndTrip, 
   onLeaveGroup,
-  onDeleteGroup 
+  onDeleteGroup,
+  onRemoveMember 
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
@@ -51,10 +52,14 @@ const GroupCard = ({
     setIsMembersModalOpen(false);
   };
 
+  const handleKickMember = (member) => {
+    onRemoveMember(group, member);
+  };
+
   return (
     <>
       <div 
-        className={`group-card ${group.unread > 0 ? 'group-unread-card' : ''} ${isEnded ? 'ended' : ''} ${isActive ? 'active' : ''}`} 
+        className={`group-card ${group.unread > 0 ? 'group-unread-card' : ''} ${isEnded ? 'ended' : ''} ${isActive ? 'active' : ''} ${isMenuOpen ? 'menu-open' : ''}`} 
         onClick={() => onChatClick(group)}
       >
         <div className="group-card-avatar">
@@ -70,7 +75,10 @@ const GroupCard = ({
             <h3 className="group-name">{group.name}</h3>
             
             <div className="group-card-options">
-                <button className="options-trigger" onClick={handleToggleMenu}>
+                <button 
+                  className={`options-trigger ${isMenuOpen ? 'active' : ''}`} 
+                  onClick={handleToggleMenu}
+                >
                     <MoreVertical size={16} />
                 </button>
                 
@@ -117,6 +125,7 @@ const GroupCard = ({
                 <X size={24} />
               </button>
             </div>
+            
             <div className="members-list">
               {group.members && group.members.length > 0 ? (
                 group.members.map((member, index) => (
@@ -130,6 +139,16 @@ const GroupCard = ({
                       <p className="member-name">{member.name || 'สมาชิก'}</p>
                       {group.ownerId === member.uid && <span className="leader-badge">👑 Leader</span>}
                     </div>
+
+                    {isLeader && member.uid !== currentUser.uid && !isEnded && (
+                      <button 
+                        className="kick-btn"
+                        onClick={() => handleKickMember(member)}
+                        title="ลบสมาชิก"
+                      >
+                        <UserMinus size={18} />
+                      </button>
+                    )}
                   </div>
                 ))
               ) : (

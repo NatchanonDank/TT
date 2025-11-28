@@ -5,35 +5,38 @@
     align-items: center;
     gap: 12px;
     padding: 14px;
-    margin-bottom: 8px; /* ✅ ลดลง */
+    margin-bottom: 8px;
     background: white;
-    border-radius: 16px; /* ✅ เพิ่มความโค้ง */
+    border-radius: 16px;
     cursor: pointer;
     transition: all 0.25s ease;
     border: 2px solid transparent;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  }
-  
-  /* ✅ ลบ margin-bottom ของการ์ดตัวสุดท้าย */
-  .group-card:last-child {
-    margin-bottom: 12px;
-  }
-  
-  .group-card:hover {
+    position: relative; 
+    z-index: 1; /* ค่าเริ่มต้น */
+}
+
+/* ✅ เมื่อเปิดเมนู ให้การ์ดใบนี้ลอยเหนือเพื่อน */
+.group-card.menu-open {
+    z-index: 100 !important;
+    background: #fff; /* กันพื้นหลังใสแล้วเห็นข้างหลัง */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.group-card:hover {
     background: #f8fafb;
     border-color: #e3f2fd;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(33, 150, 243, 0.12);
-  }
-  
-  /* Active state */
-  .group-card.active {
+}
+
+.group-card.active {
     background: linear-gradient(135deg, #e3f2fd 0%, #d0e7f9 100%);
     border-color: #64b5f6;
     box-shadow: 0 4px 16px rgba(33, 150, 243, 0.2);
-  }
-  
-  .group-card-avatar {
+}
+
+.group-card-avatar {
     width: 56px;
     height: 56px;
     min-width: 56px;
@@ -43,15 +46,15 @@
     flex-shrink: 0;
     position: relative;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  }
-  
-  .group-card-avatar img {
+}
+
+.group-card-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-  }
-  
-  .unread-badge {
+}
+
+.unread-badge {
     position: absolute;
     top: -4px;
     right: -4px;
@@ -68,22 +71,24 @@
     justify-content: center;
     font-weight: 700;
     box-shadow: 0 2px 8px rgba(239, 83, 80, 0.4);
-  }
-  
-  .group-card-info {
+}
+
+/* ✅ เอา overflow: hidden ออกจาก info เพื่อให้ dropdown ไม่โดนตัด */
+.group-card-info {
     flex: 1;
     min-width: 0;
-    overflow: hidden;
-  }
-  
-  .group-card-top {
+    /* overflow: hidden;  <-- เอาบรรทัดนี้ออก */
+    position: relative;
+}
+
+.group-card-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 4px;
-  }
-  
-  .group-name {
+}
+
+.group-name {
     font-size: 16px;
     font-weight: 600;
     color: #1e293b;
@@ -91,28 +96,81 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-  
-  .group-card.active .group-name {
-    color: #1565c0;
-    font-weight: 700;
-  }
-  
-  .group-time {
-    font-size: 12px;
-    color: #94a3b8;
-    white-space: nowrap;
+    flex: 1;
+}
+
+/* Options Button */
+.group-card-options {
+    position: relative;
     margin-left: 8px;
-  }
-  
-  .group-card-bottom {
+}
+
+.options-trigger {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #94a3b8;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.options-trigger:hover,
+.options-trigger.active {
+    background: rgba(0,0,0,0.05);
+    color: #1e293b;
+}
+
+/* ✅ Dropdown Menu: ปรับตำแหน่งและ z-index */
+.group-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 160px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2); /* เพิ่มเงาให้ชัดขึ้น */
+    padding: 6px;
+    z-index: 999; /* ให้ค่าสูงไว้ */
+    border: 1px solid #e2e8f0;
+    margin-top: 4px;
+}
+
+.group-dropdown-menu button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 12px; /* เพิ่มพื้นที่กด */
+    border: none;
+    background: none;
+    text-align: left;
+    font-size: 0.85rem;
+    color: #333;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.group-dropdown-menu button:hover {
+    background: #f1f5f9;
+}
+
+.group-dropdown-menu .danger-option { color: #ef4444; }
+.group-dropdown-menu .danger-option:hover { background: #fee2e2; }
+.group-dropdown-menu .warning-option { color: #f59e0b; }
+.group-dropdown-menu .warning-option:hover { background: #fef3c7; }
+
+.group-card-bottom {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 8px;
-  }
-  
-  .group-desc {
+}
+
+.group-desc {
     font-size: 13px;
     color: #64748b;
     margin: 0;
@@ -120,14 +178,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
     flex: 1;
-  }
-  
-  .group-card.active .group-desc {
-    color: #1976d2;
-    font-weight: 500;
-  }
-  
-  .group-members-count {
+}
+
+.group-members-count {
     font-size: 12px;
     color: #1976d2;
     font-weight: 600;
@@ -138,47 +191,73 @@
     display: flex;
     align-items: center;
     gap: 4px;
-  }
-  
-  .group-card.active .group-members-count {
+}
+
+.group-card.active .group-members-count {
     background: white;
     color: #1565c0;
-  }
-  
-  .group-card.ended {
-    opacity: 0.6;
+}
+
+.group-card.ended {
+    opacity: 0.7;
     background: #f5f5f5;
-  }
-  
-  .group-card.ended:hover {
-    opacity: 0.75;
-  }
-  
-  /* ========================================
-     RESPONSIVE
-     ======================================== */
-  @media (max-width: 900px) {
-    .group-card {
-      padding: 12px;
-      margin-bottom: 6px;
-      border-radius: 14px;
-    }
-  
-    .group-card:last-child {
-      margin-bottom: 8px;
-    }
-  
-    .group-card-avatar {
-      width: 52px;
-      height: 52px;
-      min-width: 52px;
-    }
-  
-    .group-name {
-      font-size: 15px;
-    }
-  
-    .group-desc {
-      font-size: 13px;
-    }
-  }
+}
+
+/* Modal Styles */
+.members-modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999; animation: fadeIn 0.2s ease; padding: 20px;
+}
+.members-modal-content {
+    background: white; border-radius: 20px; width: 100%; max-width: 440px;
+    max-height: 80vh; display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); animation: slideUp 0.3s ease;
+    overflow: hidden;
+}
+.members-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0;
+    background: #f8fafc;
+}
+.members-modal-header h3 { margin: 0; font-size: 1.1rem; color: #1e293b; }
+.close-modal-btn {
+    background: #e2e8f0; border: none; width: 32px; height: 32px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #64748b;
+}
+.members-list { flex: 1; overflow-y: auto; padding: 16px; }
+.member-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px;
+    margin-bottom: 8px; background: #f8fafb; border-radius: 12px;
+}
+.member-avatar {
+    width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+    border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.member-name { font-size: 0.95rem; font-weight: 600; color: #334155; margin: 0; }
+.leader-badge {
+    font-size: 0.7rem; background: #ffd700; color: #92400e;
+    padding: 2px 8px; border-radius: 10px; font-weight: 700;
+}
+.kick-btn {
+    background: #fee2e2; color: #ef4444; border: none;
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; margin-left: auto;
+}
+.kick-btn:hover { background: #fecaca; transform: scale(1.1); }
+.no-members { text-align: center; color: #94a3b8; margin-top: 20px; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* Responsive */
+@media (max-width: 900px) {
+    .group-card { padding: 12px; margin-bottom: 6px; border-radius: 14px; }
+    .group-card:last-child { margin-bottom: 8px; }
+    .group-card-avatar { width: 52px; height: 52px; min-width: 52px; }
+    .group-name { font-size: 15px; }
+    .group-desc { font-size: 13px; }
+}
