@@ -84,7 +84,7 @@ const GroupCard = ({
                 
                 {isMenuOpen && (
                     <div className="group-dropdown-menu">
-                        <button onClick={handleOpenMembers}>👥 ดูรายชื่อสมาชิก</button>
+                        <button onClick={handleOpenMembers}>ดูรายชื่อสมาชิก</button>
                         
                         {isLeader ? (
                             isEnded ? (
@@ -93,7 +93,7 @@ const GroupCard = ({
                                 </button>
                             ) : (
                                 <button onClick={handleEndTripClick} className="danger-option">
-                                    🏁 สิ้นสุดทริป
+                                    สิ้นสุดทริป
                                 </button>
                             )
                         ) : (
