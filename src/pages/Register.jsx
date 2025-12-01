@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "firebase/auth";
-import { auth } from "../firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore"; 
+import { auth, db } from "../firebase";
 import styles from "./Register.module.css";
 
 export default function Register() {
@@ -20,6 +21,7 @@ export default function Register() {
     const email = e.target.email.value;
     const password = e.target.password.value;
     const confirm = e.target.confirm.value;
+
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[A-Za-z\d\W_]{8,}$/;
     
     if (!passwordRegex.test(password)) {
@@ -42,11 +44,25 @@ export default function Register() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+
       await updateProfile(user, { displayName: fullname });
+
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        name: fullname,
+        email: email,
+        avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png", 
+        bio: "ยังไม่มีคำอธิบายตัวตน",
+        coverColor: "linear-gradient(135deg, #a8d5e2 0%, #f9d5a5 100%)",
+        createdAt: serverTimestamp()
+      });
+
       await sendEmailVerification(user);
+      
       console.log("User created & Verification sent");
       alert(`Registration successful! Please check your email ${email} to verify your account before logging in.`);
       navigate("/login");
+
     } catch (error) {
       console.error("Error:", error.code);
       let msg = error.message;
