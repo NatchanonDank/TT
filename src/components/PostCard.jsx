@@ -278,7 +278,11 @@ const PostCard = ({
         alert('แก้ไขโพสต์สำเร็จ!');
     } catch (error) {
         console.error("Error updating post:", error);
-        alert('เกิดข้อผิดพลาด: ' + error.message);
+
+        if (error.message.includes("exceeds the maximum allowed size")) {
+            alert("สร้างโพสต์ไม่สำเร็จ: \n❌ รูปภาพรวมกันมีขนาดใหญ่เกินไป! \n(1MB ต่อโพสต์) \nกรุณาลดขนาดณรูปภาพ หรือเลือกรูปที่มีขนาดไฟล์เล็กลง");
+            alert('เกิดข้อผิดพลาด: ' + error.message);
+        }
     }
   };
 

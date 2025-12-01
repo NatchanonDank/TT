@@ -18,11 +18,12 @@ const linkify = (text) => {
 };
 
 function MessageBubble({ message, currentUser, onEdit, onDelete }) {
-  const { text, uid, photoURL, sender, time, type, location, isDeleted, isEdited } = message;
+  const { text, uid, photoURL, sender, time, type, location, isDeleted, isEdited, imageUrl } = message;
   
   const isOwn = currentUser && uid === currentUser.uid;
   const messageClass = isOwn ? 'own' : 'other';
   const isLocation = (type === 'location' || (message.originalType === 'location' && !isDeleted)) && location;
+  const isImage = type === 'image' && !isDeleted; 
 
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(text);
@@ -51,7 +52,7 @@ function MessageBubble({ message, currentUser, onEdit, onDelete }) {
         </Link>
       )}
 
-      <div className={`message-bubble ${messageClass} ${isDeleted ? 'deleted' : ''}`}>
+      <div className={`message-bubble ${messageClass} ${isDeleted ? 'deleted' : ''} ${isImage ? 'image-bubble' : ''}`}>
         
         {!isOwn && (
           <Link to={`/profile/${uid}`} style={{ textDecoration: 'none' }}>
@@ -87,6 +88,25 @@ function MessageBubble({ message, currentUser, onEdit, onDelete }) {
               <span style={{fontSize: '0.75rem', opacity: 0.8}}>กดเพื่อดูแผนที่</span>
             </div>
           </a>
+        ) : isImage ? (
+          <div className="message-image-container">
+            <img 
+              src={imageUrl} 
+              alt="sent image" 
+              className="chat-image" 
+              style={{ 
+                maxWidth: '200px', 
+                maxHeight: '200px', 
+                borderRadius: '8px', 
+                cursor: 'pointer',
+                display: 'block' 
+              }}
+              onClick={() => {
+                const w = window.open("");
+                w.document.write(`<img src="${imageUrl}" style="max-width: 100%;" />`);
+              }}
+            />
+          </div>
         ) : (
           <p className="message-text">
             {linkify(text)}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Users, MoreVertical, X, LogOut, Flag, Trash2, UserMinus } from 'lucide-react';
+import { Users, MoreVertical, X, LogOut, Flag, Trash2, UserMinus, FileText } from 'lucide-react'; 
+import { useNavigate } from 'react-router-dom';
 import './GroupCard.css';
 
 const GroupCard = ({ 
@@ -12,6 +13,7 @@ const GroupCard = ({
   onDeleteGroup,
   onRemoveMember 
 }) => {
+  const navigate = useNavigate(); 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
 
@@ -56,6 +58,11 @@ const GroupCard = ({
     onRemoveMember(group, member);
   };
 
+  const handleViewTripDetail = (e) => {
+    e.stopPropagation();
+    navigate(`/post/${group.id}`);
+  };
+
   return (
     <>
       <div 
@@ -84,22 +91,16 @@ const GroupCard = ({
                 
                 {isMenuOpen && (
                     <div className="group-dropdown-menu">
+                        <button onClick={handleViewTripDetail}>ดูรายละเอียดทริป</button>
                         <button onClick={handleOpenMembers}>ดูรายชื่อสมาชิก</button>
-                        
                         {isLeader ? (
                             isEnded ? (
-                                <button onClick={handleDeleteGroupClick} className="danger-option">
-                                    <Trash2 size={14} style={{marginRight:4}}/> ลบกลุ่มแชท
-                                </button>
+                                <button onClick={handleDeleteGroupClick} className="danger-option">ลบกลุ่มแชท</button>
                             ) : (
-                                <button onClick={handleEndTripClick} className="danger-option">
-                                    สิ้นสุดทริป
-                                </button>
+                                <button onClick={handleEndTripClick} className="danger-option">สิ้นสุดทริป</button>
                             )
                         ) : (
-                            <button onClick={handleLeaveGroupClick} className="warning-option">
-                                <LogOut size={14} style={{marginRight:4}}/> ออกจากกลุ่ม
-                            </button>
+                            <button onClick={handleLeaveGroupClick} className="warning-option">ออกจากกลุ่ม</button>
                         )}
                     </div>
                 )}

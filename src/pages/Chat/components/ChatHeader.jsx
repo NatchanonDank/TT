@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ArrowLeft, X, Trash2, UserMinus } from 'lucide-react';
+import { ArrowLeft, X, Trash2, UserMinus, FileText } from 'lucide-react'; 
+import { useNavigate } from 'react-router-dom'; 
 import './ChatHeader.css';
 
 const ChatHeader = ({ 
@@ -12,8 +13,10 @@ const ChatHeader = ({
   isTripEnded,
   currentUser
 }) => {
+  const navigate = useNavigate();
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
+  
   const handleToggleOptions = (e) => {
     e.stopPropagation();
     setIsOptionsOpen(prev => !prev);
@@ -62,6 +65,10 @@ const ChatHeader = ({
           <button onClick={handleToggleOptions}>⋮</button>
           {isOptionsOpen && (
             <div className="options-dropdown">
+              <button onClick={() => navigate(`/post/${chat.id}`)}>
+                <FileText size={16} style={{marginRight: '8px', display: 'inline'}}/> ดูรายละเอียดทริป
+              </button>
+
               <button onClick={handleOpenMembersModal}>
                 👥 ดูรายชื่อสมาชิก
               </button>

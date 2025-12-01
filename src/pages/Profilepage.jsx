@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Edit2, X, Check, LogOut, Flag, Image as ImageIcon, Trash2 } from 'lucide-react'; // ✅ เพิ่มไอคอน ImageIcon, Trash2
+import { Camera, Edit2, X, Check, LogOut, Flag, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import PostCard from '../components/PostCard';
@@ -172,7 +172,7 @@ const ProfilePage = () => {
     const file = e.target.files[0];
     if (file) {
        if (file.size > 700 * 1024) {
-         alert(`รูป ${file.name} มีขนาดใหญ่เกิน 700KB!`);
+         alert(`รูป ${file.name} มีขนาดใหญ่เกิน 700KB! \nกรุณาเลือกรูปที่เล็กกว่านี้เพื่อให้บันทึกได้สำเร็จ`);
          return;
        }
        const reader = new FileReader();
@@ -184,8 +184,8 @@ const ProfilePage = () => {
   const handleCoverImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-       if (file.size > 2 * 1024 * 1024) {
-         alert(`รูปปกมีขนาดใหญ่เกิน 2MB!`);
+       if (file.size > 800 * 1024) {
+         alert(`รูปปกมีขนาดใหญ่เกินไป! (ต้องไม่เกิน 800KB) \nกรุณาเลือกรูปที่เล็กกว่านี้เพื่อให้บันทึกได้สำเร็จ`);
          return;
        }
        const reader = new FileReader();
@@ -239,7 +239,12 @@ const ProfilePage = () => {
       
     } catch (error) { 
       console.error("Error saving profile:", error);
-      alert("Error: บันทึกข้อมูลไม่สำเร็จ"); 
+
+      if (error.message.includes("exceeds the maximum allowed size")) {
+        alert("สร้างโพสต์ไม่สำเร็จ: \n❌ รูปภาพรวมกันมีขนาดใหญ่เกินไป! \n(1MB ต่อโพสต์) \nกรุณาลดขนาดณรูปภาพ หรือเลือกรูปที่มีขนาดไฟล์เล็กลง");
+      } else {
+        alert("Error: บันทึกข้อมูลไม่สำเร็จ (" + error.message + ")"); 
+      }
     }
   };
 
@@ -316,7 +321,7 @@ const ProfilePage = () => {
             </div>
             
             <div className="form-group">
-              <label>รูปโปรไฟล์</label>
+              <label>รูปโปรไฟล์ (แนะนำ &lt; 700KB)</label>
               <input type="file" accept="image/*" onChange={handleProfileImageUpload} />
             </div>
 
@@ -339,7 +344,7 @@ const ProfilePage = () => {
             </div>
             <div className="form-group">
               <label style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                รูปภาพปก
+                รูปภาพปก (แนะนำ &lt; 800KB)
                 {editForm.coverImage && (
                   <button 
                     onClick={handleRemoveCoverImage}

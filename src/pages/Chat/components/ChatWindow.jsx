@@ -16,6 +16,7 @@ const ChatWindow = ({
   onInputChange,
   onSendMessage,
   onOpenLocationModal,
+  onSendImage,
   onEditMessage,
   onDeleteMessage,
   currentUser
@@ -45,6 +46,7 @@ const ChatWindow = ({
         onInputChange={onInputChange}
         onSendMessage={onSendMessage}
         onOpenLocationModal={onOpenLocationModal}
+        onSendImage={onSendImage}
         isTripEnded={isTripEnded}
       />
     </div>

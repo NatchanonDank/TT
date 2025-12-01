@@ -100,11 +100,12 @@ const Endtrip = () => {
   const handleStarClick = (rating) => setReviewData({ ...reviewData, rating });
   const handleFriendRating = (friendId, rating) => setFriendRatings({ ...friendRatings, [friendId]: rating });
   const handleFriendComment = (friendId, comment) => setFriendComments({ ...friendComments, [friendId]: comment });
+  
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     files.forEach(file => {
-        if (file.size > 500000) {
-            alert(`ไฟล์ ${file.name} ใหญ่เกินไป!`);
+        if (file.size > 700 * 1024) {
+            alert(`ไฟล์ ${file.name} ใหญ่เกินไป!\nกรุณาใช้รูปขนาดไม่เกิน 700KB`);
             return;
         }
         const reader = new FileReader();
@@ -134,7 +135,7 @@ const Endtrip = () => {
             location: tripData.description || '',
             rating: reviewData.rating,
             comment: reviewData.comment,
-            images: reviewData.images,
+            images: reviewData.images, 
             userId: auth.currentUser.uid,
             userName: auth.currentUser.displayName || 'User',
             userAvatar: auth.currentUser.photoURL,
@@ -170,7 +171,12 @@ const Endtrip = () => {
 
     } catch (error) {
         console.error("Error:", error);
-        alert("เกิดข้อผิดพลาด: " + error.message);
+        
+        if (error.message.includes("exceeds the maximum allowed size")) {
+            alert("สร้างโพสต์ไม่สำเร็จ: \n❌ รูปภาพรวมกันมีขนาดใหญ่เกินไป! \n(1MB ต่อโพสต์) \nกรุณาลดขนาดณรูปภาพ หรือเลือกรูปที่มีขนาดไฟล์เล็กลง");
+        } else {
+            alert("เกิดข้อผิดพลาด: " + error.message);
+        }
     }
   };
 

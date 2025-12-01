@@ -304,6 +304,35 @@ const Chat = () => {
     } catch (error) { console.error("Error sending location:", error); alert("เกิดข้อผิดพลาดในการส่งตำแหน่ง"); }
   };
 
+  const handleSendImage = async (base64String) => {
+    if (!activeChat?.id || isTripEnded || !currentUser) return;
+
+    try {
+      await addDoc(collection(db, 'messages'), {
+        text: 'ส่งรูปภาพ',
+        imageUrl: base64String, 
+        createdAt: serverTimestamp(),
+        uid: currentUser.uid,
+        sender: currentUser.name,
+        photoURL: currentUser.avatar,
+        room: activeChat.id,
+        type: 'image' 
+      });
+
+      const groupRef = doc(db, 'groups', activeChat.id);
+      updateDoc(groupRef, {
+        description: `${currentUser.name}: ส่งรูปภาพ 📷`,
+        lastMessageTime: serverTimestamp()
+      });
+
+      await sendChatNotification('ส่งรูปภาพ 📷');
+
+    } catch (error) {
+      console.error("Error sending image:", error);
+      alert(`ไฟล์ ${file.name} ใหญ่เกินไป!\nกรุณาใช้รูปขนาดไม่เกิน 700KB`);
+    }
+  };
+
   const handleLeaveGroup = async (targetGroup = activeChat) => {
     if (!targetGroup?.id || !currentUser?.uid) return;
 
@@ -504,6 +533,7 @@ const Chat = () => {
               onRemoveMember={handleRemoveMember}
               onInputChange={setMessageInput} onSendMessage={handleSendMessage}
               onOpenLocationModal={() => setIsLocationModalOpen(true)}
+              onSendImage={handleSendImage} 
               onEditMessage={handleEditMessage} onDeleteMessage={handleDeleteMessage}
               currentUser={currentUser}
             />

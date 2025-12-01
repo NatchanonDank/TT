@@ -221,7 +221,12 @@ const Homepage = () => {
 
     } catch (error) {
       console.error("Error creating post:", error);
-      alert("สร้างโพสต์ไม่สำเร็จ: " + error.message);
+      
+      if (error.message.includes("exceeds the maximum allowed size")) {
+        alert("สร้างโพสต์ไม่สำเร็จ: \n❌ รูปภาพรวมกันมีขนาดใหญ่เกินไป! \n(1MB ต่อโพสต์) \nกรุณาลดขนาดณรูปภาพ หรือเลือกรูปที่มีขนาดไฟล์เล็กลง");
+      } else {
+        alert("สร้างโพสต์ไม่สำเร็จ: " + error.message);
+      }
     }
   };
 
