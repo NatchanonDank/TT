@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { db, auth } from '../firebase';
 import { 
   doc, 
@@ -166,6 +167,12 @@ const PostDetail = () => {
     <div className="post-detail-page">
       <Navbar brand="TripTogether" />
       <div className="post-detail-container">
+        {/* ปุ่มกลับ */}
+        <button className="back" onClick={() => navigate(-1)}>
+          <ArrowLeft size={20} />
+          <span>กลับ</span>
+        </button>
+
         <PostCard 
           post={post} 
           currentUser={currentUser}
