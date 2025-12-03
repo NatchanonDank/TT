@@ -28,7 +28,8 @@ const Feb = ({ isOpen, onClose, onSubmit, post }) => {
     'ดำน้ำ',
     'จิตอาสา',
     'ถ่ายรูป',
-    'ดูคอนเสิร์ต'
+    'ดูคอนเสิร์ต',
+    'น้ำตก ธรรมชาติ',
   ];
 
   const getTodayDate = () => {
