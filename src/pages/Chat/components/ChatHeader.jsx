@@ -1,7 +1,65 @@
-import React, { useState } from 'react';
-import { ArrowLeft, X, Trash2, UserMinus, FileText } from 'lucide-react'; 
-import { useNavigate } from 'react-router-dom'; 
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, X, Trash2, UserMinus } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { db } from '../../../firebase'; // ✅ Import db
+import { doc, getDoc } from 'firebase/firestore'; // ✅ Import getDoc
 import './ChatHeader.css';
+
+// ✅ Component ย่อยสำหรับดึงข้อมูลสมาชิกแต่ละคน
+const MemberItem = ({ member, isLeader, currentUser, isTripEnded, handleKickMember }) => {
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (member.uid) {
+        try {
+          const docRef = doc(db, 'users', member.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setUserData(docSnap.data());
+          }
+        } catch (error) {
+          console.error("Error fetching user:", error);
+        }
+      }
+    };
+    fetchUser();
+  }, [member.uid]);
+
+  // ใช้ข้อมูลล่าสุดจาก userData ถ้ามี, ถ้าไม่มีใช้จาก member เดิม, ถ้าไม่มีเลยใช้รูป default
+  const displayAvatar = userData?.avatar || member.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+  const displayName = userData?.name || member.name || 'สมาชิก';
+
+  return (
+    <div className="member-item">
+      <Link to={`/profile/${member.uid}`}>
+        <img 
+          src={displayAvatar} 
+          alt={displayName} 
+          className="member-avatar"
+        />
+      </Link>
+      <div className="member-info-detail">
+        <Link to={`/profile/${member.uid}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+          <p className="member-name">{displayName}</p>
+        </Link>
+        {/* เช็คว่าเป็น Leader โดยเทียบ uid */}
+        {member.uid === isLeader && <span className="leader-badge">👑 Leader</span>}
+      </div>
+
+      {/* ปุ่มลบสมาชิก (แสดงเฉพาะถ้าเราเป็น Leader และไม่ใช่ตัวเอง และทริปยังไม่จบ) */}
+      {isLeader === currentUser?.uid && member.uid !== currentUser.uid && !isTripEnded && (
+        <button 
+          className="kick-btn"
+          onClick={() => handleKickMember(member)}
+          title="ลบสมาชิก"
+        >
+          <UserMinus size={18} />
+        </button>
+      )}
+    </div>
+  );
+};
 
 const ChatHeader = ({ 
   chat, 
@@ -66,7 +124,7 @@ const ChatHeader = ({
           {isOptionsOpen && (
             <div className="options-dropdown">
               <button onClick={() => navigate(`/post/${chat.id}`)}>
-                <FileText size={16} style={{marginRight: '8px', display: 'inline'}}/> ดูรายละเอียดทริป
+                ดูรายละเอียดทริป
               </button>
 
               <button onClick={handleOpenMembersModal}>
@@ -110,27 +168,15 @@ const ChatHeader = ({
             <div className="members-list">
               {chat.members && chat.members.length > 0 ? (
                 chat.members.map((member, index) => (
-                  <div key={index} className="member-item">
-                    <img 
-                      src={member.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
-                      alt={member.name} 
-                      className="member-avatar"
-                    />
-                    <div className="member-info-detail">
-                      <p className="member-name">{member.name || 'สมาชิก'}</p>
-                      {index === 0 && <span className="leader-badge">👑 Leader</span>}
-                    </div>
-
-                    {isLeader && member.uid !== currentUser.uid && !isTripEnded && (
-                      <button 
-                        className="kick-btn"
-                        onClick={() => handleKickMember(member)}
-                        title="ลบสมาชิก"
-                      >
-                        <UserMinus size={18} />
-                      </button>
-                    )}
-                  </div>
+                  // ✅ เรียกใช้ MemberItem ที่สร้างขึ้นใหม่
+                  <MemberItem 
+                    key={index}
+                    member={member}
+                    isLeader={chat.ownerId}
+                    currentUser={currentUser}
+                    isTripEnded={isTripEnded}
+                    handleKickMember={handleKickMember}
+                  />
                 ))
               ) : (
                 <p className="no-members">ยังไม่มีสมาชิก</p>

@@ -124,3 +124,133 @@
     font-size: 1rem;
   }
 }
+/* ... (CSS เดิมของ PostCard.css) ... */
+
+/* ✅ เพิ่ม CSS สำหรับ Modal สมาชิก */
+.members-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000; /* สูงกว่า viewer */
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+.members-modal-content {
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 400px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+}
+
+.members-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #f9fafb;
+}
+
+.members-modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.close-modal-btn {
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.close-modal-btn:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.members-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.2s;
+}
+
+.member-item:hover {
+  background: #f8fafb;
+  border-color: #e3f2fd;
+}
+
+.member-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.member-info-detail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.member-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0;
+}
+
+.member-name-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.member-name-link:hover .member-name {
+  color: #2563eb;
+}
+
+.no-members {
+  text-align: center;
+  color: #94a3b8;
+  margin-top: 30px;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }

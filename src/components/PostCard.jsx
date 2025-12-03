@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, MessageCircle, MoreVertical, Edit, Trash2, Send, X, ChevronLeft, ChevronRight, Flag, Star } from 'lucide-react'; 
+import { Heart, MessageCircle, MoreVertical, Edit, Trash2, Send, X, ChevronLeft, ChevronRight, Flag, Star, Users } from 'lucide-react'; 
 import { Link, useNavigate } from 'react-router-dom'; 
 import './PostCard.css';
 import Feb from './Feb'; 
@@ -46,6 +46,7 @@ const PostCard = ({
   const [internalCommentInputs, setInternalCommentInputs] = useState({});
   const [internalShowDropdown, setInternalShowDropdown] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false); // ✅ State สำหรับ Modal สมาชิก
 
   const [authorRating, setAuthorRating] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
@@ -53,7 +54,7 @@ const PostCard = ({
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
-  const [hasJustSentRequest, setHasJustSentRequest] = useState(false);
+  const [hasJustSentRequest, setHasJustSentRequest] = useState(false); // ✅ State สำหรับปุ่มขอเข้าร่วม
 
   const showComments = showCommentsFromParent || internalShowComments;
   const commentInputs = commentInputsFromParent || internalCommentInputs;
@@ -189,9 +190,10 @@ const PostCard = ({
     }
   };
 
+  // ✅ แก้ไข: เพิ่มฟังก์ชันส่งคำขอเข้าร่วมกลุ่ม
   const internalHandleJoinChat = async () => {
-
     if (!currentUser || isPending || isMember || isFull) return;
+    
     try {
       const postRef = doc(db, 'posts', post.id);
       const joinRequest = {
@@ -200,8 +202,11 @@ const PostCard = ({
         avatar: currentUserAvatar,
         requestedAt: new Date().toISOString()
       };
+      
+      // อัปเดต Firestore
       await updateDoc(postRef, { joinRequests: arrayUnion(joinRequest) });
       
+      // ส่งแจ้งเตือนเจ้าของโพสต์
       if (postAuthorUid !== currentUser.uid) {
         await addDoc(collection(db, 'notifications'), {
           toUid: postAuthorUid,
@@ -216,7 +221,7 @@ const PostCard = ({
         });
       }
 
-      setHasJustSentRequest(true); 
+      setHasJustSentRequest(true); // อัปเดตสถานะปุ่มทันที
       alert('ส่งคำขอเข้าร่วมกลุ่มเรียบร้อยแล้ว!');
     } catch (error) {
       console.error('Error requesting to join:', error);
@@ -278,9 +283,9 @@ const PostCard = ({
         alert('แก้ไขโพสต์สำเร็จ!');
     } catch (error) {
         console.error("Error updating post:", error);
-
         if (error.message.includes("exceeds the maximum allowed size")) {
-            alert("สร้างโพสต์ไม่สำเร็จ: \n❌ รูปภาพรวมกันมีขนาดใหญ่เกินไป! \n(1MB ต่อโพสต์) \nกรุณาลดขนาดณรูปภาพ หรือเลือกรูปที่มีขนาดไฟล์เล็กลง");
+            alert("แก้ไขโพสต์ไม่สำเร็จ: \n❌ รูปภาพรวมกันมีขนาดใหญ่เกินไป! \n\nเนื่องจากระบบเก็บรูปฟรีมีพื้นที่จำกัด (1MB ต่อโพสต์) \nกรุณาลดจำนวนรูปภาพ หรือเลือกรูปที่มีขนาดเล็กลงครับ");
+        } else {
             alert('เกิดข้อผิดพลาด: ' + error.message);
         }
     }
@@ -392,12 +397,13 @@ const PostCard = ({
     document.body.style.overflow = 'auto'; 
   };
   
-  const nextImage = () => { 
-    setCurrentImageIndex((prev) => prev === post.images.length - 1 ? 0 : prev + 1); 
-  };
-  
-  const prevImage = () => { 
-    setCurrentImageIndex((prev) => prev === 0 ? post.images.length - 1 : prev - 1); 
+  const nextImage = () => { setCurrentImageIndex((prev) => prev === post.images.length - 1 ? 0 : prev + 1); };
+  const prevImage = () => { setCurrentImageIndex((prev) => prev === 0 ? post.images.length - 1 : prev - 1); };
+
+  // ✅ ฟังก์ชันเปิด Modal สมาชิก
+  const handleViewMembers = () => {
+    setIsMembersModalOpen(true);
+    setShowDropdown(null);
   };
 
   return (
@@ -443,6 +449,13 @@ const PostCard = ({
             </button>
             {showDropdown === post.id && (
               <div className="dropdown-menu">
+                {/* ✅ เมนูดูรายชื่อสมาชิก (เฉพาะสมาชิกหรือ Leader) */}
+                {(isMember || isLeader) && (
+                  <button className="dropdown-item" onClick={handleViewMembers}>
+                    <Users size={16} /> ดูรายชื่อสมาชิก
+                  </button>
+                )}
+
                 {isLeader ? (
                   <>
                     <button 
@@ -660,6 +673,41 @@ const PostCard = ({
           onSubmit={handleEditSubmit}
           post={post}
         />
+      )}
+      {isMembersModalOpen && (
+        <div className="members-modal-overlay" onClick={() => setIsMembersModalOpen(false)}>
+          <div className="members-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="members-modal-header">
+              <h3>รายชื่อสมาชิก ({post.members?.length || 0})</h3>
+              <button className="close-modal-btn" onClick={() => setIsMembersModalOpen(false)}>
+                <X size={24} />
+              </button>
+            </div>
+            <div className="members-list">
+              {post.members && post.members.length > 0 ? (
+                post.members.map((member, index) => (
+                  <div key={index} className="member-item">
+                    <Link to={`/profile/${member.uid}`}>
+                      <img 
+                        src={member.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'} 
+                        alt={member.name} 
+                        className="member-avatar"
+                      />
+                    </Link>
+                    <div className="member-info-detail">
+                      <Link to={`/profile/${member.uid}`} className="member-name-link">
+                        <p className="member-name">{member.name}</p>
+                      </Link>
+                      {postAuthorUid === member.uid && <span className="leader-badge">👑 Leader</span>}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="no-members">ยังไม่มีสมาชิก</p>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
